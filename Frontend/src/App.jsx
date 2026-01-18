@@ -1,19 +1,29 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from "react";
+import { BrowserRouter as Router,Routes,Route } from "react-router-dom";
+
+import LandingPage from "./pages/LandingPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <h1>This is the end hold your breath and count to ten.</h1>
-      <h1>The winner takes it all and the loser has to fall.</h1>
-      <button>Give Up</button>
-      <button>Die</button>
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route 
+          path="/" 
+          element={<LandingPage />}
+        />
+        <Route 
+          path="/login" 
+          element={<LoginPage />}
+        />
+        <Route 
+          path="/register" 
+          element={<RegisterPage />}
+        />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
