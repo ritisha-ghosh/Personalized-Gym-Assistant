@@ -1,17 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { Route, Routes } from 'react-router-dom'
 import './App.css'
+import Dashboard from './pages/Dashboard'
+import Workout from './pages/Workout'
+import Neutrations from './pages/Neutrations'
+import Settings from './pages/Settings'
+import Progression from './pages/Progression'
+import ChatBot from './pages/ChatBot'
 
 function App() {
-  const [count, setCount] = useState(0)
+  
 
   return (
     <>
-      <h1>This is the end hold your breath and count to ten.</h1>
-      <h1>The winner takes it all and the loser has to fall.</h1>
-      <button>Give Up</button>
-      <button>Die</button>
+    <Routes>
+      <Route path='/' element={<Dashboard/>}/>
+      <Route path='/workouts' element={<Workout/>}/>
+      <Route path='/nutrition' element={<Neutrations/>}/>
+      <Route path='/settings' element={<Settings/>}/>
+      <Route path='/progress' element={<Progression/>}/>
+      <Route path='/chat' element={<ChatBot/>}/>
+    </Routes>
+      
     </>
   )
 }
