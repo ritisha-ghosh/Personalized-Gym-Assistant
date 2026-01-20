@@ -39,7 +39,7 @@ const LandingPage = () => {
           </Link>
           
           <nav className="hidden md:flex items-center gap-10">
-            {['Features', 'How it Works', 'Community', 'Pricing'].map((item) => (
+            {['Features', 'How it Works',  'Pricing'].map((item) => (
               <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '-')}`} className="text-sm font-bold text-[#142E5C] hover:text-[#df20af] transition-colors">
                 {item}
               </a>
