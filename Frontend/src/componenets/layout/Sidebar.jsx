@@ -38,7 +38,7 @@ const Sidebar = () => {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-        <Link to="/" className={navItemClass("/")}>
+        <Link to="/" className={navItemClass("/dashboard")}>
           <LayoutDashboard size={18} className=" mt-1" />
           Dashboard
         </Link>

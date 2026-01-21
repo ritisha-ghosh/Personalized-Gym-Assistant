@@ -13,7 +13,7 @@ function App() {
   return (
     <>
     <Routes>
-      <Route path='/' element={<Dashboard/>}/>
+      <Route path='/dashboard' element={<Dashboard/>}/>
       <Route path='/workouts' element={<Workout/>}/>
       <Route path='/nutrition' element={<Neutrations/>}/>
       <Route path='/settings' element={<Settings/>}/>
