@@ -11,6 +11,20 @@ const UserProfile = () => {
 
   const [selectedGoal, setSelectedGoal] = useState('Muscle Gain');
   const [isInjuryActive, setIsInjuryActive] = useState(true);
+  const [profileImage, setProfileImage] = useState('https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2000&auto=format&fit=crop');
+  const [showGalleryModal, setShowGalleryModal] = useState(false);
+
+  // --- Profile Image Gallery ---
+  const profileImageGallery = [
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2000&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2000&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=2000&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?q=80&w=2000&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=2000&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1530268729831-4be0efed20da?q=80&w=2000&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1517836357463-d25ddfcbf042?q=80&w=2000&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=2000&auto=format&fit=crop',
+  ];
 
   // --- Handlers ---
   const handleInputChange = (e) => {
@@ -19,8 +33,25 @@ const UserProfile = () => {
   };
 
   const handleSave = () => {
-    console.log("Saving data...", { ...formData, selectedGoal, isInjuryActive });
+    console.log("Saving data...", { ...formData, selectedGoal, isInjuryActive, profileImage });
     alert("Profile Saved!");
+  };
+
+  const handleSelectProfileImage = (imageUrl) => {
+    setProfileImage(imageUrl);
+    setShowGalleryModal(false);
+  };
+
+  const handleUploadImage = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setProfileImage(event.target.result);
+        setShowGalleryModal(false);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -46,6 +77,22 @@ const UserProfile = () => {
             background-color: white;
             color: #df20af;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+          }
+
+          /* Modal Animations */
+          @keyframes modalSlideIn {
+            from {
+              opacity: 0;
+              transform: scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+
+          .modal-content {
+            animation: modalSlideIn 0.3s ease-out;
           }
         `}
       </style>
@@ -104,12 +151,15 @@ const UserProfile = () => {
           {/* Header Section */}
           <div className="mb-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
-              <div className="relative">
+              <div className="relative group">
                 <div 
                   className="w-32 h-32 rounded-full border-[5px] border-white shadow-xl bg-cover bg-center"
-                  style={{ backgroundImage: "url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2000&auto=format&fit=crop')" }}
+                  style={{ backgroundImage: `url('${profileImage}')` }}
                 ></div>
-                <button className="absolute bottom-0 right-0 bg-[#df20af] w-9 h-9 rounded-full border-4 border-white flex items-center justify-center text-white shadow-md hover:scale-110 transition-transform">
+                <button 
+                  onClick={() => setShowGalleryModal(true)}
+                  className="absolute bottom-0 right-0 bg-[#df20af] w-9 h-9 rounded-full border-4 border-white flex items-center justify-center text-white shadow-md hover:scale-110 transition-transform"
+                >
                   <span className="material-symbols-outlined text-[16px]">photo_camera</span>
                 </button>
               </div>
@@ -266,6 +316,97 @@ const UserProfile = () => {
           </div>
         </main>
       </div>
+
+      {/* --- Gallery Modal --- */}
+      {showGalleryModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="modal-content bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto">
+            
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-slate-900">Change Profile Picture</h2>
+              <button 
+                onClick={() => setShowGalleryModal(false)}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-8 space-y-8">
+              
+              {/* Upload Section */}
+              <div>
+                <label className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-4 block">Upload Custom Photo</label>
+                <div className="relative">
+                  <input 
+                    type="file" 
+                    id="file-upload"
+                    onChange={handleUploadImage}
+                    accept="image/*"
+                    className="sr-only"
+                  />
+                  <label 
+                    htmlFor="file-upload"
+                    className="flex items-center justify-center gap-3 px-6 py-6 border-2 border-dashed border-[#df20af]/30 rounded-2xl cursor-pointer hover:border-[#df20af]/60 hover:bg-[#df20af]/5 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-3xl text-[#df20af]">cloud_upload</span>
+                    <div className="text-left">
+                      <p className="font-bold text-slate-900">Click to upload</p>
+                      <p className="text-xs text-slate-500">or drag and drop</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Gallery Grid */}
+              <div>
+                <label className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-4 block">Select from Gallery</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {profileImageGallery.map((imageUrl, index) => (
+                    <div 
+                      key={index}
+                      onClick={() => handleSelectProfileImage(imageUrl)}
+                      className={`relative rounded-2xl overflow-hidden cursor-pointer group transition-all transform hover:scale-105 ${
+                        profileImage === imageUrl ? 'ring-4 ring-[#df20af] shadow-lg' : 'hover:shadow-md'
+                      }`}
+                    >
+                      <img 
+                        src={imageUrl} 
+                        alt={`Gallery ${index + 1}`}
+                        className="w-full h-40 object-cover group-hover:brightness-75 transition-all"
+                      />
+                      {profileImage === imageUrl && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#df20af]/20 backdrop-blur-sm">
+                          <span className="material-symbols-outlined text-4xl text-white icon-filled">check_circle</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 p-6 flex justify-end gap-4">
+              <button 
+                onClick={() => setShowGalleryModal(false)}
+                className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => setShowGalleryModal(false)}
+                className="bg-[#df20af] text-white px-8 py-2.5 rounded-xl font-bold hover:bg-[#c91d9d] transition-all shadow-lg shadow-[#df20af]/20 text-sm"
+              >
+                Done
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </>
   );
 };
