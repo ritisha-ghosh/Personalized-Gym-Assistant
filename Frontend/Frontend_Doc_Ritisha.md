@@ -1,3 +1,21 @@
+# 1. Link your project to the specific repository (only if you haven't done this yet)
+git remote add origin https://github.com/Pritam7Chakraborty/Personalized-Gym-Assistant.git
+
+# 2. Switch to the 'Ritisha' branch (or create it if it doesn't exist)
+git checkout -b Ritisha
+
+# 3. Add all your changes
+git add .
+
+# 4. Commit the changes
+git commit -m "Updated Frontend UI"
+
+# 5. Push the code to the remote branch
+git push -u origin Ritisha
+
+
+
+
 # 🏋️ Personalized Gym Assistant - Frontend Documentation
 
 ## Table of Contents
