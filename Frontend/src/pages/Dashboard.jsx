@@ -35,18 +35,18 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      {/* Greeting */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+      {/* Greeting - Responsive text sizes */}
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
           {getGreeting()}, {userProfile?.name || "Athlete"}.
         </h1>
-        <p className="mt-1 font-medium text-slate-500">
+        <p className="mt-1 text-sm sm:text-base font-medium text-slate-500">
           AI Trainer: "Keep up the great work! {recentWorkouts.length} workouts this week."
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      {/* Stats - Responsive grid */}
+      <div className="mb-6 sm:mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <StatCard
           title="Current Weight"
           value="82.5"

@@ -55,13 +55,13 @@ const Progression = () => {
         `}
       </style>
 
-      <div className="space-y-8 font-sans text-slate-900">
+      <div className="space-y-6 sm:space-y-8 font-sans text-slate-900">
         
         {/* --- Page Header --- */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold text-slate-900">Progress Analytics</h1>
-            <div className="bg-slate-100 p-1 rounded-xl flex text-sm font-semibold">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Progress Analytics</h1>
+            <div className="bg-slate-100 p-1 rounded-xl flex text-xs sm:text-sm font-semibold overflow-x-auto">
               {['30 Days', '6 Months', 'Yearly'].map((range) => (
                 <button
                   key={range}

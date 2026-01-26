@@ -44,18 +44,18 @@ const Workout = () => {
         `}
       </style>
 
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         
         {/* --- Page Specific Header --- */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold text-slate-900">Weekly Workout Plan</h1>
-            <div className="bg-slate-100 p-1 rounded-xl flex text-sm font-semibold">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Weekly Workout Plan</h1>
+            <div className="bg-slate-100 p-1 rounded-xl flex text-xs sm:text-sm font-semibold overflow-x-auto">
               {['Current Week', 'Next Week'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-lg transition-all ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
                     activeTab === tab 
                       ? 'bg-white text-slate-900 shadow-sm' 
                       : 'text-slate-500 hover:text-slate-700'
@@ -68,10 +68,11 @@ const Workout = () => {
           </div>
           <button 
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#df20af]/20"
+            className="flex items-center justify-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#df20af]/20 w-full sm:w-auto"
           >
             <Plus size={18} />
-            Add Workout
+            <span className="hidden sm:inline">Add Workout</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
 
@@ -273,13 +274,6 @@ const Workout = () => {
 
         </div>
       </div>
-
-      {/* Floating AI Button */}
-      <button className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-[#df20af] to-[#ff52d0] rounded-full shadow-2xl shadow-[#df20af]/40 flex items-center justify-center text-white hover:scale-110 transition-transform group z-50">
-        <span className="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform">auto_awesome</span>
-        <span className="absolute top-0 right-0 w-4 h-4 bg-yellow-400 rounded-full border-2 border-white"></span>
-      </button>
-
     </Layout>
   );
 };

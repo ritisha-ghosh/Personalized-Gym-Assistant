@@ -1,22 +1,48 @@
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import { Menu, X } from "lucide-react";
 
 const Layout = ({ children }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       
-      {/* Fixed Sidebar */}
-      <Sidebar />
+      {/* Mobile Menu Button */}
+      <div className="fixed top-4 left-4 z-50 lg:hidden">
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-2 bg-white rounded-lg shadow-md hover:bg-slate-100 transition"
+        >
+          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
 
-      {/* Main Content Wrapper - Pushed right by sidebar width (ml-64) */}
-      <div className="ml-64 flex min-h-screen flex-col relative">
+      {/* Fixed Sidebar - Hidden on mobile, shown on lg+ */}
+      <div className={`
+        fixed top-0 left-0 h-screen w-64 z-40 transition-transform duration-300
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <Sidebar onClose={() => setSidebarOpen(false)} />
+      </div>
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content Wrapper - Responsive margin */}
+      <div className="lg:ml-64 flex min-h-screen flex-col relative">
         
         {/* Header */}
         <Header />
 
-        {/* Page Content */}
-        <main className="flex-1 px-8 py-8">
+        {/* Page Content - Responsive padding */}
+        <main className="flex-1 px-4 py-6 sm:px-6 md:px-8 lg:py-8">
           <div className="max-w-7xl mx-auto w-full">
             {children}
           </div>

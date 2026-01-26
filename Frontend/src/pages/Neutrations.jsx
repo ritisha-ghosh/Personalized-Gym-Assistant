@@ -47,23 +47,24 @@ const Neutrations = () => {
         `}
       </style>
 
-      <div className="space-y-8 font-sans text-slate-900">
+      <div className="space-y-6 sm:space-y-8 font-sans text-slate-900">
         
         {/* Page Title with Add Button */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-slate-900">Nutrition Dashboard</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Nutrition Dashboard</h1>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#df20af]/20"
+            className="flex items-center justify-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#df20af]/20 w-full sm:w-auto"
           >
             <Plus size={18} />
-            Add Meal
+            <span className="hidden sm:inline">Add Meal</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
 
-        {/* Add Meal Form */}
+        {/* Add Meal Form - Responsive */}
         {showAddForm && (
-          <div className="bg-white p-6 rounded-2xl border border-[#df20af]/20 space-y-4">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-[#df20af]/20 space-y-4">
             <input
               type="text"
               placeholder="Meal Name"
@@ -71,7 +72,7 @@ const Neutrations = () => {
               onChange={(e) => setFormData({...formData, meal: e.target.value})}
               className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
             />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               <input
                 type="number"
                 placeholder="Calories"
@@ -101,16 +102,16 @@ const Neutrations = () => {
                 className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
               />
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleAddMeal}
-                className="flex-1 bg-[#df20af] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#c91d9d] transition"
+                className="flex-1 bg-[#df20af] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#c91d9d] transition text-sm"
               >
                 Save Meal
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
-                className="flex-1 bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold hover:bg-slate-300 transition"
+                className="flex-1 bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold hover:bg-slate-300 transition text-sm"
               >
                 Cancel
               </button>

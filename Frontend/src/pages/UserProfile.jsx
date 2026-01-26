@@ -122,14 +122,14 @@ const UserProfile = () => {
       </style>
 
       {/* --- Main Content Area (Wrapped in Layout) --- */}
-      <div className="font-jakarta max-w-5xl mx-auto">
+      <div className="font-jakarta max-w-5xl mx-auto px-4 sm:px-6 md:px-8">
         
-        {/* Header Section */}
-        <div className="mb-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="flex items-center gap-6">
+        {/* Header Section - Responsive */}
+        <div className="mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             <div className="relative group">
               <div 
-                className="w-32 h-32 rounded-full border-[5px] border-white shadow-xl bg-cover bg-center"
+                className="w-24 sm:w-28 md:w-32 h-24 sm:h-28 md:h-32 rounded-full border-4 sm:border-[5px] border-white shadow-xl bg-cover bg-center flex-shrink-0"
                 style={{ backgroundImage: `url('${profileImage}')` }}
               ></div>
               <button 
