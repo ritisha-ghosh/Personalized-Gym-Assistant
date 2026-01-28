@@ -8,6 +8,13 @@ connectDB();
 const app = express();
 app.use(express.json());
 
+// LOG ROUTES
+app.use("/api/logs", require("./routes/logRoutes"));
+
+// WORKOUT ROUTES
+app.use("/api/workouts", require("./routes/workoutRoutes"));
+
+
 // DEBUG
 console.log("🔥 Loading auth routes...");
 const authRoutes = require("./routes/authRoutes");
