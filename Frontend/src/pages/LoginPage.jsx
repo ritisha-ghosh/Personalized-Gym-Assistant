@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const LoginPage = () => {
     
@@ -10,19 +11,21 @@ const LoginPage = () => {
 
       {/* --- NAVBAR START --- */}
       <header className="w-full flex items-center justify-between px-8 py-5 z-10">
-        <div className="flex items-center gap-2">
+        {/* Linked Logo to Home */}
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           {/* Logo Icon */}
           <div className="w-8 h-8 bg-[#db2777] rounded-md flex items-center justify-center rotate-45">
             <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
           </div>
           <span className="text-xl font-bold text-slate-800 tracking-tight">Gym & Fitness Assistant</span>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-4">
           <span className="hidden sm:block text-sm text-slate-500">New to here?</span>
-          <button className="bg-[#db2777] hover:bg-[#be185d] text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md shadow-pink-100">
+          {/* Linked Sign Up Button */}
+          <Link to="/register" className="bg-[#db2777] hover:bg-[#be185d] text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md shadow-pink-100">
             Sign Up
-          </button>
+          </Link>
         </div>
       </header>
       {/* --- NAVBAR END --- */}
@@ -101,7 +104,7 @@ const LoginPage = () => {
           </div>
 
           <p className="text-center mt-10 text-sm text-slate-400">
-            Don't have an account? <button className="text-pink-500 font-bold hover:underline ml-1">Sign up now</button>
+            Don't have an account? <Link to="/register" className="text-pink-500 font-bold hover:underline ml-1">Sign up now</Link>
           </p>
         </div>
       </main>

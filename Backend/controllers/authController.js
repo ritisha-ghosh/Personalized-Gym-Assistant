@@ -10,6 +10,7 @@ exports.signup = async (req, res) => {
       password,
       age,
       weight,
+      gender,
       height,
       goal,
       injury,
@@ -35,6 +36,7 @@ exports.signup = async (req, res) => {
       age,
       weight,
       height,
+      gender,
       goal,
       injury,
       experience

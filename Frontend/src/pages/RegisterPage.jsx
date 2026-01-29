@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const RegisterPage = () => {
 
-    const [experience, setExperience] = useState('Beginner');
+  const [experience, setExperience] = useState('Beginner');
 
   return (
     <div className="flex min-h-screen bg-white font-sans">
@@ -10,12 +11,13 @@ const RegisterPage = () => {
       {/* LEFT SIDE: MOTIVATIONAL PANEL (Hidden on small screens) */}
       <div className="hidden lg:flex w-1/3 bg-[#e0f7f1] p-12 flex-col justify-between relative overflow-hidden">
         <div>
-          <div className="flex items-center gap-2 mb-16">
+          {/* Linked Logo */}
+          <Link to="/" className="flex items-center gap-2 mb-16 hover:opacity-80 transition-opacity w-fit">
             <div className="w-8 h-8 bg-[#db2777] rounded-md flex items-center justify-center rotate-45">
               <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
             </div>
             <span className="text-xl font-bold text-slate-800 tracking-tight">Gym & Fitness Assistant</span>
-          </div>
+          </Link>
           
           <div className="relative z-10">
             <p className="text-[#db2777] font-bold text-xs tracking-widest uppercase mb-4">Motivation</p>
@@ -49,7 +51,7 @@ const RegisterPage = () => {
         {/* Top Link */}
         <div className="text-right mb-8">
           <p className="text-sm text-slate-500">
-            Already a member? <button className="text-[#db2777] font-bold hover:underline">Log In</button>
+            Already a member? <Link to="/login" className="text-[#db2777] font-bold hover:underline">Log In</Link>
           </p>
         </div>
 
@@ -126,25 +128,25 @@ const RegisterPage = () => {
 
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-4">
-                Experience Level
+                  Experience Level
                 </label>
                 <div className="grid grid-cols-3 gap-3">
-                {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
-                <button
-                key={level}
-                type="button"
-            onClick={() => setExperience(level)}
-            className={`py-3 px-2 rounded-xl border-2 font-bold text-sm transition-all duration-200 ${
-          experience === level
-            ? "border-[#db2777] bg-[#db2777] text-white shadow-md shadow-pink-100"
-            : "border-slate-100 text-slate-700 hover:border-slate-200 bg-transparent"
-        }`}
-        >
-        {level}
-      </button>
-    ))}
-  </div>
-</div>
+                  {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => setExperience(level)}
+                      className={`py-3 px-2 rounded-xl border-2 font-bold text-sm transition-all duration-200 ${
+                        experience === level
+                          ? "border-[#db2777] bg-[#db2777] text-white shadow-md shadow-pink-100"
+                          : "border-slate-100 text-slate-700 hover:border-slate-200 bg-transparent"
+                      }`}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </section>
 
             {/* Submit Button */}

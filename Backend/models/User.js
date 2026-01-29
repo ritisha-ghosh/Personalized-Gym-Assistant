@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
   age: Number,
   weight: Number,
   height: Number,
-
+  gender: String,
   goal: String,
   injury: String,
   experience: String,

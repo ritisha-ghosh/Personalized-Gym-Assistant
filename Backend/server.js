@@ -8,19 +8,13 @@ connectDB();
 const app = express();
 app.use(express.json());
 
-// LOG ROUTES
-app.use("/api/logs", require("./routes/logRoutes"));
-
-// WORKOUT ROUTES
-app.use("/api/workouts", require("./routes/workoutRoutes"));
-
-
-// DEBUG
-console.log("🔥 Loading auth routes...");
 const authRoutes = require("./routes/authRoutes");
-console.log("🔥 Auth routes loaded:", authRoutes);
+const dietRoutes = require("./routes/dietRouts");
+const dietPlanRoutes = require("./routes/dietPlanRoutes");
 
 app.use("/api/auth", authRoutes);
+app.use("/api/diet", dietRoutes);
+app.use("/api/diet-plan", dietPlanRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
