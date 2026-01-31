@@ -3,7 +3,8 @@ const {
   createPlan,
   getUserPlans,
   updatePlan,
-  deletePlan
+  deletePlan,
+  weeklyPlanAdjustment
 } = require("../controllers/workoutController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -17,5 +18,7 @@ router.post("/", authMiddleware, validatePlan, createPlan);           // create 
 router.get("/", authMiddleware, getUserPlans);          // get user's own plans
 router.put("/:planId", authMiddleware, validatePlan, updatePlan);     // update plan
 router.delete("/:planId", authMiddleware, deletePlan);  // delete plan
+// 🧠 Decision Tree – Weekly Plan Adjustment
+router.post("/weekly-adjustment", authMiddleware, weeklyPlanAdjustment);
 
 module.exports = router;
