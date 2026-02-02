@@ -1,21 +1,22 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import './App.css'; // Preserving the css import from the remote branch
+import './App.css'; 
 import './index.css';
 
-// Imports from your current branch (HEAD)
+// Imports from your current branch
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import UserProfile from "./pages/UserProfile";
 
-// Imports from the merged branch (origin/dev/subh)
+// Imports from the merged branch
 import Dashboard from './pages/Dashboard';
 import Workout from './pages/Workout';
 import Neutrations from './pages/Neutrations';
 import Settings from './pages/Settings';
 import Progression from './pages/Progression';
 import ChatBot from './pages/ChatBot';
+import Tutorial from "./pages/Tutorial"; // Imported but was missing in Routes
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         {/* Dashboard & Feature Routes */}
         <Route path='/dashboard' element={<Dashboard/>}/>
         <Route path='/workouts' element={<Workout/>}/>
+        <Route path='/tutorial' element={<Tutorial/>}/> {/* Added this line */}
         <Route path='/nutrition' element={<Neutrations/>}/>
         <Route path='/settings' element={<Settings/>}/>
         <Route path='/progress' element={<Progression/>}/>
