@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Layout from '../componenets/layout/Layout'; // Fixed path: 'componenets' match folder
+import Layout from '../componenets/layout/Layout'; 
 import { Play, Clock, BarChart2, Sparkles, Filter } from 'lucide-react';
 
 const Tutorial = () => {
@@ -42,7 +42,8 @@ const Tutorial = () => {
       category: "Yoga",
       level: "Intermediate",
       duration: "25 min",
-      thumbnail: "https://images.unsplash.com/photo-1544367563-12123d896889?q=80&w=2070&auto=format&fit=crop",
+      // NEW WORKING IMAGE (Yoga Stretch)
+      thumbnail: "https://images.unsplash.com/photo-1603988363607-e1e4a66962c6?q=80&w=2070&auto=format&fit=crop",
       isAiTip: true
     },
     {
@@ -51,7 +52,8 @@ const Tutorial = () => {
       category: "Back",
       level: "Advanced",
       duration: "15 min",
-      thumbnail: "https://images.unsplash.com/photo-1517836357463-d25ddfcbf042?q=80&w=2070&auto=format&fit=crop",
+      // NEW WORKING IMAGE (Gym/Weights)
+      thumbnail: "https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?q=80&w=2070&auto=format&fit=crop",
       isAiTip: false
     },
     {
@@ -100,7 +102,7 @@ const Tutorial = () => {
         `}
       </style>
 
-      <div className="font-sans text-slate-900 max-w-7xl mx-auto space-y-8">
+      <div className="font-sans text-slate-900 max-w-7xl mx-auto space-y-8 pb-10">
         
         {/* --- Header Section --- */}
         <div>
@@ -130,10 +132,10 @@ const Tutorial = () => {
           {filteredTutorials.map((video) => (
             <div 
               key={video.id} 
-              className="group bg-white rounded-[2rem] p-4 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+              className="group bg-white rounded-[2rem] p-4 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col h-full"
             >
               {/* Thumbnail Container */}
-              <div className="relative aspect-video rounded-2xl overflow-hidden mb-5">
+              <div className="relative aspect-video rounded-2xl overflow-hidden mb-5 shrink-0">
                 <img 
                   src={video.thumbnail} 
                   alt={video.title} 
@@ -162,12 +164,12 @@ const Tutorial = () => {
               </div>
 
               {/* Content */}
-              <div className="px-2 pb-2">
-                <h3 className="text-lg font-bold text-slate-900 mb-4 group-hover:text-[#df20af] transition-colors line-clamp-1">
+              <div className="px-2 pb-2 flex flex-col justify-between flex-grow">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 group-hover:text-[#df20af] transition-colors line-clamp-2">
                   {video.title}
                 </h3>
                 
-                <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+                <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
                   <div className="flex items-center gap-2 text-slate-500 text-xs font-bold">
                     <Clock size={14} className="text-[#df20af]" />
                     {video.duration}
