@@ -1,0 +1,206 @@
+import React, { useState } from 'react';
+import Layout from '../componenets/layout/Layout'; // Fixed path: 'componenets' match folder
+import { Play, Clock, BarChart2, Sparkles, Filter } from 'lucide-react';
+
+const Tutorial = () => {
+  const [activeTab, setActiveTab] = useState('All Tutorials');
+
+  // --- Categories Configuration ---
+  const categories = [
+    "All Tutorials", 
+    "Chest", 
+    "Legs", 
+    "Cardio", 
+    "Yoga", 
+    "Back", 
+    "Arms"
+  ];
+
+  // --- Mock Data for Tutorials ---
+  const tutorials = [
+    {
+      id: 1,
+      title: "Perfect Form: Bench Press",
+      category: "Chest",
+      level: "Advanced",
+      duration: "12 min",
+      thumbnail: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2070&auto=format&fit=crop",
+      isAiTip: true
+    },
+    {
+      id: 2,
+      title: "Squat Depth Essentials",
+      category: "Legs",
+      level: "Beginner",
+      duration: "8 min",
+      thumbnail: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop",
+      isAiTip: false
+    },
+    {
+      id: 3,
+      title: "Post-Workout Yoga Flow",
+      category: "Yoga",
+      level: "Intermediate",
+      duration: "25 min",
+      thumbnail: "https://images.unsplash.com/photo-1544367563-12123d896889?q=80&w=2070&auto=format&fit=crop",
+      isAiTip: true
+    },
+    {
+      id: 4,
+      title: "Deadlift Technique",
+      category: "Back",
+      level: "Advanced",
+      duration: "15 min",
+      thumbnail: "https://images.unsplash.com/photo-1517836357463-d25ddfcbf042?q=80&w=2070&auto=format&fit=crop",
+      isAiTip: false
+    },
+    {
+      id: 5,
+      title: "High-Intensity Rowing",
+      category: "Cardio",
+      level: "Intermediate",
+      duration: "10 min",
+      thumbnail: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2069&auto=format&fit=crop",
+      isAiTip: false
+    },
+    {
+      id: 6,
+      title: "Stretching for Desk Workers",
+      category: "Yoga",
+      level: "Beginner",
+      duration: "5 min",
+      thumbnail: "https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=2069&auto=format&fit=crop",
+      isAiTip: true
+    },
+    {
+      id: 7,
+      title: "Bicep Curl Variations",
+      category: "Arms",
+      level: "Beginner",
+      duration: "8 min",
+      thumbnail: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=2070&auto=format&fit=crop",
+      isAiTip: false
+    },
+  ];
+
+  // --- Filter Logic ---
+  const filteredTutorials = activeTab === 'All Tutorials' 
+    ? tutorials 
+    : tutorials.filter(t => t.category === activeTab);
+
+  return (
+    <Layout>
+      {/* Inject Fonts locally */}
+      <style>
+        {`
+          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+          body { font-family: 'Plus Jakarta Sans', sans-serif; }
+          .hide-scrollbar::-webkit-scrollbar { display: none; }
+          .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        `}
+      </style>
+
+      <div className="font-sans text-slate-900 max-w-7xl mx-auto space-y-8">
+        
+        {/* --- Header Section --- */}
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Master Your Form</h1>
+          <p className="text-slate-500 font-medium">High-quality guides designed to help you reach your peak potential.</p>
+        </div>
+
+        {/* --- Filter Tabs (Scrollable) --- */}
+        <div className="flex gap-3 overflow-x-auto hide-scrollbar py-2">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveTab(cat)}
+              className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all transform active:scale-95 ${
+                activeTab === cat
+                  ? 'bg-[#df20af] text-white shadow-lg shadow-[#df20af]/30'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* --- Video Grid --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredTutorials.map((video) => (
+            <div 
+              key={video.id} 
+              className="group bg-white rounded-[2rem] p-4 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+            >
+              {/* Thumbnail Container */}
+              <div className="relative aspect-video rounded-2xl overflow-hidden mb-5">
+                <img 
+                  src={video.thumbnail} 
+                  alt={video.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                
+                {/* Overlay & Play Button */}
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                  <div className="w-14 h-14 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center pl-1 group-hover:scale-110 transition-transform">
+                    <Play className="fill-white text-white" size={24} />
+                  </div>
+                </div>
+
+                {/* AI Tip Badge */}
+                {video.isAiTip && (
+                  <div className="absolute top-3 left-3 bg-yellow-400 text-slate-900 text-[10px] font-extrabold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm">
+                    <Sparkles size={12} className="fill-slate-900" />
+                    AI TIP
+                  </div>
+                )}
+
+                {/* Duration Badge */}
+                <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-md">
+                  {video.duration}
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="px-2 pb-2">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 group-hover:text-[#df20af] transition-colors line-clamp-1">
+                  {video.title}
+                </h3>
+                
+                <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+                  <div className="flex items-center gap-2 text-slate-500 text-xs font-bold">
+                    <Clock size={14} className="text-[#df20af]" />
+                    {video.duration}
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-slate-500 text-xs font-bold">
+                    <BarChart2 size={14} className={`
+                      ${video.level === 'Beginner' ? 'text-teal-400' : ''}
+                      ${video.level === 'Intermediate' ? 'text-orange-400' : ''}
+                      ${video.level === 'Advanced' ? 'text-red-400' : ''}
+                    `} />
+                    {video.level}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* --- Empty State --- */}
+        {filteredTutorials.length === 0 && (
+          <div className="text-center py-20">
+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+              <Filter size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900">No tutorials found</h3>
+            <p className="text-slate-500 mt-2">Try selecting a different category.</p>
+          </div>
+        )}
+
+      </div>
+    </Layout>
+  );
+};
+
+export default Tutorial;
