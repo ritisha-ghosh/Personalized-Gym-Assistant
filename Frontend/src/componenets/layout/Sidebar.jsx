@@ -44,6 +44,8 @@ const Sidebar = ({ onClose }) => {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-1 overflow-y-auto">
+        
+        
         <Link to="/dashboard" onClick={handleLinkClick} className={navItemClass("/dashboard")}>
           <LayoutDashboard size={18} className="flex-shrink-0" />
           <span>Dashboard</span>
