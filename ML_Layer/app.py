@@ -245,7 +245,3 @@ def diet_recommendation():
 if __name__ == '__main__':
     print("🧠 AI Brain is active on port 5001...")
     app.run(port=5001, debug=True)
-<<<<<<< HEAD
-
-=======
->>>>>>> 5de760a (Submitting week-4 task && The readme file dev/Subham)
