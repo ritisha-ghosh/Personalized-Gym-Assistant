@@ -7,25 +7,6 @@ import numpy as np
 app = Flask(__name__)
 CORS(app) # Allows the backend to talk to this server
 
-# --- GLOBAL ERROR HANDLER ---
-@app.errorhandler(Exception)
-def handle_exception(e):
-    """
-    This function catches ANY error that happens in the logic
-    and prevents the server from crashing.
-    """
-    # 1. Log the error for you (the developer) to see
-    print(f"!!! CRITICAL ERROR: {str(e)}")
-
-    # 2. Return a clean JSON response for the Frontend
-    return jsonify({
-        "status": "failed",
-        "error_type": type(e).__name__,
-        "message": "The AI Brain hit a snag. Please check your input data.",
-        "details": str(e)
-    }), 500
-
-
 # --- 1. THE INTELLIGENCE (Training on Startup) ---
 corpus = [
     "how to do deadlift form check",      # exercise_info
