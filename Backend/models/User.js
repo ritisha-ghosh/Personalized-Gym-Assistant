@@ -24,6 +24,24 @@ const userSchema = new mongoose.Schema({
   goal: String,
   injury: String,
   experience: String,
+ 
+  // 🍽️ DIET PREFERENCES (NEW)
+  
+  dietType: {
+    type: String,
+    enum: ["vegetarian", "non-vegetarian"],
+    default: "vegetarian"
+  },
+
+  noOnion: {
+    type: Boolean,
+    default: false
+  },
+
+  noGarlic: {
+    type: Boolean,
+    default: false
+  }
 
 }, { timestamps: true });
 
