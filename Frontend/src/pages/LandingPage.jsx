@@ -1,32 +1,9 @@
-import React,{useState, useEffect} from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 
 const LandingPage = () => {
-  const [activeSection, setActiveSection] = useState('features'); // Default active
+  // Logic to get the dynamic current year
   const currentYear = new Date().getFullYear();
-
-  // Logic to detect which section is in view while scrolling
-  useEffect(() => {
-    const handleScroll = () => {
-      const sections = ['features', 'how-it-works', 'pricing'];
-      const scrollPosition = window.scrollY + 100; // Offset for the sticky header
-
-      sections.forEach((sectionId) => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const offsetTop = element.offsetTop;
-          const height = element.offsetHeight;
-
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + height) {
-            setActiveSection(sectionId);
-          }
-        }
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   return (
     <div className="min-h-screen bg-white font-sans text-[#142E5C] selection:bg-[#df20af] selection:text-white">
@@ -61,26 +38,12 @@ const LandingPage = () => {
             <h2 className="text-xl font-black tracking-tight text-[#142E5C]">PulseAI</h2>
           </Link>
           
-          <nav className="hidden md:flex items-center gap-2"> {/* Gap reduced to allow for padding */}
-            {['Features', 'How it Works', 'Pricing'].map((item) => {
-              const sectionId = item.toLowerCase().replace(/\s/g, '-');
-              const isActive = activeSection === sectionId;
-
-              return (
-                <a 
-                  key={item} 
-                  href={`#${sectionId}`} 
-                  onClick={() => setActiveSection(sectionId)}
-                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
-                    isActive 
-                    ? "bg-[#df20af]/10 text-[#df20af]" // Active State: Rounded background and pink text
-                    : "text-[#142E5C] hover:text-[#df20af]" // Normal State
-                  }`}
-                >
-                  {item}
-                </a>
-              );
-            })}
+          <nav className="hidden md:flex items-center gap-10">
+            {['Features', 'How it Works',  'Pricing'].map((item) => (
+              <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '-')}`} className="text-sm font-bold text-[#142E5C] hover:text-[#df20af] transition-colors">
+                {item}
+              </a>
+            ))}
           </nav>
           
           <div className="flex items-center gap-4">

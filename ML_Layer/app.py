@@ -38,15 +38,7 @@ def predict_intent(text):
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        data = request.get_json()
-
-        # Validation Check: Ensure 'query' exists
-        if not data or 'query' not in data:
-            return jsonify({
-                "status": "error",
-                "message": "Missing 'query' field in request body"
-            }), 400
-        
+        data = request.json
         user_query = data.get('query', '')
         
         # Run Intelligence
@@ -59,27 +51,14 @@ def predict():
         }
         return jsonify(response), 200
         
-    except KeyError as e:
-        return jsonify({"error": f"Invalid data format: Missing key {str(e)}"}), 422
     except Exception as e:
-        # This will trigger the global error handler above
-        raise e
+        return jsonify({"error": str(e)}), 500
 
 # --- 3. THE ADAPTIVE ENGINE (New Logic) ---
 @app.route('/scale-difficulty', methods=['POST'])
 def scale_difficulty():
     try:
         data = request.json
-
-        # PROTECT: Check if plan exists and has exercises
-        current_plan = data.get('plan', {})
-        if not current_plan or 'exercises' not in current_plan:
-            return jsonify({
-                "status": "error",
-                "message": "Cannot scale difficulty: No exercises found in the plan."
-            }), 400
-        
-
         current_plan = data.get('plan', {})
         avg_difficulty = data.get('average_difficulty', 5) # Default to 5 (Moderate)
 
@@ -136,10 +115,8 @@ def scale_difficulty():
             "message": msg
         })
 
-    except TypeError:
-        return jsonify({"error": "Difficulty must be a number between 1 and 10"}), 422
     except Exception as e:
-        raise e
+        return jsonify({"error": str(e)}), 500
 
 
 # =================================================
