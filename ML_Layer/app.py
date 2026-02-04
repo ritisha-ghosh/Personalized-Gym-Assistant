@@ -118,6 +118,88 @@ def scale_difficulty():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+# =================================================
+# 🔹 4. DIET PLAN ENGINE (NEW ADDITION)
+# =================================================
+
+# --- STATIC RECIPE DATA ---
+RECIPES = [
+    {
+        "name": "Paneer Stir Fry",
+        "vegetarian": True,
+        "ingredients": ["paneer", "capsicum", "tomato"],
+        "calories": 420
+    },
+    {
+        "name": "Veg Curry with Onion",
+        "vegetarian": True,
+        "ingredients": ["onion", "potato"],
+        "calories": 380
+    },
+    {
+        "name": "Dal Tadka",
+        "vegetarian": True,
+        "ingredients": ["lentils", "garlic"],
+        "calories": 350
+    },
+    {
+        "name": "Chicken Salad",
+        "vegetarian": False,
+        "ingredients": ["chicken"],
+        "calories": 450
+    }
+]
+
+# --- DIET FILTER LOGIC ---
+def filter_diet_recipes(diet_type, no_onion=False, no_garlic=False):
+    filtered = []
+
+    for recipe in RECIPES:
+        if diet_type == "vegetarian" and not recipe["vegetarian"]:
+            continue
+
+        ingredients = [i.lower() for i in recipe["ingredients"]]
+
+        if no_onion and "onion" in ingredients:
+            continue
+
+        if no_garlic and "garlic" in ingredients:
+            continue
+
+        filtered.append(recipe)
+
+    return filtered
+
+
+# --- DIET RECOMMENDATION ENDPOINT ---
+@app.route('/diet-recommendation', methods=['POST'])
+def diet_recommendation():
+    try:
+        data = request.json
+
+        if not data or "dietType" not in data:
+            return jsonify({
+                "status": "error",
+                "message": "dietType is required"
+            }), 400
+
+        recipes = filter_diet_recipes(
+            diet_type=data["dietType"],
+            no_onion=data.get("noOnion", False),
+            no_garlic=data.get("noGarlic", False)
+        )
+
+        return jsonify({
+            "status": "success",
+            "count": len(recipes),
+            "recipes": recipes
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     print("🧠 AI Brain is active on port 5001...")
     app.run(port=5001, debug=True)
