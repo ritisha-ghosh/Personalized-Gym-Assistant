@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Layout from '../componenets/layout/Layout'; 
-import { Play, Clock, BarChart2, Sparkles, Filter } from 'lucide-react';
+import { Play, Clock, BarChart2, Filter } from 'lucide-react'; // Removed Sparkles from import
 
 const Tutorial = () => {
   const [activeTab, setActiveTab] = useState('All Tutorials');
@@ -42,7 +42,6 @@ const Tutorial = () => {
       category: "Yoga",
       level: "Intermediate",
       duration: "25 min",
-      // NEW WORKING IMAGE (Yoga Stretch)
       thumbnail: "https://images.unsplash.com/photo-1603988363607-e1e4a66962c6?q=80&w=2070&auto=format&fit=crop",
       isAiTip: true
     },
@@ -52,7 +51,6 @@ const Tutorial = () => {
       category: "Back",
       level: "Advanced",
       duration: "15 min",
-      // NEW WORKING IMAGE (Gym/Weights)
       thumbnail: "https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?q=80&w=2070&auto=format&fit=crop",
       isAiTip: false
     },
@@ -148,14 +146,6 @@ const Tutorial = () => {
                     <Play className="fill-white text-white" size={24} />
                   </div>
                 </div>
-
-                {/* AI Tip Badge */}
-                {video.isAiTip && (
-                  <div className="absolute top-3 left-3 bg-yellow-400 text-slate-900 text-[10px] font-extrabold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm">
-                    <Sparkles size={12} className="fill-slate-900" />
-                    AI TIP
-                  </div>
-                )}
 
                 {/* Duration Badge */}
                 <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-md">

@@ -1,26 +1,40 @@
 import { Bell, Info, Search, X } from "lucide-react";
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 
 const Header = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [showSearch, setShowSearch] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Sync local state with URL (handles browser back/forward buttons)
+  useEffect(() => {
+    setSearchQuery(searchParams.get("q") || "");
+  }, [searchParams]);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      console.log("Searching for:", searchQuery);
-      alert(`Searching for: ${searchQuery}`);
+      // Updates URL to something like: /workouts?q=yoga
+      setSearchParams({ q: searchQuery });
+    } else {
+      // If empty, remove the query param
+      setSearchParams({});
     }
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleSearch();
+      // Optional: Close mobile search on enter
+      setShowSearch(false); 
     }
   };
 
   const clearSearch = () => {
     setSearchQuery("");
+    setSearchParams({}); // Clear URL param immediately
   };
 
   return (
@@ -47,7 +61,7 @@ const Header = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search..."
+          placeholder={`Search in ${location.pathname.replace('/', '') || 'Home'}...`}
           className="
             w-full pl-10 pr-10 py-2 sm:py-2.5
             rounded-xl text-sm
@@ -95,7 +109,7 @@ const Header = () => {
           "
         >
           <span className="text-slate-600 group-hover:text-[#df20af]">
-            <Bell size={18} sm:size={20} />
+            <Bell size={18} />
           </span>
           <span
             className="
@@ -118,7 +132,7 @@ const Header = () => {
           "
         >
           <span className="text-slate-600 group-hover:text-[#df20af]">
-            <Info size={18} sm:size={20} />
+            <Info size={18} />
           </span>
         </button>
       </div>
@@ -126,7 +140,10 @@ const Header = () => {
       {/* Mobile Search Input */}
       {showSearch && (
         <div className="absolute top-16 left-4 right-4 md:hidden">
-          <div className="relative w-full">
+          <div className="relative w-full shadow-lg rounded-xl">
+             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <Search size={18} />
+             </div>
             <input
               type="text"
               value={searchQuery}
@@ -135,12 +152,20 @@ const Header = () => {
               placeholder="Search..."
               autoFocus
               className="
-                w-full px-4 py-2 rounded-lg
-                bg-slate-50 border border-slate-200
+                w-full pl-10 pr-10 py-3 rounded-xl
+                bg-white border border-slate-200
                 text-sm placeholder:text-slate-400
                 focus:outline-none focus:ring-2 focus:ring-[#df20af]/20
               "
             />
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
         </div>
       )}

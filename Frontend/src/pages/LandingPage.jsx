@@ -262,7 +262,7 @@ const LandingPage = () => {
           </div>
 
           <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-gray-400 font-body">© 2025-{currentYear} PulseAI Technologies Inc. All rights reserved.</p>
+            <p className="text-xs text-gray-400 font-body">© 2025-{currentYear} All rights reserved.</p>
             <div className="flex gap-6 text-gray-400">
               {['share', 'public', 'thumb_up'].map(icon => (
                 <button key={icon} className="hover:text-[#df20af] transition-colors">
