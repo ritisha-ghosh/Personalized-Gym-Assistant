@@ -12,7 +12,7 @@ import UserProfile from "./pages/UserProfile";
 // Imports from the merged branch
 import Dashboard from './pages/Dashboard';
 import Workout from './pages/Workout';
-import Neutrations from './pages/Neutrations';
+import Nutrition from './pages/Nutrition';
 import Settings from './pages/Settings';
 import Progression from './pages/Progression';
 import ChatBot from './pages/ChatBot';
@@ -27,12 +27,13 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/profile" element={<UserProfile />} />
-
+       
         {/* Dashboard & Feature Routes */}
+        
         <Route path='/dashboard' element={<Dashboard/>}/>
         <Route path='/workouts' element={<Workout/>}/>
         <Route path='/tutorial' element={<Tutorial/>}/> {/* Added this line */}
-        <Route path='/nutrition' element={<Neutrations/>}/>
+        <Route path='/nutrition' element={<Nutrition/>}/>
         <Route path='/settings' element={<Settings/>}/>
         <Route path='/progress' element={<Progression/>}/>
         <Route path='/chat' element={<ChatBot/>}/>

@@ -80,6 +80,7 @@ Frontend/
 │   │   ├── Progression.jsx
 │   │   ├── RegisterPage.jsx
 │   │   ├── Settings.jsx
+|   |   ├── Tutorial.jsx
 │   │   ├── UserProfile.jsx
 │   │   └── Workout.jsx
 │   ├── utils/                  # Utility functions
