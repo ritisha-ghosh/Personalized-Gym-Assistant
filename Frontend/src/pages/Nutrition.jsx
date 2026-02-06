@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
 import { Droplet, CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
 import { getNutrition, addNutrition, deleteNutrition } from "../utils/storageUtils";
 
 const Neutrations = () => {
+  // 2. Search Params Logic
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
+
   const [nutrition, setNutrition] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -37,6 +42,37 @@ const Neutrations = () => {
     setNutrition(nutrition.filter(item => item.id !== id));
   };
 
+  // --- 3. FILTER LOGIC ---
+  
+  // A. Filter User Added Meals
+  const filteredUserMeals = nutrition.filter(meal => 
+    meal.meal.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // B. Filter Static Meal Plan
+  const mealPlan = [
+    { time: '08:00 AM', type: 'Breakfast', food: 'Greek Yogurt with Berries, Oats & Walnuts', cal: '450 kcal', p: '32g', c: '45g', f: '12g', status: 'done' },
+    { time: '01:30 PM', type: 'Lunch', food: 'Grilled Salmon, Quinoa, Steam Broccoli', cal: '620 kcal', p: '48g', c: '38g', f: '22g', status: 'done' },
+    { time: '04:30 PM', type: 'Pre-Workout', food: 'Apple with Almond Butter', cal: '210 kcal', p: '4g', c: '25g', f: '10g', status: 'pending' },
+    { time: '08:00 PM', type: 'Dinner', food: 'Lean Beef Tacos with Avocado & Salsa', cal: '730 kcal', p: '52g', c: '65g', f: '28g', status: 'pending' },
+  ];
+
+  const filteredMealPlan = mealPlan.filter(meal => 
+    meal.type.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    meal.food.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // C. Filter Micronutrients
+  const micros = [
+    { name: 'Iron', val: '85%', color: 'bg-red-500' },
+    { name: 'Vitamin D', val: '40%', color: 'bg-purple-500' },
+    { name: 'Magnesium', val: '62%', color: 'bg-emerald-500' },
+  ];
+  
+  const filteredMicros = micros.filter(m => 
+    m.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Layout>
       {/* Inject Fonts locally */}
@@ -51,7 +87,10 @@ const Neutrations = () => {
         
         {/* Page Title with Add Button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Nutrition Dashboard</h1>
+          <div className="space-y-1">
+             <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Nutrition Dashboard</h1>
+             {searchQuery && <p className="text-sm font-bold text-[#df20af]">Searching for: "{searchQuery}"</p>}
+          </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
             className="flex items-center justify-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#df20af]/20 w-full sm:w-auto"
@@ -214,12 +253,12 @@ const Neutrations = () => {
           </div>
         </div>
 
-        {/* --- Today's Meals --- */}
-        {nutrition.length > 0 && (
+        {/* --- Today's Meals (Filtered) --- */}
+        {nutrition.length > 0 && filteredUserMeals.length > 0 && (
           <div className="bg-white p-6 rounded-2xl border border-slate-100 space-y-4">
-            <h3 className="text-lg font-bold text-slate-900">Today's Meals ({nutrition.length})</h3>
+            <h3 className="text-lg font-bold text-slate-900">Added Meals ({filteredUserMeals.length})</h3>
             <div className="space-y-3">
-              {nutrition.map((meal) => (
+              {filteredUserMeals.map((meal) => (
                 <div key={meal.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
                   <div className="flex-1">
                     <p className="font-bold text-slate-900">{meal.meal}</p>
@@ -245,7 +284,7 @@ const Neutrations = () => {
         {/* --- Main Content Grid --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left: Meal Plan List */}
+          {/* Left: Meal Plan List (Filtered) */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
               <div className="flex items-center justify-between mb-8">
@@ -266,37 +305,36 @@ const Neutrations = () => {
 
               {/* Meals List */}
               <div className="space-y-4">
-                {[
-                  { time: '08:00 AM', type: 'Breakfast', food: 'Greek Yogurt with Berries, Oats & Walnuts', cal: '450 kcal', p: '32g', c: '45g', f: '12g', status: 'done' },
-                  { time: '01:30 PM', type: 'Lunch', food: 'Grilled Salmon, Quinoa, Steam Broccoli', cal: '620 kcal', p: '48g', c: '38g', f: '22g', status: 'done' },
-                  { time: '04:30 PM', type: 'Pre-Workout', food: 'Apple with Almond Butter', cal: '210 kcal', p: '4g', c: '25g', f: '10g', status: 'pending' },
-                  { time: '08:00 PM', type: 'Dinner', food: 'Lean Beef Tacos with Avocado & Salsa', cal: '730 kcal', p: '52g', c: '65g', f: '28g', status: 'pending' },
-                ].map((meal, idx) => (
-                  <div key={idx} className="grid grid-cols-12 items-center p-4 hover:bg-slate-50 rounded-2xl transition-colors border border-slate-50">
-                    <div className="col-span-3">
-                      <p className="font-bold text-slate-900">{meal.type}</p>
-                      <p className="text-xs text-slate-400 mt-1">{meal.time}</p>
+                {filteredMealPlan.length > 0 ? (
+                  filteredMealPlan.map((meal, idx) => (
+                    <div key={idx} className="grid grid-cols-12 items-center p-4 hover:bg-slate-50 rounded-2xl transition-colors border border-slate-50">
+                      <div className="col-span-3">
+                        <p className="font-bold text-slate-900">{meal.type}</p>
+                        <p className="text-xs text-slate-400 mt-1">{meal.time}</p>
+                      </div>
+                      <div className="col-span-4 pr-4">
+                        <p className="text-sm font-medium text-slate-700 leading-snug">{meal.food}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="font-bold text-slate-900">{meal.cal}</p>
+                      </div>
+                      <div className="col-span-2 flex gap-1.5">
+                        <span className="px-1.5 py-0.5 rounded bg-blue-100 text-[#0ea5e9] text-[10px] font-bold">{meal.p}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-pink-100 text-[#df20af] text-[10px] font-bold">{meal.c}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-yellow-100 text-[#ca8a04] text-[10px] font-bold">{meal.f}</span>
+                      </div>
+                      <div className="col-span-1 flex justify-end">
+                        {meal.status === 'done' ? (
+                          <CheckCircle2 className="text-teal-500 fill-teal-50" size={24} />
+                        ) : (
+                          <Circle className="text-slate-300" size={24} />
+                        )}
+                      </div>
                     </div>
-                    <div className="col-span-4 pr-4">
-                      <p className="text-sm font-medium text-slate-700 leading-snug">{meal.food}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="font-bold text-slate-900">{meal.cal}</p>
-                    </div>
-                    <div className="col-span-2 flex gap-1.5">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-[#0ea5e9] text-[10px] font-bold">{meal.p}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-pink-100 text-[#df20af] text-[10px] font-bold">{meal.c}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-yellow-100 text-[#ca8a04] text-[10px] font-bold">{meal.f}</span>
-                    </div>
-                    <div className="col-span-1 flex justify-end">
-                      {meal.status === 'done' ? (
-                        <CheckCircle2 className="text-teal-500 fill-teal-50" size={24} />
-                      ) : (
-                        <Circle className="text-slate-300" size={24} />
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                   <div className="text-center py-6 text-slate-400 text-sm">No meal plans found.</div>
+                )}
               </div>
             </div>
           </div>
@@ -321,25 +359,25 @@ const Neutrations = () => {
               </div>
             </div>
 
-            {/* Micronutrients Widget */}
+            {/* Micronutrients Widget (Filtered) */}
             <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
               <h3 className="text-lg font-bold text-slate-900 mb-6">Micronutrients</h3>
               <div className="space-y-6">
-                {[
-                  { name: 'Iron', val: '85%', color: 'bg-red-500' },
-                  { name: 'Vitamin D', val: '40%', color: 'bg-purple-500' },
-                  { name: 'Magnesium', val: '62%', color: 'bg-emerald-500' },
-                ].map((item, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                      <span>{item.name}</span>
-                      <span>{item.val}</span>
+                {filteredMicros.length > 0 ? (
+                  filteredMicros.map((item, i) => (
+                    <div key={i}>
+                      <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                        <span>{item.name}</span>
+                        <span>{item.val}</span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${item.color} rounded-full`} style={{ width: item.val }}></div>
+                      </div>
                     </div>
-                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div className={`h-full ${item.color} rounded-full`} style={{ width: item.val }}></div>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                   <div className="text-center text-slate-400 text-xs">No micronutrients found.</div>
+                )}
               </div>
             </div>
 

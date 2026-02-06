@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
 import { getUserProfile, saveUserProfile } from "../utils/storageUtils";
 import { uploadImageToLocalStorage, validateImageFile } from "../utils/fileUploadUtils";
 
 const UserProfile = () => {
+  // 2. Search Params Logic
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
+
   // --- State for Dynamic Functionality ---
   const [formData, setFormData] = useState({
     height: '178 cm',
@@ -40,6 +45,27 @@ const UserProfile = () => {
     'https://images.unsplash.com/photo-1517836357463-d25ddfcbf042?q=80&w=2000&auto=format&fit=crop',
     'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=2000&auto=format&fit=crop',
   ];
+
+  // --- Badges & Stats Data ---
+  const badges = [
+    "Early Bird", "Consistency King", "Heavy Lifter", "Yogi Master", "Marathon Runner", "Nutrition Pro"
+  ];
+
+  const stats = [
+    { label: "Workouts", value: 142 },
+    { label: "Hours Trained", value: 85 },
+    { label: "Active Streak", value: "12 Days" },
+    { label: "Weight Goal", value: "60 kg" }
+  ];
+
+  // 3. Filter Logic
+  const filteredBadges = badges.filter(badge => 
+    badge.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredStats = stats.filter(stat => 
+    !searchQuery || stat.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // --- Handlers ---
   const handleInputChange = (e) => {
@@ -122,7 +148,7 @@ const UserProfile = () => {
       </style>
 
       {/* --- Main Content Area (Wrapped in Layout) --- */}
-      <div className="font-jakarta max-w-5xl mx-auto px-4 sm:px-6 md:px-8">
+      <div className="font-jakarta max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-10">
         
         {/* Header Section - Responsive */}
         <div className="mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
@@ -142,10 +168,16 @@ const UserProfile = () => {
             <div>
               <h2 className="text-3xl font-bold text-slate-900 mb-1">Alex Rivera</h2>
               <p className="text-slate-500 font-medium text-sm">Elite Member since Jan 2023</p>
-              <div className="mt-3">
-                <span className="px-3 py-1 bg-[#eef7f6] text-[#2d5a56] text-[11px] font-extrabold rounded-full uppercase tracking-wider border border-[#dceceb]">
-                  Lvl 42 Athlete
-                </span>
+              
+              {/* Filtered Badges Row */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {filteredBadges.length > 0 ? filteredBadges.slice(0, 3).map((badge, i) => (
+                  <span key={i} className="px-3 py-1 bg-[#eef7f6] text-[#2d5a56] text-[11px] font-extrabold rounded-full uppercase tracking-wider border border-[#dceceb]">
+                    🏆 {badge}
+                  </span>
+                )) : (
+                   searchQuery && <span className="text-xs text-slate-400">No badges match "{searchQuery}"</span>
+                )}
               </div>
             </div>
           </div>
@@ -155,6 +187,18 @@ const UserProfile = () => {
             Edit Profile
           </button>
         </div>
+
+        {/* Stats Grid (Filtered) */}
+        {filteredStats.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {filteredStats.map((stat, i) => (
+              <div key={i} className="bg-white p-4 rounded-2xl text-center border border-slate-100 shadow-sm">
+                <p className="text-slate-400 text-xs font-bold uppercase">{stat.label}</p>
+                <p className="text-xl font-extrabold text-slate-800">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-8">
           
@@ -299,7 +343,7 @@ const UserProfile = () => {
                 Save Profile
               </button>
             </div>
-            </div>
+          </div>
 
         </div>
       </div>

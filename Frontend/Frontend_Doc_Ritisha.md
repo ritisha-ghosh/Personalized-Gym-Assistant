@@ -8,7 +8,7 @@ git checkout -b Ritisha
 git add .
 
 # 4. Commit the changes
-git commit -m "Updated Frontend UI"
+git commit -m "Updated Frontend"
 
 # 5. Push the code to the remote branch
 git push -u origin Ritisha

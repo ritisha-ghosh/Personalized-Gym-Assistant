@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Layout from '../componenets/layout/Layout'; 
-import { Play, Clock, BarChart2, Filter } from 'lucide-react'; // Removed Sparkles from import
+import { Play, Clock, BarChart2, Filter } from 'lucide-react';
 
 const Tutorial = () => {
   const [activeTab, setActiveTab] = useState('All Tutorials');
+  
+  // 1. Get search query from URL
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
 
   // --- Categories Configuration ---
   const categories = [
@@ -83,10 +88,45 @@ const Tutorial = () => {
     },
   ];
 
-  // --- Filter Logic ---
-  const filteredTutorials = activeTab === 'All Tutorials' 
-    ? tutorials 
-    : tutorials.filter(t => t.category === activeTab);
+  // --- 2. Smart Auto-Switch Logic ---
+  // If search matches a Category OR a Video in a specific category, switch tabs automatically.
+  useEffect(() => {
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      
+      // A. Check if query matches a Category Name directly (e.g. "Yoga")
+      const matchedCategory = categories.find(cat => 
+        cat.toLowerCase().includes(lowerQuery) || lowerQuery.includes(cat.toLowerCase())
+      );
+
+      if (matchedCategory && matchedCategory !== 'All Tutorials') {
+        if (activeTab !== matchedCategory) setActiveTab(matchedCategory);
+        return; 
+      }
+
+      // B. Check if query matches a Video Title (e.g. "Bench") -> Switch to "Chest"
+      const matchedVideo = tutorials.find(t => 
+        t.title.toLowerCase().includes(lowerQuery)
+      );
+
+      if (matchedVideo) {
+        if (activeTab !== matchedVideo.category) setActiveTab(matchedVideo.category);
+      }
+    }
+  }, [searchQuery, activeTab]); // Dependencies ensure this runs when search changes
+
+  // --- 3. Filter Logic ---
+  const filteredTutorials = tutorials.filter(t => {
+    // 1. Category Check: Must match active tab (unless 'All Tutorials')
+    const matchesCategory = activeTab === 'All Tutorials' || t.category === activeTab;
+    
+    // 2. Search Check: Search in Title OR Category
+    // This allows "Yoga" search to show videos even if title doesn't say "Yoga" (but category does)
+    const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          t.category.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <Layout>
@@ -106,6 +146,13 @@ const Tutorial = () => {
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Master Your Form</h1>
           <p className="text-slate-500 font-medium">High-quality guides designed to help you reach your peak potential.</p>
+          
+          {/* Smart Search Feedback */}
+          {searchQuery && (
+             <p className="text-sm font-bold text-[#df20af] mt-2 animate-pulse transition-all">
+               Searching for "{searchQuery}"... <span className="text-slate-400 font-normal">Found in {activeTab}</span>
+             </p>
+          )}
         </div>
 
         {/* --- Filter Tabs (Scrollable) --- */}
@@ -147,6 +194,13 @@ const Tutorial = () => {
                   </div>
                 </div>
 
+                {/* AI Tip Badge */}
+                {video.isAiTip && (
+                  <div className="absolute top-3 left-3 bg-yellow-400 text-slate-900 text-[10px] font-extrabold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm">
+                    AI TIP
+                  </div>
+                )}
+
                 {/* Duration Badge */}
                 <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-md">
                   {video.duration}
@@ -186,7 +240,11 @@ const Tutorial = () => {
               <Filter size={32} />
             </div>
             <h3 className="text-xl font-bold text-slate-900">No tutorials found</h3>
-            <p className="text-slate-500 mt-2">Try selecting a different category.</p>
+            <p className="text-slate-500 mt-2">
+              {searchQuery 
+                ? `No results for "${searchQuery}" in ${activeTab}`
+                : "Try selecting a different category."}
+            </p>
           </div>
         )}
 
