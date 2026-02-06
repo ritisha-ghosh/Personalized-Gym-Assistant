@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
-import { Calendar, Clock, BarChart3, RefreshCw, Dumbbell, MoreHorizontal, Play, CheckCircle2, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Clock, BarChart3, Dumbbell, Play, CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { getWorkouts, addWorkout, deleteWorkout } from "../utils/storageUtils";
 
 const Workout = () => {
+  // 2. Search Params Logic
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
+
   const [activeTab, setActiveTab] = useState('Current Week');
   const [workouts, setWorkouts] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -20,6 +25,15 @@ const Workout = () => {
     setWorkouts(savedWorkouts);
   }, []);
 
+  // --- Smart Tab Switching ---
+  useEffect(() => {
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      if (lowerQuery.includes('next')) setActiveTab('Next Week');
+      else if (lowerQuery.includes('current')) setActiveTab('Current Week');
+    }
+  }, [searchQuery]);
+
   const handleAddWorkout = () => {
     if (formData.exercise.trim()) {
       const newWorkout = addWorkout(formData);
@@ -33,6 +47,56 @@ const Workout = () => {
     deleteWorkout(id);
     setWorkouts(workouts.filter(w => w.id !== id));
   };
+
+  // --- 3. FILTER LOGIC ---
+
+  // A. Filter Recent Workouts (User Added)
+  // Search matches: Exercise Name OR Sets/Reps details
+  const filteredSavedWorkouts = workouts.filter(w => 
+    !searchQuery || 
+    w.exercise.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (w.sets && w.sets.toString().includes(searchQuery)) ||
+    (w.reps && w.reps.toString().includes(searchQuery))
+  );
+
+  // B. Define Static Routine Data
+  const mondayRoutine = { 
+    day: 'Monday', 
+    title: 'Chest & Triceps', 
+    exercises: [
+      { id: '01', name: 'Bench Press (Barbell)', sets: '4 Sets', reps: '8-10 Reps', weight: '85 kg' },
+      { id: '02', name: 'Incline DB Press', sets: '3 Sets', reps: '12 Reps', weight: '28 kg' },
+      { id: '03', name: 'Cable Flyes', sets: '3 Sets', reps: '15 Reps', weight: '15 kg' },
+      { id: '04', name: 'Skullcrushers', sets: '4 Sets', reps: '10 Reps', weight: '30 kg' },
+    ]
+  };
+
+  const otherDaysRoutine = [
+    { day: 'Tuesday', title: 'Back & Biceps', exercises: [{name:'Pull-ups', detail:'4 x MAX'}, {name:'Barbell Row', detail:'3 x 10'}, {name:'Hammer Curls', detail:'3 x 12'}] },
+    { day: 'Wednesday', title: 'Active Recovery', type: 'recovery', desc: '30 min Yoga or Light Walk recommended by AI Coach.' },
+    { day: 'Thursday', title: 'Shoulders & Abs', exercises: [{name:'Military Press', detail:'4 x 8'}, {name:'Lateral Raises', detail:'3 x 15'}] },
+    { day: 'Friday', title: 'Leg Day (Quads)', exercises: [{name:'Barbell Squats', detail:'5 x 5'}] },
+    { day: 'Saturday', title: 'Leg Day (Hams)', exercises: [{name:'Deadlift', detail:'3 x 8'}] },
+    { day: 'Sunday', title: 'Full Body Pump', exercises: [{name:'Circuit 1', detail:'3 Rounds'}] },
+  ];
+
+  // C. Filter Logic for Routine Cards
+  // Check if Monday matches search
+  const showMondayCard = !searchQuery || 
+    mondayRoutine.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    mondayRoutine.day.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    mondayRoutine.exercises.some(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  // Check other days
+  const filteredRoutineCards = otherDaysRoutine.filter(card => {
+    const titleMatch = card.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const dayMatch = card.day.toLowerCase().includes(searchQuery.toLowerCase());
+    const exerciseMatch = card.exercises?.some(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const descMatch = card.desc?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return !searchQuery || titleMatch || dayMatch || exerciseMatch || descMatch;
+  });
+
 
   return (
     <Layout>
@@ -75,6 +139,13 @@ const Workout = () => {
             <span className="sm:hidden">Add</span>
           </button>
         </div>
+
+        {/* Smart Search Feedback */}
+        {searchQuery && (
+           <p className="text-sm font-bold text-[#df20af] mt-2 animate-pulse transition-all">
+             Searching for "{searchQuery}" in {activeTab}...
+           </p>
+        )}
 
         {/* Add Workout Form */}
         {showAddForm && (
@@ -119,12 +190,12 @@ const Workout = () => {
           </div>
         )}
 
-        {/* Recent Workouts List */}
-        {workouts.length > 0 && (
+        {/* Recent Workouts List (Filtered) */}
+        {workouts.length > 0 && filteredSavedWorkouts.length > 0 && (
           <div className="bg-white p-6 rounded-2xl border border-slate-100 space-y-4">
-            <h3 className="text-lg font-bold text-slate-900">Recent Workouts ({workouts.length})</h3>
+            <h3 className="text-lg font-bold text-slate-900">Recent Workouts ({filteredSavedWorkouts.length})</h3>
             <div className="space-y-3">
-              {workouts.slice(-5).map((workout) => (
+              {filteredSavedWorkouts.slice(-5).map((workout) => (
                 <div key={workout.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
                   <div className="flex-1">
                     <p className="font-bold text-slate-900">{workout.exercise}</p>
@@ -149,7 +220,6 @@ const Workout = () => {
 
         {/* --- Stats Row --- */}
         <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-          
           <div className="flex items-center gap-4 px-4 w-full">
             <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center">
               <Calendar size={24} />
@@ -184,66 +254,56 @@ const Workout = () => {
         {/* --- Workouts Grid --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           
-          {/* Active Card (Monday) */}
-          <div className="lg:col-span-1 xl:col-span-1 row-span-2">
-            <div className="bg-white p-6 rounded-[2rem] border-2 border-[#df20af] shadow-xl shadow-[#df20af]/10 h-full flex flex-col">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <span className="text-xs font-bold text-[#df20af] uppercase tracking-wider">Monday</span>
-                  <h3 className="text-2xl font-bold text-slate-900 mt-1">Chest & Triceps</h3>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-[#df20af] text-white flex items-center justify-center">
-                  <CheckCircle2 size={16} />
-                </div>
-              </div>
-
-              <div className="space-y-2 mb-6">
-                <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
-                  <span>Workout Progress</span>
-                  <span>75%</span>
-                </div>
-                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="w-3/4 h-full bg-[#df20af] rounded-full"></div>
-                </div>
-              </div>
-
-              <div className="space-y-4 flex-1">
-                {[
-                  { id: '01', name: 'Bench Press (Barbell)', sets: '4 Sets', reps: '8-10 Reps', weight: '85 kg' },
-                  { id: '02', name: 'Incline DB Press', sets: '3 Sets', reps: '12 Reps', weight: '28 kg' },
-                  { id: '03', name: 'Cable Flyes', sets: '3 Sets', reps: '15 Reps', weight: '15 kg' },
-                  { id: '04', name: 'Skullcrushers', sets: '4 Sets', reps: '10 Reps', weight: '30 kg' },
-                ].map((exercise) => (
-                  <div key={exercise.id} className="flex gap-4 items-center p-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer group">
-                    <span className="text-xs font-bold text-slate-300 group-hover:text-[#df20af] transition-colors">{exercise.id}</span>
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-slate-900">{exercise.name}</p>
-                      <div className="flex gap-3 text-xs text-slate-500 mt-1">
-                        <span>{exercise.sets}</span>
-                        <span className="w-1 h-1 rounded-full bg-slate-300 self-center"></span>
-                        <span>{exercise.reps}</span>
-                      </div>
-                    </div>
-                    <span className="text-xs font-bold text-[#df20af] bg-[#df20af]/5 px-2 py-1 rounded-lg">{exercise.weight}</span>
+          {/* Active Card (Monday) - Only show if it matches search */}
+          {showMondayCard && (
+            <div className="lg:col-span-1 xl:col-span-1 row-span-2">
+              <div className="bg-white p-6 rounded-[2rem] border-2 border-[#df20af] shadow-xl shadow-[#df20af]/10 h-full flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <span className="text-xs font-bold text-[#df20af] uppercase tracking-wider">{mondayRoutine.day}</span>
+                    <h3 className="text-2xl font-bold text-slate-900 mt-1">{mondayRoutine.title}</h3>
                   </div>
-                ))}
+                  <div className="w-8 h-8 rounded-full bg-[#df20af] text-white flex items-center justify-center">
+                    <CheckCircle2 size={16} />
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
+                    <span>Workout Progress</span>
+                    <span>75%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-3/4 h-full bg-[#df20af] rounded-full"></div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 flex-1">
+                  {mondayRoutine.exercises.map((exercise) => (
+                    <div key={exercise.id} className="flex gap-4 items-center p-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer group">
+                      <span className="text-xs font-bold text-slate-300 group-hover:text-[#df20af] transition-colors">{exercise.id}</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-slate-900">{exercise.name}</p>
+                        <div className="flex gap-3 text-xs text-slate-500 mt-1">
+                          <span>{exercise.sets}</span>
+                          <span className="w-1 h-1 rounded-full bg-slate-300 self-center"></span>
+                          <span>{exercise.reps}</span>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-[#df20af] bg-[#df20af]/5 px-2 py-1 rounded-lg">{exercise.weight}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button className="w-full mt-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold rounded-xl transition-colors">
+                  Complete Workout
+                </button>
               </div>
-
-              <button className="w-full mt-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold rounded-xl transition-colors">
-                Complete Workout
-              </button>
             </div>
-          </div>
+          )}
 
-          {/* Routine Cards */}
-          {[
-            { day: 'Tuesday', title: 'Back & Biceps', exercises: [{name:'Pull-ups', detail:'4 x MAX'}, {name:'Barbell Row', detail:'3 x 10'}, {name:'Hammer Curls', detail:'3 x 12'}] },
-            { day: 'Wednesday', title: 'Active Recovery', type: 'recovery', desc: '30 min Yoga or Light Walk recommended by AI Coach.' },
-            { day: 'Thursday', title: 'Shoulders & Abs', exercises: [{name:'Military Press', detail:'4 x 8'}, {name:'Lateral Raises', detail:'3 x 15'}] },
-            { day: 'Friday', title: 'Leg Day (Quads)', exercises: [{name:'Barbell Squats', detail:'5 x 5'}] },
-            { day: 'Saturday', title: 'Leg Day (Hams)', exercises: [{name:'Deadlift', detail:'3 x 8'}] },
-            { day: 'Sunday', title: 'Full Body Pump', exercises: [{name:'Circuit 1', detail:'3 Rounds'}] },
-          ].map((card, idx) => (
+          {/* Routine Cards (Filtered) */}
+          {filteredRoutineCards.map((card, idx) => (
             <div key={idx} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{card.day}</span>
               <h3 className="text-xl font-bold text-slate-900 mb-6">{card.title}</h3>
@@ -271,6 +331,13 @@ const Workout = () => {
               </button>
             </div>
           ))}
+
+          {/* No Results Message */}
+          {searchQuery && !showMondayCard && filteredRoutineCards.length === 0 && (
+             <div className="col-span-full py-20 text-center text-slate-400">
+               No routine cards match "{searchQuery}"
+             </div>
+          )}
 
         </div>
       </div>

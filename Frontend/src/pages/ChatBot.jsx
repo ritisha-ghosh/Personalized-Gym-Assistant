@@ -1,13 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Layout from "../componenets/layout/Layout"; // Fixed typo in path
-import { Send, PlusCircle, Bot, User } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
+import Layout from "../componenets/layout/Layout"; 
+import { Send, PlusCircle, Bot, Search } from 'lucide-react';
 
 const ChatBot = () => {
+  // 2. Get search query from URL
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
+
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // --- Initial Chat History (Matching your design) ---
+  // --- Initial Chat History ---
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -29,10 +34,17 @@ const ChatBot = () => {
     }
   ]);
 
-  // Auto-scroll to bottom
+  // --- 3. Filter Messages based on Search ---
+  const filteredMessages = messages.filter(msg => 
+    msg.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Auto-scroll to bottom (only if not searching)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+    if (!searchQuery) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isTyping, searchQuery]);
 
   const handleSend = (text = inputValue) => {
     if (!text.trim()) return;
@@ -89,53 +101,78 @@ const ChatBot = () => {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">AI Coach</h1>
           <p className="text-slate-500 text-sm">Always active • Personalized fitness guidance</p>
+          
+          {/* Search Feedback */}
+          {searchQuery && (
+             <div className="mt-2 flex items-center gap-2 text-sm font-bold text-[#df20af] animate-pulse">
+               <Search size={14} />
+               Searching chat history for: "{searchQuery}"
+             </div>
+          )}
         </div>
 
         {/* --- Messages Area --- */}
         <div className="flex-1 overflow-y-auto chat-scroll pr-4 space-y-6">
-          {messages.map((msg) => (
-            <div 
-              key={msg.id} 
-              className={`flex gap-4 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
-            >
-              {/* Avatar */}
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
-                msg.sender === 'ai' ? 'bg-teal-500 text-white' : 'bg-pink-500' // Placeholder for user image if needed
-              }`}>
-                {msg.sender === 'ai' ? (
-                  <Bot size={20} />
-                ) : (
-                   <img 
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2000&auto=format&fit=crop" 
-                    alt="User" 
-                    className="w-full h-full rounded-full object-cover border-2 border-white"
-                  />
-                )}
-              </div>
-
-              {/* Message Bubble */}
-              <div className={`flex flex-col max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                <div 
-                  className={`p-5 rounded-2xl shadow-sm text-sm leading-relaxed whitespace-pre-wrap ${
-                    msg.sender === 'ai' 
-                      ? 'bg-[#e0f7f6] text-slate-800 rounded-tl-none' 
-                      : 'bg-[#df20af] text-white rounded-tr-none'
-                  }`}
-                >
-                  {/* Simple bold parsing for demo */}
-                  {msg.text.split('**').map((part, i) => 
-                    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+          
+          {filteredMessages.length > 0 ? (
+            filteredMessages.map((msg) => (
+              <div 
+                key={msg.id} 
+                className={`flex gap-4 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+              >
+                {/* Avatar */}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
+                  msg.sender === 'ai' ? 'bg-teal-500 text-white' : 'bg-pink-500' 
+                }`}>
+                  {msg.sender === 'ai' ? (
+                    <Bot size={20} />
+                  ) : (
+                     <img 
+                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2000&auto=format&fit=crop" 
+                      alt="User" 
+                      className="w-full h-full rounded-full object-cover border-2 border-white"
+                    />
                   )}
                 </div>
-                <span className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">
-                  {msg.sender === 'ai' ? 'AI Coach' : 'You'} • {msg.time}
-                </span>
-              </div>
-            </div>
-          ))}
 
-          {/* Typing Indicator */}
-          {isTyping && (
+                {/* Message Bubble */}
+                <div className={`flex flex-col max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div 
+                    className={`p-5 rounded-2xl shadow-sm text-sm leading-relaxed whitespace-pre-wrap ${
+                      msg.sender === 'ai' 
+                        ? 'bg-[#e0f7f6] text-slate-800 rounded-tl-none' 
+                        : 'bg-[#df20af] text-white rounded-tr-none'
+                    }`}
+                  >
+                    {/* Highlight search term if searching */}
+                    {searchQuery ? (
+                      msg.text.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) => 
+                        part.toLowerCase() === searchQuery.toLowerCase() 
+                          ? <span key={i} className="bg-yellow-300 text-black px-1 rounded">{part}</span>
+                          : part
+                      )
+                    ) : (
+                      // Standard bold parsing
+                      msg.text.split('**').map((part, i) => 
+                        i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+                      )
+                    )}
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">
+                    {msg.sender === 'ai' ? 'AI Coach' : 'You'} • {msg.time}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+              <Search size={48} className="mb-4 opacity-20" />
+              <p>No messages found matching "{searchQuery}"</p>
+            </div>
+          )}
+
+          {/* Typing Indicator (Only show if not searching) */}
+          {isTyping && !searchQuery && (
             <div className="flex gap-4">
               <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center shrink-0">
                  <Bot size={20} className="text-white" />
@@ -153,18 +190,20 @@ const ChatBot = () => {
         {/* --- Input Area --- */}
         <div className="mt-4 bg-white pt-4 border-t border-slate-100">
           
-          {/* Quick Actions */}
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-            {['What is my current goal?', 'Show me my next workout', 'Analyze my last run', 'Recipe for post-workout'].map((action) => (
-              <button
-                key={action}
-                onClick={() => handleSend(action)}
-                className="whitespace-nowrap px-4 py-2 bg-slate-50 hover:bg-[#e0f7f6] hover:text-teal-700 border border-slate-200 rounded-full text-xs font-bold text-slate-600 transition-colors"
-              >
-                {action}
-              </button>
-            ))}
-          </div>
+          {/* Quick Actions (Hide when searching to reduce clutter) */}
+          {!searchQuery && (
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+              {['What is my current goal?', 'Show me my next workout', 'Analyze my last run', 'Recipe for post-workout'].map((action) => (
+                <button
+                  key={action}
+                  onClick={() => handleSend(action)}
+                  className="whitespace-nowrap px-4 py-2 bg-slate-50 hover:bg-[#e0f7f6] hover:text-teal-700 border border-slate-200 rounded-full text-xs font-bold text-slate-600 transition-colors"
+                >
+                  {action}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Input Box */}
           <div className="relative flex items-center gap-2">

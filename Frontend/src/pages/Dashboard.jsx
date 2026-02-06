@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom"; // 1. Import hook
 import Layout from "../componenets/layout/Layout";
 import StatCard from "../componenets/cards/StatCard";
 import WorkoutCard from "../componenets/cards/WorkoutCard";
@@ -13,15 +14,17 @@ const Dashboard = () => {
   const [recentWorkouts, setRecentWorkouts] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // 2. Get the search query from URL
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
+
   useEffect(() => {
-    // Load user profile and workouts from local storage
     const profile = getUserProfile();
     const workouts = getWorkouts();
     
     setUserProfile(profile);
     setRecentWorkouts(workouts.slice(-3));
     
-    // Update time every minute
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
@@ -33,9 +36,51 @@ const Dashboard = () => {
     return "Good Evening";
   };
 
+  // 3. Helper to check if a component should be visible
+  // Returns true if search is empty OR if the keyword matches the search query
+  const shouldShow = (keywords) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return keywords.some(k => k.toLowerCase().includes(query));
+  };
+
+  // 4. Data for Stats (Moved to array for filtering)
+  const statsData = [
+    { 
+      id: 1, 
+      title: "Current Weight", 
+      value: "82.5", 
+      unit: "kg", 
+      footer: "-0.5kg this week", 
+      accent: "text-teal-500",
+      keywords: ["weight", "kg", "loss", "current"] 
+    },
+    { 
+      id: 2, 
+      title: "Goal (Hypertrophy)", 
+      value: "88.0", 
+      unit: "kg", 
+      footer: "+5.5kg to go", 
+      accent: "text-pink-500",
+      keywords: ["goal", "hypertrophy", "target"]
+    },
+    { 
+      id: 3, 
+      title: "Daily Calories", 
+      value: "1,420", 
+      unit: "/ 2,800 kcal", 
+      footer: "1,380 kcal remaining", 
+      accent: "text-pink-500",
+      keywords: ["calories", "kcal", "diet", "food", "nutrition"]
+    }
+  ];
+
+  // Filter stats based on search
+  const filteredStats = statsData.filter(stat => shouldShow([stat.title, ...stat.keywords]));
+
   return (
     <Layout>
-      {/* Greeting - Responsive text sizes */}
+      {/* Greeting */}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
           {getGreeting()}, {userProfile?.name || "Athlete"}.
@@ -43,49 +88,70 @@ const Dashboard = () => {
         <p className="mt-1 text-sm sm:text-base font-medium text-slate-500">
           AI Trainer: "Keep up the great work! {recentWorkouts.length} workouts this week."
         </p>
+        
+        {/* Search Result Indicator */}
+        {searchQuery && (
+          <p className="mt-4 text-sm font-bold text-[#df20af]">
+            Showing results for: "{searchQuery}"
+          </p>
+        )}
       </div>
 
-      {/* Stats - Responsive grid */}
-      <div className="mb-6 sm:mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        <StatCard
-          title="Current Weight"
-          value="82.5"
-          unit="kg"
-          footer="-0.5kg this week"
-          accent="text-teal-500"
-        />
-        <StatCard
-          title="Goal (Hypertrophy)"
-          value="88.0"
-          unit="kg"
-          footer="+5.5kg to go"
-          accent="text-pink-500"
-        />
-        <StatCard
-          title="Daily Calories"
-          value="1,420"
-          unit="/ 2,800 kcal"
-          footer="1,380 kcal remaining"
-          accent="text-pink-500"
-        />
-      </div>
+      {/* Stats - Responsive grid (Filtered) */}
+      {filteredStats.length > 0 && (
+        <div className="mb-6 sm:mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {filteredStats.map((stat) => (
+            <StatCard
+              key={stat.id}
+              title={stat.title}
+              value={stat.value}
+              unit={stat.unit}
+              footer={stat.footer}
+              accent={stat.accent}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         
         {/* Left Column */}
         <div className="space-y-6 lg:col-span-8">
-          <WorkoutCard />
-          <WeightTrendCard />
+          {/* Conditionally render based on search keywords */}
+          {shouldShow(["workout", "training", "exercise", "plan"]) && <WorkoutCard />}
+          {shouldShow(["weight", "trend", "chart", "progress", "graph"]) && <WeightTrendCard />}
+          
+          {/* If search is active but nothing matches in this column, show a polite message (optional) */}
+          {searchQuery && 
+           !shouldShow(["workout", "training", "exercise", "plan", "weight", "trend", "chart", "progress", "graph"]) && (
+             <div className="hidden lg:block text-slate-400 text-sm italic">No main charts match your search.</div>
+           )}
         </div>
 
         {/* Right Column */}
         <div className="space-y-6 lg:col-span-4">
-          <WeeklyConsistency />
-          <TrainerInsight />
-          <Leaderboard />
+          {shouldShow(["consistency", "week", "streak", "calendar"]) && <WeeklyConsistency />}
+          {shouldShow(["trainer", "insight", "ai", "tip", "advice"]) && <TrainerInsight />}
+          {shouldShow(["leaderboard", "rank", "social", "community", "top"]) && <Leaderboard />}
         </div>
+
       </div>
+
+      {/* Empty State if absolutely nothing matches */}
+      {searchQuery && 
+       filteredStats.length === 0 && 
+       !shouldShow(["workout", "weight", "consistency", "trainer", "leaderboard"]) && (
+        <div className="text-center py-20 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+          <p className="text-slate-500">No results found for "{searchQuery}".</p>
+          <button 
+             onClick={() => window.history.back()} 
+             className="mt-2 text-[#df20af] font-bold hover:underline"
+          >
+            Clear Search
+          </button>
+        </div>
+      )}
     </Layout>
   );
 };
