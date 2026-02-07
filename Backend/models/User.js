@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema({
     required: true
   },
 
+  refreshToken: {
+  type: String
+  },
+
+
   age: Number,
   weight: Number,
   height: Number,
