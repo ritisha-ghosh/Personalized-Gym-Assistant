@@ -1,4 +1,4 @@
-import { Apple, Dumbbell, LayoutDashboard, LineChartIcon, LogOut, MessageSquare, Settings, TrendingUp, User } from "lucide-react";
+import { Apple, Dumbbell, LayoutDashboard, LineChartIcon, LogOut, MessageSquare, Settings, BookOpen, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Sidebar = ({ onClose }) => {
@@ -44,9 +44,16 @@ const Sidebar = ({ onClose }) => {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-1 overflow-y-auto">
+        
         <Link to="/dashboard" onClick={handleLinkClick} className={navItemClass("/dashboard")}>
           <LayoutDashboard size={18} className="flex-shrink-0" />
           <span>Dashboard</span>
+        </Link>
+
+        {/* Updated Link to /tutorial */}
+        <Link to="/tutorial" onClick={handleLinkClick} className={navItemClass("/tutorial")}>
+          <BookOpen size={18} className="flex-shrink-0" />
+          <span>Tutorial</span>
         </Link>
 
         <Link to="/workouts" onClick={handleLinkClick} className={navItemClass("/workouts")}>
@@ -63,8 +70,6 @@ const Sidebar = ({ onClose }) => {
           <LineChartIcon size={18} className="flex-shrink-0" />
           <span>Progress</span>
         </Link>
-
-    
 
         <Link to="/profile" onClick={handleLinkClick} className={navItemClass("/profile")}>
           <User size={18} className="flex-shrink-0" />
