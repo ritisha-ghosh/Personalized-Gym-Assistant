@@ -251,3 +251,106 @@ Token-based Authorization Flow
 
 🎯 Week 2 Status: ✅ Completed Successfully
 
+
+
+📌 Week 3 – Backend Development Progress
+✅ Work Completed
+
+Implemented additional backend controllers to handle advanced features related to diet plans, workouts, and user logs.
+
+Created and integrated new service-layer logic to keep business logic separate from controllers (improving code structure and maintainability).
+
+Added diet calculation and planning services, including calorie and nutrition-related computations.
+
+Integrated an AI-related service module to support intelligent or automated responses/calculations.
+
+Expanded and refined MongoDB models for workout plans, diet plans, and user logs.
+
+Added and updated API routes to support new backend features.
+
+Ensured proper use of middleware for authentication and request handling.
+
+Maintained a clean MVC architecture across the backend.
+
+Updated documentation to reflect Week 3 progress.
+
+🛠 Tech Stack Used
+
+Node.js
+
+Express.js
+
+MongoDB (Mongoose)
+
+JWT Authentication
+
+MVC Architecture
+
+
+✨ Week 4 Progress Report – Backend Module
+🔐 Authentication & Authorization Enhancements
+
+During Week 4, I worked on strengthening the authentication system of the backend by implementing secure token-based authentication using JWT and Redis.
+
+✅ Tasks Completed
+1. JWT Authentication Flow
+
+Implemented Access Token generation using JWT
+
+Implemented Refresh Token mechanism for session persistence
+
+Access tokens are used for protected routes
+
+Refresh tokens are used to generate new access tokens without re-login
+
+2. Refresh Token Implementation
+
+Created Refresh Token Controller
+
+Created Refresh Token Route
+
+Refresh token is validated before issuing a new access token
+
+Improved security by separating access and refresh token logic
+
+3. Redis Integration
+
+Integrated Redis to store refresh tokens securely
+
+Redis server running on port 5000
+
+Refresh tokens are saved and verified from Redis
+
+Helps in token revocation and session management
+
+4. User Model Updates
+
+Updated User schema to include:
+
+refreshToken field
+
+Ensured proper handling of token storage and updates
+
+5. API Testing
+
+Tested authentication and refresh token flow using Thunder Client
+
+Verified:
+
+Login → Access + Refresh token generation
+
+Refresh token → New access token issuance
+
+Token validation and error handling
+
+6. Code Quality & Structure
+
+Followed MVC architecture
+
+Controllers, routes, and services are well-separated
+
+Used environment variables for secrets and configurations
+
+🚀 Outcome
+
+By the end of Week 4, the backend authentication system became more secure, scalable, and production-ready, supporting token refresh without forcing users to log in repeatedly.
