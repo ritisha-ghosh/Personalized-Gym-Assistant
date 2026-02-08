@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
 
 import { 
@@ -20,6 +20,10 @@ import {
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('account');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // 2. Search Params Logic
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
 
   // --- State for Dynamic Settings ---
   const [formData, setFormData] = useState({
@@ -53,13 +57,57 @@ const Settings = () => {
     }, 1000);
   };
 
-  // --- Navigation Tabs ---
+  // --- 3. SMART NAVIGATION CONFIGURATION ---
+  // Define keywords for each tab. If a search matches a keyword, we switch to that tab.
   const tabs = [
-    { id: 'account', label: 'Account', icon: User },
-    { id: 'preferences', label: 'Preferences', icon: Smartphone },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: Shield },
+    { 
+      id: 'account', 
+      label: 'Account', 
+      icon: User, 
+      // Keywords that should trigger the 'Account' tab
+      keywords: ['name', 'first name', 'last name', 'email', 'profile', 'google', 'connect', 'disconnect', 'personal information'] 
+    },
+    { 
+      id: 'preferences', 
+      label: 'Preferences', 
+      icon: Smartphone, 
+      // Keywords that should trigger the 'Preferences' tab
+      keywords: ['theme', 'dark mode', 'light mode', 'language', 'english', 'spanish', 'units', 'metric', 'imperial', 'appearance', 'region'] 
+    },
+    { 
+      id: 'notifications', 
+      label: 'Notifications', 
+      icon: Bell, 
+      // Keywords that should trigger the 'Notifications' tab
+      keywords: ['email notifications', 'push', 'alert', 'marketing', 'promotions', 'updates', 'messages'] 
+    },
+    { 
+      id: 'security', 
+      label: 'Security', 
+      icon: Shield, 
+      // Keywords that should trigger the 'Security' tab
+      keywords: ['password', 'change password', '2fa', 'two-factor', 'two factor', 'authentication', 'delete account', 'danger zone', 'login'] 
+    },
   ];
+
+  // --- 4. AUTO-SWITCH LOGIC ---
+  // This effect runs every time the search query changes
+  useEffect(() => {
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      
+      // Find the tab where the Label OR any Keyword matches the search query
+      const match = tabs.find(tab => 
+        tab.label.toLowerCase().includes(lowerQuery) || 
+        tab.keywords.some(keyword => keyword.includes(lowerQuery))
+      );
+
+      // If a matching tab is found and it's not the current one, switch to it
+      if (match && match.id !== activeTab) {
+        setActiveTab(match.id);
+      }
+    }
+  }, [searchQuery, activeTab]);
 
   return (
     <Layout>
@@ -86,6 +134,13 @@ const Settings = () => {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
           <p className="text-slate-500 text-sm mt-1">Manage your account preferences and app settings.</p>
+          
+          {/* Smart Search Feedback Message */}
+          {searchQuery && (
+             <p className="text-sm font-bold text-[#df20af] mt-2 animate-pulse transition-all">
+               Searching for "{searchQuery}"... <span className="text-slate-400 font-normal">Found in {tabs.find(t => t.id === activeTab)?.label}</span>
+             </p>
+          )}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">

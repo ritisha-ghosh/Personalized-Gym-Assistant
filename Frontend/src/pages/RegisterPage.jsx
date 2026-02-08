@@ -2,8 +2,27 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const RegisterPage = () => {
-
   const [experience, setExperience] = useState('Beginner');
+  const [exclusions, setExclusions] = useState([]);
+  
+  const currentYear = new Date().getFullYear();
+
+  // Handle toggling of dietary exclusions
+  const toggleExclusion = (item) => {
+    if (exclusions.includes(item)) {
+      setExclusions(exclusions.filter(i => i !== item));
+    } else {
+      setExclusions([...exclusions, item]);
+    }
+  };
+
+  const exclusionOptions = [
+    "No Garlic / Onion", 
+    "Gluten Free", 
+    "Lactose Free", 
+    "Nut Allergy", 
+    "Sugar Free"
+  ];
 
   return (
     <div className="flex min-h-screen bg-white font-sans">
@@ -42,7 +61,8 @@ const RegisterPage = () => {
           </div>
         </div>
 
-        <p className="text-slate-400 text-xs">© 2026 Gym & Fitness Assistant. All rights reserved.</p>
+        <p className="text-slate-400 text-xs"> © 2025-{currentYear} All rights reserved.</p>
+
       </div>
 
       {/* RIGHT SIDE: REGISTRATION FORM */}
@@ -113,16 +133,23 @@ const RegisterPage = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Fitness Goal</label>
-                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none">
-                    <option>Weight Loss</option>
-                    <option>Muscle Gain</option>
+                 <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Gender</label>
+                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700">
+                    <option value="" disabled selected>Select</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Injury Status</label>
-                  <input type="text" placeholder="None, Knee, Shoulder..." className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-pink-500" />
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Fitness Goal</label>
+                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700">
+                    <option>Weight Loss</option>
+                    <option>Muscle Gain</option>
+                    <option>Maintenance</option>
+                    <option>Endurance</option>
+                  </select>
                 </div>
               </div>
 
@@ -149,8 +176,66 @@ const RegisterPage = () => {
               </div>
             </section>
 
+             {/* SECTION 3: Nutrition & Lifestyle (New) */}
+             <section>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-pink-50 rounded-lg text-[#db2777]">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <h3 className="font-bold text-slate-800">Nutrition & Lifestyle</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Diet Type</label>
+                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700">
+                    <option value="" disabled selected>Select Diet</option>
+                    <option value="standard">Standard  (Omnivore)</option>
+                    <option value="vegetarian">Vegetarian</option>
+                    <option value="vegan">Vegan</option>
+                    <option value="eggetarian">Eggetarian</option>
+                    <option value="pescatarian">Pescatarian</option>
+                  </select>
+                </div>
+                <div>
+                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Daily Activity</label>
+                   <select className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700">
+                      <option value="sedentary">Sedentary (Office Job)</option>
+                      <option value="light">Lightly Active</option>
+                      <option value="moderate">Moderately Active</option>
+                      <option value="active">Very Active</option>
+                   </select>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-3">Dietary Exclusions</label>
+                <div className="flex flex-wrap gap-2">
+                  {exclusionOptions.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => toggleExclusion(item)}
+                      className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
+                        exclusions.includes(item)
+                        ? "bg-pink-100 text-[#db2777] border-[#db2777]"
+                        : "bg-white text-slate-500 border-slate-200 hover:border-pink-300"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Injury / Medical Conditions</label>
+                  <input type="text" placeholder="e.g. Lower Back Pain, Asthma..." className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-pink-500" />
+              </div>
+            </section>
+
             {/* Submit Button */}
-            <div className="pt-6">
+            <div className="pt-2">
               <button className="w-full bg-[#db2777] hover:bg-[#be185d] text-white font-bold py-4 rounded-xl shadow-lg shadow-pink-100 flex items-center justify-center gap-2 transition-transform active:scale-95">
                 Complete Registration
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>

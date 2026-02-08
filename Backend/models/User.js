@@ -7,42 +7,50 @@ const userSchema = new mongoose.Schema(
       required: true
     },
 
-    email: {
-      type: String,
-      required: true,
-      unique: true
-    },
 
-    password: {
-      type: String,
-      required: true
-    },
-
-    refreshToken: {
-      type: String
-    },
-
-    age: Number,
-    weight: Number,
-    height: Number,
-    gender: String,
-    goal: String,
-    injury: String,
-    experience: String,
-
-    activityLevel: {
-      type: String,
-      enum: ["low", "moderate", "high"],
-      default: "moderate"
-    },
-
-    dietType: {
-      type: String,
-      enum: ["standard", "veg", "non-veg", "keto", "vegan"],
-      default: "standard"
-    }
+  email: {
+    type: String,
+    required: true,
+    unique: true
   },
-  { timestamps: true }
-);
+
+  password: {
+    type: String,
+    required: true
+  },
+
+  refreshToken: {
+  type: String
+  },
+
+
+  age: Number,
+  weight: Number,
+  height: Number,
+  gender: String,
+  goal: String,
+  injury: String,
+  experience: String,
+ 
+  // 🍽️ DIET PREFERENCES (NEW)
+  
+  dietType: {
+    type: String,
+    enum: ["vegetarian", "non-vegetarian"],
+    default: "vegetarian"
+  },
+
+  noOnion: {
+    type: Boolean,
+    default: false
+  },
+
+  noGarlic: {
+    type: Boolean,
+    default: false
+  }
+
+}, { timestamps: true });
+>>>>>>> origin/main
 
 module.exports = mongoose.model("User", userSchema);

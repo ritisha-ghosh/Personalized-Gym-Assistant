@@ -30,7 +30,10 @@ exports.signup = async (req, res) => {
       height,
       goal,
       injury,
-      experience
+      experience,
+      dietType,
+      noOnion,
+      noGarlic
     } = req.body;
 
     if (!name || !email || !password) {
@@ -55,7 +58,10 @@ exports.signup = async (req, res) => {
       gender,
       goal,
       injury,
-      experience
+      experience,
+      dietType,
+      noOnion,
+      noGarlic
     });
 
     res.status(201).json({
