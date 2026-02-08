@@ -31,6 +31,13 @@ const userSchema = new mongoose.Schema(
   goal: String,
   injury: String,
   experience: String,
+  
+
+  activityLevel: {
+      type: String,
+      enum: ["low", "moderate", "high"],
+      default: "moderate"
+    },
  
   // 🍽️ DIET PREFERENCES (NEW)
   
@@ -50,7 +57,7 @@ const userSchema = new mongoose.Schema(
     default: false
   }
 
-}, { timestamps: true });
->>>>>>> origin/main
+}, 
+{ timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);
