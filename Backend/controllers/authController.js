@@ -78,14 +78,24 @@ exports.login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    // Prepare user object for the response, excluding the password
+    const userResponse = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      age: user.age,
+      weight: user.weight,
+      height: user.height,
+      gender: user.gender,
+      goal: user.goal,
+      injury: user.injury,
+      experience: user.experience
+    };
+
     res.json({
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      }
+      user: userResponse
     });
 
   } catch (error) {

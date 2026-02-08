@@ -137,16 +137,16 @@ npm run lint
 
 ## Technologies Used
 
-| Technology | Purpose | Version |
-|-----------|---------|---------|
-| **React** | UI Framework | ^19.1.0 |
-| **React Router** | Navigation & Routing | ^7.12.0 |
-| **Tailwind CSS** | Utility-first CSS | ^3.4.19 |
-| **Recharts** | Data visualization | ^3.7.0 |
-| **Lucide React** | Icon library | ^0.563.0 |
-| **Vite** | Build tool | ^6.3.5 |
-| **PostCSS** | CSS processing | ^8.5.6 |
-| **ESLint** | Code linting | ^9.25.0 |
+| Technology       | Purpose              | Version  |
+|------------------|----------------------|----------|
+| **React**        | UI Framework         | ^19.1.0  |
+| **React Router** | Navigation & Routing | ^7.12.0  |
+| **Tailwind CSS** | Utility-first CSS    | ^3.4.19  |
+| **Recharts**     | Data visualization   | ^3.7.0   |
+| **Lucide React** | Icon library         | ^0.563.0 |
+| **Vite**         | Build tool           | ^6.3.5   |
+| **PostCSS**      | CSS processing       | ^8.5.6   |
+| **ESLint**       | Code linting         | ^9.25.0  |
 
 ---
 
