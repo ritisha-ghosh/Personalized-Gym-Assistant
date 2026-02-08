@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
-import { getUserProfile, saveUserProfile } from "../utils/storageUtils";
 import { uploadImageToLocalStorage, validateImageFile } from "../utils/fileUploadUtils";
+import { updateMyProfile } from '../../api';
 
 const UserProfile = () => {
   // 2. Search Params Logic
@@ -11,27 +11,37 @@ const UserProfile = () => {
 
   // --- State for Dynamic Functionality ---
   const [formData, setFormData] = useState({
-    height: '178 cm',
-    weight: '75 kg',
+    height: '',
+    weight: '',
     bio: 'Training for my first marathon. Looking to increase strength while maintaining aerobic capacity.',
   });
 
-  const [selectedGoal, setSelectedGoal] = useState('Muscle Gain');
-  const [isInjuryActive, setIsInjuryActive] = useState(true);
+  const [user, setUser] = useState(null);
+  const [selectedGoal, setSelectedGoal] = useState('');
+  const [isInjuryActive, setIsInjuryActive] = useState(false);
+  const [injuryText, setInjuryText] = useState('');
   const [profileImage, setProfileImage] = useState('https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2000&auto=format&fit=crop');
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
 
   useEffect(() => {
-    // Load user profile from storage on component mount
-    const profile = getUserProfile();
-    setFormData({
-      height: profile.height,
-      weight: profile.weight,
-      bio: profile.bio,
-    });
-    setProfileImage(profile.profileImage);
+    const loadProfile = () => {
+      // Load user profile from storage on component mount
+      const profile = JSON.parse(localStorage.getItem('userProfile'));
+      if (profile) {
+        setUser(profile);
+        setFormData({
+          height: profile.height || '',
+          weight: profile.weight || '',
+          bio: profile.bio || 'Training for my first marathon...',
+        });
+        setSelectedGoal(profile.goal || 'Muscle Gain');
+        setIsInjuryActive(!!profile.injury);
+        setInjuryText(profile.injury || '');
+      }
+    };
+    loadProfile();
   }, []);
 
   // --- Profile Image Gallery ---
@@ -73,20 +83,27 @@ const UserProfile = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    const profile = getUserProfile();
-    const updatedProfile = {
-      ...profile,
-      ...formData,
-      selectedGoal,
-      isInjuryActive,
-      profileImage,
-      lastUpdated: new Date().toISOString(),
+  const handleSave = async () => {
+    setSaveStatus('Saving...');
+    const payload = {
+      height: parseInt(formData.height) || undefined,
+      weight: parseInt(formData.weight) || undefined,
+      bio: formData.bio,
+      goal: selectedGoal,
+      injury: isInjuryActive ? injuryText : "",
     };
-    
-    saveUserProfile(updatedProfile);
-    setSaveStatus('Profile saved successfully!');
-    setTimeout(() => setSaveStatus(''), 3000);
+
+    try {
+      const { data: updatedUser } = await updateMyProfile(payload);
+      localStorage.setItem('userProfile', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      setSaveStatus('Profile saved successfully!');
+    } catch (error) {
+      setSaveStatus('Failed to save profile.');
+      console.error(error);
+    } finally {
+      setTimeout(() => setSaveStatus(''), 3000);
+    }
   };
 
   const handleSelectProfileImage = (imageUrl) => {
@@ -166,7 +183,7 @@ const UserProfile = () => {
               </button>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-1">Alex Rivera</h2>
+              <h2 className="text-3xl font-bold text-slate-900 mb-1">{user?.name || 'User'}</h2>
               <p className="text-slate-500 font-medium text-sm">Elite Member since Jan 2023</p>
               
               {/* Filtered Badges Row */}
@@ -215,7 +232,8 @@ const UserProfile = () => {
                 <div className="relative group">
                   <input 
                     name="height"
-                    value={formData.height} 
+                    type="number"
+                    value={formData.height}
                     onChange={handleInputChange}
                     className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all text-lg group-hover:bg-slate-100/50" 
                   />
@@ -226,7 +244,8 @@ const UserProfile = () => {
                 <div className="relative group">
                   <input 
                     name="weight"
-                    value={formData.weight} 
+                    type="number"
+                    value={formData.weight}
                     onChange={handleInputChange}
                     className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all text-lg group-hover:bg-slate-100/50" 
                   />
@@ -304,10 +323,17 @@ const UserProfile = () => {
 
               {isInjuryActive ? (
                 <div className="mt-2 transition-all duration-300 ease-in-out">
-                  <p className="text-[#967614] font-bold text-sm mb-4">Current Active Injury: Left Knee (Patellar Tendonitis)</p>
+                  <p className="text-[#967614] font-bold text-sm mb-4">Current Active Injury:</p>
+                  <input
+                    type="text"
+                    value={injuryText}
+                    onChange={(e) => setInjuryText(e.target.value)}
+                    placeholder="Describe your injury..."
+                    className="w-full bg-white/60 p-4 rounded-xl border border-white/50 backdrop-blur-sm text-sm text-[#856404] leading-relaxed italic font-medium focus:ring-1 focus:ring-yellow-600 outline-none"
+                  />
                   <div className="bg-white/60 p-4 rounded-xl border border-white/50 backdrop-blur-sm">
                     <p className="text-sm text-[#856404] leading-relaxed italic font-medium">
-                      "PulseAI is currently optimizing your lower body routines to avoid high-impact jumping and heavy squats. Focusing on glute isolation and eccentric movements."
+                      "PulseAI will optimize your routines based on this information."
                     </p>
                   </div>
                 </div>

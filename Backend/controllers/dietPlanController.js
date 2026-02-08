@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const { calculateBMR, calculateTDEE } = require("../services/dietCalculator");
 const { generateDietPlan } = require("../services/dietPlanCalculator");
+const { getDietRecommendations } = require("../services/recommendationService");
 
 const getDietPlan = async (req, res) => {
   try {
@@ -31,10 +32,22 @@ const getDietPlan = async (req, res) => {
       goal: user.goal,
     });
 
+    // STEP 4: Diet Preferences (defaults if not stored)
+    const dietPreferences = {
+      dietType: user.dietType || "vegetarian",
+      noOnion: user.noOnion || false,
+      noGarlic: user.noGarlic || false
+    };
+
+    // STEP 5: Recipe Recommendations (Python AI)
+    const recipeResponse = await getDietRecommendations(dietPreferences);
+
     res.status(200).json({
       BMR: Math.round(bmr),
       TDEE: Math.round(tdee),
-      dietPlan,
+      macros: dietPlan,
+      recipes: recipeResponse.recipes || [],
+      recipeCount: recipeResponse.count || 0
     });
 
   } catch (error) {
