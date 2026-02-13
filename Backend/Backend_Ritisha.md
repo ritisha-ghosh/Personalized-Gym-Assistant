@@ -1,4 +1,4 @@
-Personalized-Gym-Assistant/Backend/
+Backend/
 ├── config/
 │   └── db.js                 # Handles the MongoDB database connection logic.
 ├── controllers/
@@ -23,11 +23,11 @@ Personalized-Gym-Assistant/Backend/
 │   ├── logRoutes.js          # Defines /api/logs endpoints.
 │   └── workoutRoutes.js      # Defines /api/workouts endpoints.
 ├── services/
-│   └──decisionTreeService.js # Contains complex business logic (e.g., workout adjustment AI).
+│   └── decisionTreeService.js # Contains complex business logic (e.g., workout adjustment AI).
 ├── .env                      # Stores secret environment variables (DB URI, JWT secrets).
 ├── package.json              # Lists project dependencies and scripts.
 ├── server.js                 # The main entry point for the backend server.
-├── Backend_Ritisha.md        # The main technical documentation you are viewing.
+├── Backend_Ritisha.md        # The main technical documentation.
 ├── README_PRITAM.md          # Documentation from Pritam.
 ├── README_shreya.md          # Documentation from Shreya.
 └── Readme_Subh.md            # Documentation from Subham.

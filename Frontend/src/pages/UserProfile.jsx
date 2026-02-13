@@ -1,50 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
+import { useSearchParams } from 'react-router-dom'; 
 import Layout from "../componenets/layout/Layout";
+import { getUserProfile, saveUserProfile } from "../utils/storageUtils";
 import { uploadImageToLocalStorage, validateImageFile } from "../utils/fileUploadUtils";
-import { updateMyProfile } from '../../api';
 
 const UserProfile = () => {
-  // 2. Search Params Logic
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
 
-  // --- State for Dynamic Functionality ---
+  // --- State ---
   const [formData, setFormData] = useState({
-    height: '',
-    weight: '',
+    height: '178 cm',
+    weight: '75 kg',
     bio: 'Training for my first marathon. Looking to increase strength while maintaining aerobic capacity.',
   });
 
-  const [user, setUser] = useState(null);
-  const [selectedGoal, setSelectedGoal] = useState('');
-  const [isInjuryActive, setIsInjuryActive] = useState(false);
-  const [injuryText, setInjuryText] = useState('');
+  const [selectedGoal, setSelectedGoal] = useState('Muscle Gain');
+  const [isInjuryActive, setIsInjuryActive] = useState(true);
   const [profileImage, setProfileImage] = useState('https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2000&auto=format&fit=crop');
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
 
   useEffect(() => {
-    const loadProfile = () => {
-      // Load user profile from storage on component mount
-      const profile = JSON.parse(localStorage.getItem('userProfile'));
-      if (profile) {
-        setUser(profile);
-        setFormData({
-          height: profile.height || '',
-          weight: profile.weight || '',
-          bio: profile.bio || 'Training for my first marathon...',
-        });
-        setSelectedGoal(profile.goal || 'Muscle Gain');
-        setIsInjuryActive(!!profile.injury);
-        setInjuryText(profile.injury || '');
-      }
-    };
-    loadProfile();
+    const profile = getUserProfile();
+    setFormData({
+      height: profile.height,
+      weight: profile.weight,
+      bio: profile.bio,
+    });
+    setProfileImage(profile.profileImage);
   }, []);
 
-  // --- Profile Image Gallery ---
   const profileImageGallery = [
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2000&auto=format&fit=crop',
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2000&auto=format&fit=crop',
@@ -56,7 +43,6 @@ const UserProfile = () => {
     'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=2000&auto=format&fit=crop',
   ];
 
-  // --- Badges & Stats Data ---
   const badges = [
     "Early Bird", "Consistency King", "Heavy Lifter", "Yogi Master", "Marathon Runner", "Nutrition Pro"
   ];
@@ -68,14 +54,22 @@ const UserProfile = () => {
     { label: "Weight Goal", value: "60 kg" }
   ];
 
-  // 3. Filter Logic
-  const filteredBadges = badges.filter(badge => 
-    badge.toLowerCase().includes(searchQuery.toLowerCase())
+  // --- FILTER LOGIC ---
+  const lowerQuery = searchQuery.toLowerCase();
+
+  const shouldShow = (keywords) => {
+    if (!searchQuery) return true;
+    return keywords.some(k => k.toLowerCase().includes(lowerQuery));
+  };
+
+  // Only filter stats. Badges in header stay static.
+  const filteredStats = stats.filter(stat => 
+    !searchQuery || stat.label.toLowerCase().includes(lowerQuery)
   );
 
-  const filteredStats = stats.filter(stat => 
-    !searchQuery || stat.label.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const showPhysicalMetrics = shouldShow(['physical', 'metrics', 'height', 'weight', 'cm', 'kg']);
+  const showGoals = shouldShow(['goals', 'muscle', 'gain', 'endurance', 'loss', 'bio', 'motivation']);
+  const showInjury = shouldShow(['injury', 'status', 'medical', 'pain', 'knee']);
 
   // --- Handlers ---
   const handleInputChange = (e) => {
@@ -83,27 +77,20 @@ const UserProfile = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = async () => {
-    setSaveStatus('Saving...');
-    const payload = {
-      height: parseInt(formData.height) || undefined,
-      weight: parseInt(formData.weight) || undefined,
-      bio: formData.bio,
-      goal: selectedGoal,
-      injury: isInjuryActive ? injuryText : "",
+  const handleSave = () => {
+    const profile = getUserProfile();
+    const updatedProfile = {
+      ...profile,
+      ...formData,
+      selectedGoal,
+      isInjuryActive,
+      profileImage,
+      lastUpdated: new Date().toISOString(),
     };
-
-    try {
-      const { data: updatedUser } = await updateMyProfile(payload);
-      localStorage.setItem('userProfile', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-      setSaveStatus('Profile saved successfully!');
-    } catch (error) {
-      setSaveStatus('Failed to save profile.');
-      console.error(error);
-    } finally {
-      setTimeout(() => setSaveStatus(''), 3000);
-    }
+    
+    saveUserProfile(updatedProfile);
+    setSaveStatus('Profile saved successfully!');
+    setTimeout(() => setSaveStatus(''), 3000);
   };
 
   const handleSelectProfileImage = (imageUrl) => {
@@ -137,37 +124,24 @@ const UserProfile = () => {
 
   return (
     <Layout>
-      {/* --- Styles for Fonts & Icons (Scoped) --- */}
+      {/* --- Styles for Fonts & Icons --- */}
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
           @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
           
           .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
-          
-          .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            font-size: 20px;
-          }
-          .icon-filled {
-            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-          }
-
-          /* Modal Animations */
-          @keyframes modalSlideIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-          }
-          .modal-content {
-            animation: modalSlideIn 0.3s ease-out;
-          }
+          .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 20px; }
+          .icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+          @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+          .modal-content { animation: modalSlideIn 0.3s ease-out; }
         `}
       </style>
 
-      {/* --- Main Content Area (Wrapped in Layout) --- */}
       <div className="font-jakarta max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-10">
         
-        {/* Header Section - Responsive */}
+        {/* --- HEADER SECTION (Always Visible & Static) --- */}
+        {/* Removed 'shouldShow' check so this stays visible during search */}
         <div className="mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             <div className="relative group">
@@ -183,18 +157,16 @@ const UserProfile = () => {
               </button>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-1">{user?.name || 'User'}</h2>
+              <h2 className="text-3xl font-bold text-slate-900 mb-1">Alex Rivera</h2>
               <p className="text-slate-500 font-medium text-sm">Elite Member since Jan 2023</p>
               
-              {/* Filtered Badges Row */}
+              {/* Badges (Using full 'badges' array so they don't disappear) */}
               <div className="mt-3 flex flex-wrap gap-2">
-                {filteredBadges.length > 0 ? filteredBadges.slice(0, 3).map((badge, i) => (
+                {badges.slice(0, 3).map((badge, i) => (
                   <span key={i} className="px-3 py-1 bg-[#eef7f6] text-[#2d5a56] text-[11px] font-extrabold rounded-full uppercase tracking-wider border border-[#dceceb]">
                     🏆 {badge}
                   </span>
-                )) : (
-                   searchQuery && <span className="text-xs text-slate-400">No badges match "{searchQuery}"</span>
-                )}
+                ))}
               </div>
             </div>
           </div>
@@ -204,6 +176,15 @@ const UserProfile = () => {
             Edit Profile
           </button>
         </div>
+
+        {/* --- SEARCH RESULTS AREA --- */}
+
+        {/* Search Feedback */}
+        {searchQuery && (
+          <p className="mb-6 text-sm font-bold text-[#df20af] animate-pulse">
+            Searching profile for: "{searchQuery}"
+          </p>
+        )}
 
         {/* Stats Grid (Filtered) */}
         {filteredStats.length > 0 && (
@@ -219,7 +200,8 @@ const UserProfile = () => {
 
         <div className="grid grid-cols-1 gap-8">
           
-          {/* 1. Physical Metrics Card */}
+          {/* 1. Physical Metrics (Filtered) */}
+          {showPhysicalMetrics && (
           <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
             <div className="flex items-center gap-2 mb-6">
               <span className="material-symbols-outlined text-[#df20af]">straighten</span>
@@ -232,8 +214,7 @@ const UserProfile = () => {
                 <div className="relative group">
                   <input 
                     name="height"
-                    type="number"
-                    value={formData.height}
+                    value={formData.height} 
                     onChange={handleInputChange}
                     className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all text-lg group-hover:bg-slate-100/50" 
                   />
@@ -244,8 +225,7 @@ const UserProfile = () => {
                 <div className="relative group">
                   <input 
                     name="weight"
-                    type="number"
-                    value={formData.weight}
+                    value={formData.weight} 
                     onChange={handleInputChange}
                     className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all text-lg group-hover:bg-slate-100/50" 
                   />
@@ -253,8 +233,10 @@ const UserProfile = () => {
               </div>
             </div>
           </section>
+          )}
 
-          {/* 2. Fitness Goals Card */}
+          {/* 2. Fitness Goals (Filtered) */}
+          {showGoals && (
           <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
             <div className="flex items-center gap-2 mb-6">
               <span className="material-symbols-outlined text-[#df20af]">target</span>
@@ -299,8 +281,10 @@ const UserProfile = () => {
               </div>
             </div>
           </section>
+          )}
 
-          {/* 3. Injury Status Card (Gold Theme) */}
+          {/* 3. Injury Status (Filtered) */}
+          {showInjury && (
           <section className="bg-[#fdf8e6] p-8 rounded-2xl border border-[#f3eac5] flex flex-col md:flex-row items-start gap-6 relative overflow-hidden transition-all">
             <div className="bg-[#f3eac5] p-3 rounded-xl text-[#856404] shrink-0">
               <span className="material-symbols-outlined icon-filled">medical_services</span>
@@ -309,7 +293,6 @@ const UserProfile = () => {
             <div className="flex-1 w-full relative z-10">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-bold text-[#856404]">Injury Status</h3>
-                {/* Toggle Switch */}
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
@@ -323,17 +306,10 @@ const UserProfile = () => {
 
               {isInjuryActive ? (
                 <div className="mt-2 transition-all duration-300 ease-in-out">
-                  <p className="text-[#967614] font-bold text-sm mb-4">Current Active Injury:</p>
-                  <input
-                    type="text"
-                    value={injuryText}
-                    onChange={(e) => setInjuryText(e.target.value)}
-                    placeholder="Describe your injury..."
-                    className="w-full bg-white/60 p-4 rounded-xl border border-white/50 backdrop-blur-sm text-sm text-[#856404] leading-relaxed italic font-medium focus:ring-1 focus:ring-yellow-600 outline-none"
-                  />
+                  <p className="text-[#967614] font-bold text-sm mb-4">Current Active Injury: Left Knee (Patellar Tendonitis)</p>
                   <div className="bg-white/60 p-4 rounded-xl border border-white/50 backdrop-blur-sm">
                     <p className="text-sm text-[#856404] leading-relaxed italic font-medium">
-                      "PulseAI will optimize your routines based on this information."
+                      "PulseAI is currently optimizing your lower body routines to avoid high-impact jumping and heavy squats. Focusing on glute isolation and eccentric movements."
                     </p>
                   </div>
                 </div>
@@ -342,6 +318,14 @@ const UserProfile = () => {
               )}
             </div>
           </section>
+          )}
+
+          {/* Empty State */}
+          {searchQuery && !showPhysicalMetrics && !showGoals && !showInjury && filteredStats.length === 0 && (
+             <div className="py-20 text-center text-slate-400">
+               No profile sections match "{searchQuery}"
+             </div>
+          )}
 
           {/* Footer Buttons */}
           <div className="space-y-4 pt-4 pb-12">
@@ -374,12 +358,10 @@ const UserProfile = () => {
         </div>
       </div>
 
-      {/* --- Gallery Modal (Portaled or overlay) --- */}
+      {/* --- Gallery Modal --- */}
       {showGalleryModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 font-jakarta">
           <div className="modal-content bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto">
-            
-            {/* Modal Header */}
             <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between z-10">
               <h2 className="text-2xl font-bold text-slate-900">Change Profile Picture</h2>
               <button 
@@ -389,11 +371,7 @@ const UserProfile = () => {
                 <span className="material-symbols-outlined text-2xl">close</span>
               </button>
             </div>
-
-            {/* Modal Body */}
             <div className="p-8 space-y-8">
-              
-              {/* Upload Section */}
               <div>
                 <label className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-4 block">Upload Custom Photo</label>
                 <div className="relative">
@@ -416,8 +394,6 @@ const UserProfile = () => {
                   </label>
                 </div>
               </div>
-
-              {/* Gallery Grid */}
               <div>
                 <label className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-4 block">Select from Gallery</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -444,8 +420,6 @@ const UserProfile = () => {
                 </div>
               </div>
             </div>
-
-            {/* Modal Footer */}
             <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 p-6 flex justify-end gap-4">
               <button 
                 onClick={() => setShowGalleryModal(false)}
@@ -460,7 +434,6 @@ const UserProfile = () => {
                 Done
               </button>
             </div>
-
           </div>
         </div>
       )}
