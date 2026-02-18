@@ -14,6 +14,7 @@ git commit -m "Updated Code "
 git push -u origin Ritisha
 
 
+npm run dev
 
 
 # 🏋️ Personalized Gym Assistant - Frontend Documentation
@@ -39,6 +40,7 @@ git push -u origin Ritisha
 
 ### Key Features:
 - 📊 Dashboard with real-time metrics
+- 🏋️ Tutorial for new users
 - 💪 Workout tracking and management
 - 🍎 Nutrition monitoring with macro tracking
 - 📈 Progression analytics with export capabilities
@@ -76,7 +78,7 @@ Frontend/
 │   │   ├── Dashboard.jsx
 │   │   ├── LandingPage.jsx
 │   │   ├── LoginPage.jsx
-│   │   ├── Neutrations.jsx (Nutrition)
+│   │   ├── Nutrition.jsx 
 │   │   ├── Progression.jsx
 │   │   ├── RegisterPage.jsx
 │   │   ├── Settings.jsx

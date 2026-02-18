@@ -36,10 +36,9 @@ exports.createPlan = async (req, res) => {
 // GET USER PLANS
 exports.getUserPlans = async (req, res) => {
   try {
-    // FIX: Get the user ID from the JWT token provided by the authMiddleware
-    const userId = req.user.id;
+    const { userId } = req.params;
 
-    const plans = await WorkoutPlan.find({ user: userId }).sort({ createdAt: -1 });
+    const plans = await WorkoutPlan.find({ user: userId });
 
     res.json(plans);
 

@@ -4,7 +4,8 @@ const { signup, login, refreshAccessToken } = require("../controllers/authContro
 const router = express.Router();
 
 router.post("/signup", signup);
-router.post("/login", login);
+router.post("/login", login);   // 
 router.post("/refresh-token", refreshAccessToken);
+
 
 module.exports = router;

@@ -1,3 +1,5 @@
+npm start
+
 Backend/
 ├── config/
 │   └── db.js                 # Handles the MongoDB database connection logic.
