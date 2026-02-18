@@ -1,8 +1,5 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 
 app = Flask(__name__)
 CORS(app) # Allows the backend to talk to this server
@@ -37,53 +34,66 @@ def handle_general_exception(e):
     }), 500
 
 # =================================================
-# 🔹 UPDATED LOGIC WITH ERROR TRIGGERS
+# 🔹 UPDATED LOGIC WITH PREVENTING INITIAL LATENCY SPIKES IN STARTUP TIME OF FLASK
 # =================================================
 
 # --- 1. THE INTELLIGENCE (Training on Startup) ---
-corpus = [
-    "how to do deadlift form check",      # exercise_info
-    "what is bench press",                # exercise_info
-    "tell me about squats",               # exercise_info
-    "suggest a diet for weight loss",     # diet_plan
-    "how much protein do i need",         # diet_plan
-    "what should i eat for bulk",         # diet_plan
-    "track my workout for today",         # log_workout
-    "i want to log my sets",              # log_workout
-]
+
+# Global variables for the ML model
+vectorizer = None
+X = None
 intents = ["exercise_info", "exercise_info", "exercise_info", "diet_plan", "diet_plan", "diet_plan", "log_workout", "log_workout"]
 
-# "Train" the model instantly when server starts
-vectorizer = TfidfVectorizer()
-X = vectorizer.fit_transform(corpus)
+def initialize_ml_engine():
+    """Initializes and pre-warms the ML model to prevent first-hit latency."""
+    global vectorizer, X
+    # Move heavy imports here to speed up initial script parsing
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
 
-def predict_intent(text):
-    text_vec = vectorizer.transform([text])
-    similarities = cosine_similarity(text_vec, X)
-    best_match_index = np.argmax(similarities)
+    corpus = [
+        "how to do deadlift form check",      # exercise_info
+        "what is bench press",                # exercise_info
+        "tell me about squats",               # exercise_info
+        "suggest a diet for weight loss",     # diet_plan
+        "how much protein do i need",         # diet_plan
+        "what should i eat for bulk",         # diet_plan
+        "track my workout for today",         # log_workout
+        "i want to log my sets",              # log_workout
+    ]
+
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform(corpus)
     
-    # Confidence Threshold (0.2 means 20% match)
-    if similarities[0][best_match_index] < 0.2:
-        return "unknown"
-    return intents[best_match_index]
+    # Run a dummy prediction to 'warm up' the library
+    test_vec = vectorizer.transform(["warmup"])
+    _ = cosine_similarity(test_vec, X)
+    print("✅ ML Engine warmed up and ready.")
 
 # --- 2. THE ENDPOINT ---
 @app.route('/predict', methods=['POST'])
 def predict():
+    # Use the pre-initialized global variables
+    from sklearn.metrics.pairwise import cosine_similarity
+    import numpy as np
+    
     data = request.json
     if not data or 'query' not in data:
-        raise APIError("Please provide a search query.") #checking the data is empty or not
+        raise APIError("Please provide a search query.")
+    
     user_query = data.get('query', '')
-        
-    # Run Intelligence
-    intent = predict_intent(user_query)
-        
-    response = {
+    text_vec = vectorizer.transform([user_query])
+    similarities = cosine_similarity(text_vec, X)
+    best_match_index = np.argmax(similarities)
+    
+    intent = intents[best_match_index] if similarities[0][best_match_index] >= 0.2 else "unknown"
+    
+    return jsonify({
         "status": "success",
         "intent": intent,
         "confidence": "high" if intent != "unknown" else "low"
-    }
-    return jsonify(response), 200
+    }), 200
+
 
 # --- 3. THE ADAPTIVE ENGINE (New Logic) ---
 @app.route('/scale-difficulty', methods=['POST'])
@@ -236,5 +246,7 @@ def diet_recommendation():
     
 
 if __name__ == '__main__':
+    # Initialize ML before starting the server
+    initialize_ml_engine()
     print("🧠 AI Brain is active on port 5001...")
-    app.run(port=5001, debug=True)
+    app.run(port=5001, debug=False) # Disable debug for faster performance
