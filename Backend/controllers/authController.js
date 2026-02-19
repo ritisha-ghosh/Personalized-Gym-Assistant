@@ -18,6 +18,63 @@ const generateRefreshToken = (userId) => {
   );
 };
 
+// exports.signup = async (req, res) => {
+//   try {
+//     const {
+//       name,
+//       email,
+//       password,
+//       age,
+//       weight,
+//       gender,
+//       height,
+//       goal,
+//       injury,
+//       experience,
+//       dietType,
+//       noOnion,
+//       noGarlic
+//     } = req.body;
+
+//     if (!name || !email || !password) {
+//       return res.status(400).json({ message: "Name, email, password required" });
+//     }
+
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash(password, salt);
+
+//     const user = await User.create({
+//       name,
+//       email,
+//       password: hashedPassword,
+//       age,
+//       weight,
+//       height,
+//       gender,
+//       goal,
+//       injury,
+//       experience,
+//       dietType,
+//       noOnion,
+//       noGarlic
+//     });
+
+//     res.status(201).json({
+//       message: "User registered successfully",
+//       userId: user._id
+//     });
+
+//   } catch (error) {
+//     console.error("Signup error:", error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
 exports.signup = async (req, res) => {
   try {
     const {
@@ -37,13 +94,23 @@ exports.signup = async (req, res) => {
     } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email, password required" });
+      return res.status(400).json({
+        message: "Name, email, password required"
+      });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({
+        message: "User already exists"
+      });
     }
+
+    // 🔐 Normalize inputs (CRITICAL FIX)
+    const normalizedGoal = goal?.toLowerCase().trim();
+    const normalizedExperience = experience?.toLowerCase().trim();
+    const normalizedDietType = dietType?.toLowerCase().trim();
+    const normalizedGender = gender?.toLowerCase().trim();
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -52,16 +119,20 @@ exports.signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+
       age,
       weight,
       height,
-      gender,
-      goal,
+
+      gender: normalizedGender,
+      goal: normalizedGoal,
       injury,
-      experience,
-      dietType,
-      noOnion,
-      noGarlic
+
+      experience: normalizedExperience,
+
+      dietType: normalizedDietType || "vegetarian",
+      noOnion: noOnion ?? false,
+      noGarlic: noGarlic ?? false
     });
 
     res.status(201).json({
@@ -71,7 +142,17 @@ exports.signup = async (req, res) => {
 
   } catch (error) {
     console.error("Signup error:", error);
-    res.status(500).json({ message: "Server error" });
+
+    // Better validation error response
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: error.message
+      });
+    }
+
+    res.status(500).json({
+      message: "Server error"
+    });
   }
 };
 
