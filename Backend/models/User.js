@@ -1,15 +1,18 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
+
   name: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
 
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    lowercase: true
   },
 
   password: {
@@ -18,24 +21,67 @@ const userSchema = new mongoose.Schema({
   },
 
   refreshToken: {
-  type: String
+    type: String
   },
 
+  // -------------------------
+  // 🧬 BIOLOGICAL DATA
+  // -------------------------
 
-  age: Number,
-  weight: Number,
-  height: Number,
-  gender: String,
-  goal: String,
-  injury: String,
-  experience: String,
- 
-  // 🍽️ DIET PREFERENCES (NEW)
-  
+  age: {
+    type: Number,
+    min: 10,
+    max: 100
+  },
+
+  weight: {
+    type: Number,
+    min: 30,
+    max: 300
+  },
+
+  height: {
+    type: Number,
+    min: 100,
+    max: 250
+  },
+
+  gender: {
+    type: String,
+    enum: ["male", "female", "other"],
+    lowercase: true
+  },
+
+  // ✅ FIXED (lowercase, matches calculator)
+  goal: {
+    type: String,
+    enum: ["muscle gain", "fat loss", "maintenance"],
+    lowercase: true,
+    trim: true
+  },
+
+  injury: {
+    type: String,
+    default: "none"
+  },
+
+  experience: {
+    type: String,
+    enum: ["beginner", "intermediate", "advanced"],
+    lowercase: true
+  },
+
+  // -------------------------
+  // 🍽️ DIET PREFERENCES
+  // -------------------------
+
   dietType: {
     type: String,
     enum: ["vegetarian", "non-vegetarian"],
-    default: "non-vegetarian"
+
+    default: "vegetarian",
+    lowercase: true
+
   },
 
   noOnion: {
