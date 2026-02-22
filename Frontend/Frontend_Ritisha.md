@@ -8,12 +8,13 @@ git checkout -b Ritisha
 git add .
 
 # 4. Commit the changes
-git commit -m "Updated Frontend"
+git commit -m "Updated Code "
 
 # 5. Push the code to the remote branch
 git push -u origin Ritisha
 
 
+npm run dev
 
 
 # 🏋️ Personalized Gym Assistant - Frontend Documentation
@@ -39,6 +40,7 @@ git push -u origin Ritisha
 
 ### Key Features:
 - 📊 Dashboard with real-time metrics
+- 🏋️ Tutorial for new users
 - 💪 Workout tracking and management
 - 🍎 Nutrition monitoring with macro tracking
 - 📈 Progression analytics with export capabilities
@@ -76,7 +78,7 @@ Frontend/
 │   │   ├── Dashboard.jsx
 │   │   ├── LandingPage.jsx
 │   │   ├── LoginPage.jsx
-│   │   ├── Neutrations.jsx (Nutrition)
+│   │   ├── Nutrition.jsx 
 │   │   ├── Progression.jsx
 │   │   ├── RegisterPage.jsx
 │   │   ├── Settings.jsx
@@ -137,16 +139,16 @@ npm run lint
 
 ## Technologies Used
 
-| Technology | Purpose | Version |
-|-----------|---------|---------|
-| **React** | UI Framework | ^19.1.0 |
-| **React Router** | Navigation & Routing | ^7.12.0 |
-| **Tailwind CSS** | Utility-first CSS | ^3.4.19 |
-| **Recharts** | Data visualization | ^3.7.0 |
-| **Lucide React** | Icon library | ^0.563.0 |
-| **Vite** | Build tool | ^6.3.5 |
-| **PostCSS** | CSS processing | ^8.5.6 |
-| **ESLint** | Code linting | ^9.25.0 |
+| Technology       | Purpose              | Version  |
+|------------------|----------------------|----------|
+| **React**        | UI Framework         | ^19.1.0  |
+| **React Router** | Navigation & Routing | ^7.12.0  |
+| **Tailwind CSS** | Utility-first CSS    | ^3.4.19  |
+| **Recharts**     | Data visualization   | ^3.7.0   |
+| **Lucide React** | Icon library         | ^0.563.0 |
+| **Vite**         | Build tool           | ^6.3.5   |
+| **PostCSS**      | CSS processing       | ^8.5.6   |
+| **ESLint**       | Code linting         | ^9.25.0  |
 
 ---
 

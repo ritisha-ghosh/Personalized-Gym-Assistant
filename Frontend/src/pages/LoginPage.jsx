@@ -1,8 +1,39 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../../api'; // Ensure this points to your axios instance
 
 const LoginPage = () => {
-    
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      // 1. Call Backend Login Endpoint
+      const response = await api.post('/auth/login', { email, password });
+
+      // 2. Save the Token and User Info
+      // Assuming backend sends { token: "...", refreshToken: "...", user: { name: "..." } }
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('refreshToken', response.data.refreshToken); // Save refresh token if available
+      localStorage.setItem('userProfile', JSON.stringify(response.data.user));
+
+      // 3. Redirect to Dashboard
+      navigate('/dashboard'); 
+      
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid Credentials. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
       
@@ -39,7 +70,14 @@ const LoginPage = () => {
             <p className="text-slate-400 text-sm">Access your personalized fitness insights.</p>
           </div>
 
-          <form className="space-y-6">
+          {/* Error Message Display */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center font-medium animate-pulse">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-6">
             {/* Email Field */}
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
@@ -49,7 +87,10 @@ const LoginPage = () => {
                 </span>
                 <input 
                   type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com" 
+                  required
                   className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none transition-all placeholder:text-slate-300"
                 />
               </div>
@@ -67,7 +108,10 @@ const LoginPage = () => {
                 </span>
                 <input 
                   type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password" 
+                  required
                   className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none transition-all placeholder:text-slate-300"
                 />
               </div>
@@ -78,8 +122,12 @@ const LoginPage = () => {
               <label htmlFor="remember" className="ml-2 text-sm text-slate-500 font-medium">Keep me logged in</label>
             </div>
 
-            <button className="w-full bg-[#f43f5e] hover:bg-[#e11d48] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-200 transition-all active:scale-[0.98]">
-              Login
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-[#f43f5e] hover:bg-[#e11d48] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-200 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
@@ -91,7 +139,7 @@ const LoginPage = () => {
             </div>
           </div>
 
-          {/* Social Buttons */}
+          {/* Social Buttons (UI Only for now) */}
           <div className="grid grid-cols-2 gap-4">
             <button className="flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-slate-700 text-sm">
               <img src="https://www.svgrepo.com/show/355037/google.svg" className="w-4 h-4" alt="Google" />

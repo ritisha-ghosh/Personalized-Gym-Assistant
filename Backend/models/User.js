@@ -78,8 +78,10 @@ const userSchema = new mongoose.Schema({
   dietType: {
     type: String,
     enum: ["vegetarian", "non-vegetarian"],
+
     default: "vegetarian",
     lowercase: true
+
   },
 
   noOnion: {
