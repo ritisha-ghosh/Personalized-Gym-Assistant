@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
 import { Calendar, Clock, BarChart3, Dumbbell, Play, CheckCircle2, Plus, Trash2 } from 'lucide-react';
@@ -19,6 +19,9 @@ const Workout = () => {
     duration: '',
     notes: '',
   });
+
+  // --- NEW: Execution State to do checkable exercise---
+  const [completedExerciseIds, setcompletedExerciseIds] = useState([]);
 
   useEffect(() => {
     const savedWorkouts = getWorkouts();
@@ -52,17 +55,17 @@ const Workout = () => {
 
   // A. Filter Recent Workouts (User Added)
   // Search matches: Exercise Name OR Sets/Reps details
-  const filteredSavedWorkouts = workouts.filter(w => 
-    !searchQuery || 
+  const filteredSavedWorkouts = workouts.filter(w =>
+    !searchQuery ||
     w.exercise.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (w.sets && w.sets.toString().includes(searchQuery)) ||
     (w.reps && w.reps.toString().includes(searchQuery))
   );
 
   // B. Define Static Routine Data
-  const mondayRoutine = { 
-    day: 'Monday', 
-    title: 'Chest & Triceps', 
+  const mondayRoutine = {
+    day: 'Monday',
+    title: 'Chest & Triceps',
     exercises: [
       { id: '01', name: 'Bench Press (Barbell)', sets: '4 Sets', reps: '8-10 Reps', weight: '85 kg' },
       { id: '02', name: 'Incline DB Press', sets: '3 Sets', reps: '12 Reps', weight: '28 kg' },
@@ -72,18 +75,33 @@ const Workout = () => {
   };
 
   const otherDaysRoutine = [
-    { day: 'Tuesday', title: 'Back & Biceps', exercises: [{name:'Pull-ups', detail:'4 x MAX'}, {name:'Barbell Row', detail:'3 x 10'}, {name:'Hammer Curls', detail:'3 x 12'}] },
+    { day: 'Tuesday', title: 'Back & Biceps', exercises: [{ name: 'Pull-ups', detail: '4 x MAX' }, { name: 'Barbell Row', detail: '3 x 10' }, { name: 'Hammer Curls', detail: '3 x 12' }] },
     { day: 'Wednesday', title: 'Active Recovery', type: 'recovery', desc: '30 min Yoga or Light Walk recommended by AI Coach.' },
-    { day: 'Thursday', title: 'Shoulders & Abs', exercises: [{name:'Military Press', detail:'4 x 8'}, {name:'Lateral Raises', detail:'3 x 15'}] },
-    { day: 'Friday', title: 'Leg Day (Quads)', exercises: [{name:'Barbell Squats', detail:'5 x 5'}] },
-    { day: 'Saturday', title: 'Leg Day (Hams)', exercises: [{name:'Deadlift', detail:'3 x 8'}] },
-    { day: 'Sunday', title: 'Full Body Pump', exercises: [{name:'Circuit 1', detail:'3 Rounds'}] },
+    { day: 'Thursday', title: 'Shoulders & Abs', exercises: [{ name: 'Military Press', detail: '4 x 8' }, { name: 'Lateral Raises', detail: '3 x 15' }] },
+    { day: 'Friday', title: 'Leg Day (Quads)', exercises: [{ name: 'Barbell Squats', detail: '5 x 5' }] },
+    { day: 'Saturday', title: 'Leg Day (Hams)', exercises: [{ name: 'Deadlift', detail: '3 x 8' }] },
+    { day: 'Sunday', title: 'Full Body Pump', exercises: [{ name: 'Circuit 1', detail: '3 Rounds' }] },
   ];
+
+  // This logic calculates progress based on the Monday Routine
+  const progressPercentage = useMemo(() => {
+    const total = mondayRoutine.exercises.length;
+    const completed = mondayRoutine.exercises.filter(ex =>
+      completedExerciseIds.includes(ex.id)
+    ).length;
+    return Math.round((completed / total) * 100);
+  }, [completedExerciseIds]);
+
+  const toggleExercise = (id) => {
+    setcompletedExerciseIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
 
   // C. Filter Logic for Routine Cards
   // Check if Monday matches search
-  const showMondayCard = !searchQuery || 
-    mondayRoutine.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const showMondayCard = !searchQuery ||
+    mondayRoutine.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     mondayRoutine.day.toLowerCase().includes(searchQuery.toLowerCase()) ||
     mondayRoutine.exercises.some(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -93,7 +111,7 @@ const Workout = () => {
     const dayMatch = card.day.toLowerCase().includes(searchQuery.toLowerCase());
     const exerciseMatch = card.exercises?.some(ex => ex.name.toLowerCase().includes(searchQuery.toLowerCase()));
     const descMatch = card.desc?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     return !searchQuery || titleMatch || dayMatch || exerciseMatch || descMatch;
   });
 
@@ -109,7 +127,7 @@ const Workout = () => {
       </style>
 
       <div className="space-y-6 sm:space-y-8">
-        
+
         {/* --- Page Specific Header --- */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
@@ -119,18 +137,17 @@ const Workout = () => {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
-                    activeTab === tab 
-                      ? 'bg-white text-slate-900 shadow-sm' 
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
+                  className={`px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap ${activeTab === tab
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                    }`}
                 >
                   {tab}
                 </button>
               ))}
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setShowAddForm(!showAddForm)}
             className="flex items-center justify-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#df20af]/20 w-full sm:w-auto"
           >
@@ -142,9 +159,9 @@ const Workout = () => {
 
         {/* Smart Search Feedback */}
         {searchQuery && (
-           <p className="text-sm font-bold text-[#df20af] mt-2 animate-pulse transition-all">
-             Searching for "{searchQuery}" in {activeTab}...
-           </p>
+          <p className="text-sm font-bold text-[#df20af] mt-2 animate-pulse transition-all">
+            Searching for "{searchQuery}" in {activeTab}...
+          </p>
         )}
 
         {/* Add Workout Form */}
@@ -154,7 +171,7 @@ const Workout = () => {
               type="text"
               placeholder="Exercise Name"
               value={formData.exercise}
-              onChange={(e) => setFormData({...formData, exercise: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, exercise: e.target.value })}
               className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
             />
             <div className="grid grid-cols-2 gap-4">
@@ -162,14 +179,14 @@ const Workout = () => {
                 type="text"
                 placeholder="Sets"
                 value={formData.sets}
-                onChange={(e) => setFormData({...formData, sets: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, sets: e.target.value })}
                 className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
               />
               <input
                 type="text"
                 placeholder="Reps"
                 value={formData.reps}
-                onChange={(e) => setFormData({...formData, reps: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, reps: e.target.value })}
                 className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
               />
             </div>
@@ -253,7 +270,7 @@ const Workout = () => {
 
         {/* --- Workouts Grid --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          
+
           {/* Active Card (Monday) - Only show if it matches search */}
           {showMondayCard && (
             <div className="lg:col-span-1 xl:col-span-1 row-span-2">
@@ -268,35 +285,73 @@ const Workout = () => {
                   </div>
                 </div>
 
+                // UPDATED PROGRESS BAR AS CHECKABLE
                 <div className="space-y-2 mb-6">
                   <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
                     <span>Workout Progress</span>
-                    <span>75%</span>
+                    <span className="text-[#df20af]">{progressPercentage}%</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="w-3/4 h-full bg-[#df20af] rounded-full"></div>
+                    <div
+                      className="h-full bg-[#df20af] transition-all duration-500"
+                      style={{ width: `${progressPercentage}%` }}
+                    ></div>
                   </div>
                 </div>
 
+                // UPDATED MONDAY PROGRESS BAR 
                 <div className="space-y-4 flex-1">
-                  {mondayRoutine.exercises.map((exercise) => (
-                    <div key={exercise.id} className="flex gap-4 items-center p-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer group">
-                      <span className="text-xs font-bold text-slate-300 group-hover:text-[#df20af] transition-colors">{exercise.id}</span>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-slate-900">{exercise.name}</p>
-                        <div className="flex gap-3 text-xs text-slate-500 mt-1">
-                          <span>{exercise.sets}</span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300 self-center"></span>
-                          <span>{exercise.reps}</span>
+                  {mondayRoutine.exercises.map((exercise) => {
+                    const isDone = completedExerciseIds.includes(exercise.id);
+                    return (
+                      <div
+                        key={exercise.id}
+                        onClick={() => toggleExercise(exercise.id)}
+                        className={`flex gap-4 items-center p-3 rounded-xl transition-all cursor-pointer border ${isDone ? 'bg-green-50 border-green-200' : 'hover:bg-slate-50 border-transparent'
+                          }`}
+                      >
+                        {/* Checkbox Icon */}
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isDone ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300'
+                          }`}>
+                          {isDone && <CheckCircle2 size={12} />}
                         </div>
+
+                        <div className="flex-1">
+                          <p className={`text-sm font-bold ${isDone ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
+                            {exercise.name}
+                          </p>
+                          <div className="flex gap-3 text-xs text-slate-500 mt-1">
+                            <span>{exercise.sets} Sets</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-300 self-center"></span>
+                            <span>{exercise.reps} Reps</span>
+                          </div>
+                        </div>
+                        <span className="text-xs font-bold text-[#df20af] bg-[#df20af]/5 px-2 py-1 rounded-lg">
+                          {exercise.weight}
+                        </span>
                       </div>
-                      <span className="text-xs font-bold text-[#df20af] bg-[#df20af]/5 px-2 py-1 rounded-lg">{exercise.weight}</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
-                <button className="w-full mt-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold rounded-xl transition-colors">
-                  Complete Workout
+                // UPDATED COMPLETE WORKOUT BUTTON , IT WILL SHOW HOW MANY EXERCISE LEFT TO COMPLETE
+                <button
+                  // Disable the button unless every exercise ID is in the completed state
+                  disabled={completedExerciseIds.length !== mondayRoutine.exercises.length}
+
+                  onClick={() => {
+                    alert("Workout Logged Successfully!");
+                    // You can also add logic here to clear the state or save to DB
+                  }}
+
+                  className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md ${completedExerciseIds.length === mondayRoutine.exercises.length
+                      ? 'bg-[#df20af] text-white hover:bg-[#c91d9d] cursor-pointer' // Active state
+                      : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none' // Locked state
+                    }`}
+                >
+                  {completedExerciseIds.length === mondayRoutine.exercises.length
+                    ? "Complete Workout"
+                    : `Finish ${mondayRoutine.exercises.length - completedExerciseIds.length} more to Complete`}
                 </button>
               </div>
             </div>
@@ -334,9 +389,9 @@ const Workout = () => {
 
           {/* No Results Message */}
           {searchQuery && !showMondayCard && filteredRoutineCards.length === 0 && (
-             <div className="col-span-full py-20 text-center text-slate-400">
-               No routine cards match "{searchQuery}"
-             </div>
+            <div className="col-span-full py-20 text-center text-slate-400">
+              No routine cards match "{searchQuery}"
+            </div>
           )}
 
         </div>
