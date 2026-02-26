@@ -1,18 +1,64 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../../api'; // Ensure this path matches your file structure
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  const currentYear = new Date().getFullYear();
+
+  // --- States ---
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
   const [experience, setExperience] = useState('Beginner');
   const [exclusions, setExclusions] = useState([]);
 
   const currentYear = new Date().getFullYear();
 
-  // Handle toggling of dietary exclusions
   const toggleExclusion = (item) => {
     if (exclusions.includes(item)) {
       setExclusions(exclusions.filter(i => i !== item));
     } else {
       setExclusions([...exclusions, item]);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); 
+    setLoading(true);
+    setError('');
+
+    // Construct the payload matching the Backend User Schema
+    const payload = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      age: formData.age || undefined,
+      weight: formData.weight || undefined,
+      height: formData.height || undefined,
+      gender: formData.gender,
+      goal: formData.fitnessGoal,
+      experience: experience,
+      dietType: formData.dietType,
+      noOnion: exclusions.includes("No Garlic / Onion"),
+      noGarlic: exclusions.includes("No Garlic / Onion"),
+      activityLevel: formData.activityLevel,
+      injury: formData.injuryStatus
+    };
+
+    try {
+      // Send data to Backend
+      const response = await api.post('/auth/signup', payload);
+      
+      if (response.data) {
+        alert("Registration Successful! Please Log In.");
+        navigate('/login'); // Redirect to Login on success
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Registration failed. Please check your inputs and try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -128,15 +174,39 @@ const RegisterPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
-                  <input type="text" placeholder="e.g. Alex Johnson" className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" />
+                  <input 
+                    type="text" 
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Alex Johnson" 
+                    required
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
-                  <input type="email" placeholder="alex@example.com" className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" />
+                  <input 
+                    type="email" 
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="alex@example.com" 
+                    required
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                  />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
-                  <input type="password" placeholder="••••••••" className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" />
+                  <input 
+                    type="password" 
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="••••••••" 
+                    required
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                  />
                 </div>
               </div>
             </section>
@@ -198,20 +268,31 @@ const RegisterPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Gender</label>
-                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700">
-                    <option value="" disabled selected>Select</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
+                  <select 
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                  >
+                    <option value="" disabled>Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Fitness Goal</label>
-                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700">
-                    <option>Weight Loss</option>
-                    <option>Muscle Gain</option>
-                    <option>Maintenance</option>
-                    <option>Endurance</option>
+                  <select 
+                    name="fitnessGoal"
+                    value={formData.fitnessGoal}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                  >
+                    <option value="Weight Loss">Weight Loss</option>
+                    <option value="Muscle Gain">Muscle Gain</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Endurance">Endurance</option>
                   </select>
                 </div>
               </div>
@@ -250,9 +331,15 @@ const RegisterPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Diet Type</label>
-                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700">
-                    <option value="" disabled selected>Select Diet</option>
-                    <option value="standard">Standard  (Omnivore)</option>
+                  <select 
+                    name="dietType"
+                    value={formData.dietType}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                  >
+                    <option value="" disabled>Select Diet</option>
+                    <option value="standard">Standard (Omnivore)</option>
                     <option value="vegetarian">Vegetarian</option>
                     <option value="vegan">Vegan</option>
                     <option value="eggetarian">Eggetarian</option>
