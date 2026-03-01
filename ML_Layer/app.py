@@ -62,10 +62,14 @@ def initialize_ml_engine():
         "i want to log my sets",              # log_workout
     ]
 
-    vectorizer = TfidfVectorizer()
+    vectorizer = TfidfVectorizer(stop_words='english') 
     X = vectorizer.fit_transform(corpus)
     
     # Run a dummy prediction to 'warm up' the library
+    test_vec = vectorizer.transform(["warmup"])
+    _ = cosine_similarity(test_vec, X)
+    print("✅ ML Engine warmed up and ready.")
+
     test_vec = vectorizer.transform(["warmup"])
     _ = cosine_similarity(test_vec, X)
     print("✅ ML Engine warmed up and ready.")
@@ -86,12 +90,23 @@ def predict():
     similarities = cosine_similarity(text_vec, X)
     best_match_index = np.argmax(similarities)
     
-    intent = intents[best_match_index] if similarities[0][best_match_index] >= 0.2 else "unknown"
+    confidence_score = similarities[0][best_match_index]
+
+    # NLP Fallback Logic
+    if confidence_score >= 0.2:
+        intent = intents[best_match_index]
+        confidence = "high"
+        message = "Intent processed successfully."
+    else:
+        intent = "unknown"
+        confidence = "low"
+        message = "I'm still learning! I mostly understand fitness, workouts, and diet queries right now. Could you rephrase that?"
     
     return jsonify({
         "status": "success",
         "intent": intent,
-        "confidence": "high" if intent != "unknown" else "low"
+        "confidence": confidence,
+        "message": message
     }), 200
 
 

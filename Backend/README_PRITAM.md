@@ -1,82 +1,71 @@
-# ##
-## 🧠 Orchestration & Intelligence Layer – PulseAI System
-### 👨‍💻 Developer: **Pritam Chakraborty**
+🧠 Orchestration & Intelligence Layer – PulseAI System  
+👨‍💻 Developer: Pritam Chakraborty  
 
----
+📌 Weekly Task Progress Report  
 
-# ##
-## 📌 Weekly Task Progress Report
+## ✅ Completed Tasks  
 
----
+### 🔹 Phase 1: Neural Bridge & System Orchestration (Week 1-2)
 
-# ##
-## ✅ Completed Tasks
+#### 1. Node-Python "Bridge" Architecture  
+Designed the primary communication channel between Backend (Node.js) and Intelligence Layer (Python).  
+Initial Implementation: Used child_process.spawn for lightweight script execution.  
+Latency Optimization: Conducted performance tests, achieving <200ms response time for basic classification tasks.  
+Error Handling: Implemented fail-safe logic to prevent server crashes if the Python environment is unreachable.  
 
----
+#### 2. User Classification Engine (Logic Layer)  
+Developed classify_user.py using rule-based decision trees.  
+Logic: Segments users into "Beginner," "Intermediate," or "Advanced" based on experience and frequency.  
+Output: Returns structured JSON payloads for the frontend to personalize the UI.  
 
-# ##
-## 🔹 Phase 1: Neural Bridge & System Orchestration (Week 1-2)
+### 🔹 Phase 2: The "Brain" Upgrade (Week 3)
 
-### 1. Node-Python "Bridge" Architecture
-- Designed the primary communication channel between Backend (Node.js) and Intelligence Layer (Python).
-- Initial Implementation: Used `child_process.spawn` for lightweight script execution.
-- **Latency Optimization:** Conducted performance tests, achieving <200ms response time for basic classification tasks.
-- **Error Handling:** Implemented fail-safe logic to prevent server crashes if the Python environment is unreachable.
+#### 3. Flask Microservice Transformation  
+Upgraded architecture to a persistent Flask Microservice (Port 5001).  
+Why: To support heavy ML models (NLP) without reloading them for every request.  
+Result: Reduced model loading overhead from ~3s to 0s (instant inference).  
 
-### 2. User Classification Engine (Logic Layer)
-- Developed `classify_user.py` using rule-based decision trees.
-- **Logic:** Segments users into "Beginner," "Intermediate," or "Advanced" based on experience and frequency.
-- **Output:** Returns structured JSON payloads for the frontend to personalize the UI.
+#### 4. NLP Intent Recognition (TF-IDF)  
+Implemented Natural Language Processing (NLP) using scikit-learn (TF-IDF + Cosine Similarity).  
+Function: Instantly categorizes user chat queries into actionable intents (e.g., diet_plan, exercise_info).  
+Confidence Scoring: Added logic to reject queries with low confidence (<20%).  
 
----
+#### 5. Full-Stack Integration (Axios + MongoDB)  
+Service Layer: Replaced spawn with axios HTTP requests in aiModelService.js.  
+Database Logging: Created UserActivity Mongoose schema to permanently store every user-AI interaction.  
 
-# ##
-## 🔹 Phase 2: The "Brain" Upgrade (Week 3)
+### 🔹 Phase 3: Adaptive Intelligence & Security (Week 4)
 
-### 3. Flask Microservice Transformation
-- Upgraded architecture to a persistent **Flask Microservice** (Port 5001).
-- **Why:** To support heavy ML models (NLP) without reloading them for every request.
-- **Result:** Reduced model loading overhead from ~3s to 0s (instant inference).
+#### 6. Adaptive Difficulty Engine (Self-Correcting AI)  
+Implemented feedback loops in ML_Layer/app.py.  
+Logic: The AI now listens to user feedback (1-10 difficulty rating).  
+If "Too Easy" (<4): Automatically increases volume (Sets/Reps) by 10%.  
+If "Too Hard" (>8): Automatically decreases volume to prevent burnout.  
+Impact: Transforming the app from a static template generator to a dynamic personal trainer.  
 
-### 4. NLP Intent Recognition (TF-IDF)
-- Implemented Natural Language Processing (NLP) using `scikit-learn` (TF-IDF + Cosine Similarity).
-- **Function:** Instantly categorizes user chat queries into actionable intents (e.g., `diet_plan`, `exercise_info`).
-- **Confidence Scoring:** Added logic to reject queries with low confidence (<20%).
+#### 7. Security & Validation Layer  
+Implemented Middleware Guard (validateWorkout.js) in Node.js.  
+Function: Sanitizes all incoming workout data before it reaches the controller.  
+Security: Prevents NoSQL injection and ensures data integrity (e.g., preventing negative reps or empty titles).  
 
-### 5. Full-Stack Integration (Axios + MongoDB)
-- **Service Layer:** Replaced `spawn` with `axios` HTTP requests in `aiModelService.js`.
-- **Database Logging:** Created `UserActivity` Mongoose schema to permanently store every user-AI interaction.
+#### 8. Schema Evolution  
+Updated UserLog schema to include difficultyRating, enabling the data collection required for the Adaptive Engine.  
 
----
+### 🔹 Phase 4: Error Resilience & Final Polish (Week 5)
 
-# ##
-## 🔹 Phase 3: Adaptive Intelligence & Security (Week 4)
+#### 9. Bridge Fault Tolerance (Retry Logic)  
+Upgraded the Node-Python bridge (aiModelService.js) to handle network timeouts and ECONNREFUSED errors.  
+Implementation: Added an asynchronous retry loop. If the Flask microservice is unreachable or waking up, the Node backend automatically waits 1000ms and retries up to 3 times before gracefully returning a system_maintenance intent, preventing total application crashes.  
 
-### 6. Adaptive Difficulty Engine (Self-Correcting AI)
-- Implemented feedback loops in `ML_Layer/app.py`.
-- **Logic:** The AI now listens to user feedback (1-10 difficulty rating).
-  - If **"Too Easy" (<4):** Automatically increases volume (Sets/Reps) by 10%.
-  - If **"Too Hard" (>8):** Automatically decreases volume to prevent burnout.
-- **Impact:** Transforming the app from a static template generator to a dynamic personal trainer.
+#### 10. NLP Fallback & Stop-Word Filtering  
+Fine-tuned the TfidfVectorizer to automatically ignore English stop-words (e.g., "what", "is", "the", "how", "to"), drastically improving keyword matching accuracy.  
+Fallback Logic: Implemented a strict 20% confidence threshold. If a query falls below this match (e.g., out-of-domain questions like "Capital of France" or untrained entities), the AI safely catches the low similarity score and returns a polite unknown intent message ("I'm still learning...") instead of hallucinating an incorrect response.  
 
-### 7. Security & Validation Layer
-- Implemented **Middleware Guard** (`validateWorkout.js`) in Node.js.
-- **Function:** Sanitizes all incoming workout data before it reaches the controller.
-- **Security:** Prevents NoSQL injection and ensures data integrity (e.g., preventing negative reps or empty titles).
+## ⏳ Pending Task  
 
-### 8. Schema Evolution
-- Updated `UserLog` schema to include `difficultyRating`, enabling the data collection required for the Adaptive Engine.
+Collaborative Filtering: Advanced recommendation engine based on similar user profiles.  
 
----
-
-# ##
-## ⏳ Pending Task
-- **Collaborative Filtering:** Advanced recommendation engine based on similar user profiles.
-
----
-
-# ##
-## 📊 Task Status Summary
+## 📊 Task Status Summary  
 
 | Task | Category | Status |
 |------|----------|--------|
@@ -86,19 +75,17 @@
 | NLP Intent Recognition | AI Model | ✅ Completed |
 | Adaptive Difficulty Scaling | AI Model | ✅ Completed |
 | Security Validation Middleware | System Integration | ✅ Completed |
+| Bridge Fault Tolerance (Retry) | Orchestration | ✅ Completed |
+| NLP Stop-Word & Fallback Logic | AI Model | ✅ Completed |
 | Recommendation Engine | AI Model | ❌ Pending |
 
----
+## 🧱 Tech Stack  
 
-# ##
-## 🧱 Tech Stack
-- **Backend:** Node.js, Express.js, Axios
-- **AI/ML:** Python, Flask, Scikit-learn, NumPy, Pandas
-- **Database:** MongoDB Atlas, Mongoose
-- **Tools:** Postman, PowerShell (Testing), Git/GitHub
+Backend: Node.js, Express.js, Axios  
+AI/ML: Python, Flask, Scikit-learn, NumPy, Pandas  
+Database: MongoDB Atlas, Mongoose  
+Tools: Postman, PowerShell (Testing), Git/GitHub  
 
----
+## 📍 Notes  
 
-# ##
-## 📍 Notes
-This module serves as the **central nervous system** of the application. It now possesses **Adaptive Capabilities**, meaning the system evolves based on user performance, mimicking a real-life coach.
+This module serves as the central nervous system of the application. It now possesses Adaptive Capabilities, meaning the system evolves based on user performance, mimicking a real-life coach. The architecture is fully resilient, capable of self-healing dropped connections and politely handling out-of-bounds user inputs.
