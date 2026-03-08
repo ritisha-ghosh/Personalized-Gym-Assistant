@@ -72,13 +72,18 @@
 const UserLog = require("../models/UserLog");
 
 
-// CREATE LOG (FIXED)
 exports.createLog = async (req, res) => {
+  console.log("CREATE LOG ROUTE HIT");
+
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
     const { status, difficultyRating } = req.body;
 
     const log = await UserLog.create({
-      user: req.user.id,          // ✅ FIX: from JWT, not body
+      user: req.user._id,   // ✅ FIXED
       status,
       difficultyRating
     });
@@ -89,10 +94,18 @@ exports.createLog = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Create log error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
+  console.error("Create log FULL error:", error);
+  console.error("Error message:", error.message);
+  console.error("Error stack:", error.stack);
+
+  res.status(500).json({
+    message: "Server error",
+    error: error.message
+  });
+}
+
 };
+
 
 
 // GET ALL LOGS FOR LOGGED-IN USER (FIXED)

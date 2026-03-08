@@ -168,6 +168,22 @@
 ---
 
 # ##
+## 🔹 Day 5: Now Your Protection Layers Look Like This
+
+
+### Layer 1 → Mongoose Schema
+
+- Prevents impossible biological values from entering DB.
+
+### Layer 2 → Controller Validation
+
+- Prevents incomplete profile calculation.
+
+### Layer 3 → Calculator Clamp
+
+- Even if DB is bypassed, engine clamps safely.
+
+# ##
 ## 📊 Task Status Summary
 
 | Task | Status |
@@ -180,6 +196,7 @@
 | UserLog schema enhancement | ✅ Completed |
 | Diet preference integration | ✅ Completed |
 | Python AI recipe filtering | ✅ Completed |
+| Conduct "Stress Tests" | ✅ Completed |
 | WorkoutPlan intelligence v2 | ⏳ Pending |
 
 ---

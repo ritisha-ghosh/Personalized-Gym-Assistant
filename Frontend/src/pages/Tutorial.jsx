@@ -194,12 +194,7 @@ const Tutorial = () => {
                   </div>
                 </div>
 
-                {/* AI Tip Badge */}
-                {video.isAiTip && (
-                  <div className="absolute top-3 left-3 bg-yellow-400 text-slate-900 text-[10px] font-extrabold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm">
-                    AI TIP
-                  </div>
-                )}
+                
 
                 {/* Duration Badge */}
                 <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-md">

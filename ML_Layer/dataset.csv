@@ -1,0 +1,16 @@
+query,intent
+how to do deadlift form check,exercise_info
+what is bench press,exercise_info
+tell me about squats,exercise_info
+correct form for bicep curl,exercise_info
+how to perform a pull up,exercise_info
+suggest a diet for weight loss,diet_plan
+how much protein do i need,diet_plan
+what should i eat for bulk,diet_plan
+keto diet meal plan,diet_plan
+vegan bodybuilding diet,diet_plan
+track my workout for today,log_workout
+i want to log my sets,log_workout
+save my progress,log_workout
+record 3 sets of pushups,log_workout
+add 50kg bench press to my log,log_workout
