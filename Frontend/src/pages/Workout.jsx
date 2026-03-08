@@ -285,7 +285,7 @@ const Workout = () => {
                   </div>
                 </div>
 
-                // UPDATED PROGRESS BAR AS CHECKABLE
+                {/*  UPDATED PROGRESS BAR AS CHECKABLE */}
                 <div className="space-y-2 mb-6">
                   <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
                     <span>Workout Progress</span>
@@ -299,7 +299,7 @@ const Workout = () => {
                   </div>
                 </div>
 
-                // UPDATED MONDAY PROGRESS BAR 
+                {/*  UPDATED MONDAY PROGRESS BAR  */}
                 <div className="space-y-4 flex-1">
                   {mondayRoutine.exercises.map((exercise) => {
                     const isDone = completedExerciseIds.includes(exercise.id);
@@ -334,7 +334,7 @@ const Workout = () => {
                   })}
                 </div>
 
-                // UPDATED COMPLETE WORKOUT BUTTON , IT WILL SHOW HOW MANY EXERCISE LEFT TO COMPLETE
+                {/* UPDATED COMPLETE WORKOUT BUTTON , IT WILL SHOW HOW MANY EXERCISE LEFT TO COMPLETE */}
                 <button
                   // Disable the button unless every exercise ID is in the completed state
                   disabled={completedExerciseIds.length !== mondayRoutine.exercises.length}
