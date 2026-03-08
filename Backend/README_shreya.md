@@ -354,3 +354,16 @@ Used environment variables for secrets and configurations
 🚀 Outcome
 
 By the end of Week 4, the backend authentication system became more secure, scalable, and production-ready, supporting token refresh without forcing users to log in repeatedly.
+
+
+✨ Week 5 Progress Report – Backend Module
+
+## Backend Improvements – Logging Stability
+
+To ensure stable MongoDB performance during high-volume logging, the following improvements were implemented:
+
+- Added MongoDB connection pooling and timeout configuration in `config/db.js`.
+- Implemented global error handling in `server.js` to prevent crashes during heavy logging.
+- Optimized log operations in `controllers/logController.js`.
+- Added indexed schema (`user + date`) in `models/UserLog.js` for faster log retrieval.
+- Improved validation and error handling for log creation APIs.
