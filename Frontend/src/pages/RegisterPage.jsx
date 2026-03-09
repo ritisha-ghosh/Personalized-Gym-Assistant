@@ -13,7 +13,6 @@ const RegisterPage = () => {
   const [experience, setExperience] = useState('Beginner');
   const [exclusions, setExclusions] = useState([]);
 
-  const currentYear = new Date().getFullYear();
 
   const toggleExclusion = (item) => {
     if (exclusions.includes(item)) {
