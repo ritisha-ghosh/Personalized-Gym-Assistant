@@ -1,4 +1,5 @@
 const express = require("express");
+
 const {
   createPlan,
   getUserPlans,
@@ -12,13 +13,19 @@ const { validatePlan } = require("../middleware/validateWorkout");
 
 const router = express.Router();
 
-// 🔐 Protected Routes + 🛡️ Validated Routes
+// CREATE WORKOUT PLAN
+router.post("/", authMiddleware, validatePlan, createPlan);
 
-router.post("/", authMiddleware, validatePlan, createPlan);           // create plan
-router.get("/", authMiddleware, getUserPlans);          // get user's own plans
-router.put("/:planId", authMiddleware, validatePlan, updatePlan);     // update plan
-router.delete("/:planId", authMiddleware, deletePlan);  // delete plan
-// 🧠 Decision Tree – Weekly Plan Adjustment
+// GET USER WORKOUT PLANS
+router.get("/", authMiddleware, getUserPlans);
+
+// UPDATE WORKOUT PLAN
+router.put("/:planId", authMiddleware, validatePlan, updatePlan);
+
+// DELETE WORKOUT PLAN
+router.delete("/:planId", authMiddleware, deletePlan);
+
+// 🧠 AI Weekly Plan Adjustment
 router.post("/weekly-adjustment", authMiddleware, weeklyPlanAdjustment);
 
 module.exports = router;

@@ -198,6 +198,7 @@
 | Python AI recipe filtering | ✅ Completed |
 | Conduct "Stress Tests" | ✅ Completed |
 | WorkoutPlan intelligence v2 | ⏳ Pending |
+|Tagged all exercises with muscle group metadata (e.g., chest, triceps, quads) to enable future Muscle Recovery Tracker logic for intelligent workout filtering.|  ✅ Completed |
 
 ---
 
