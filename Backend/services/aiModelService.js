@@ -1,5 +1,5 @@
 const axios = require('axios');
-
+const FLASK_RECOMMEND_URL = 'http://127.0.0.1:5001/recommend-plan';
 const FLASK_URL = 'http://127.0.0.1:5001/predict';
 
 // Helper function to pause execution (wait before retrying)
@@ -42,4 +42,20 @@ const getAIResponse = async (userQuery, maxRetries = 3, delayMs = 1000) => {
   }
 };
 
-module.exports = { getAIResponse };
+const getCollaborativeRecommendation = async (userStats) => {
+  try {
+    const response = await axios.post(FLASK_RECOMMEND_URL, {
+      age: userStats.age,
+      weight_kg: userStats.weight_kg,
+      experience_level: userStats.experience_level,
+      goal_type: userStats.goal_type
+    });
+    return response.data;
+  } catch (error) {
+    console.error("AI Recommendation Service Error:", error.message);
+    throw error;
+  }
+};
+
+module.exports = { getAIResponse, getCollaborativeRecommendation };
+
