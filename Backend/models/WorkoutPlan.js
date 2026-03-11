@@ -45,6 +45,24 @@ const workoutPlanSchema = new mongoose.Schema({
         required: true
       },
 
+      // ⭐ NEW FIELD
+      muscleGroup: {
+        type: String,
+        enum: [
+          "chest",
+          "back",
+          "shoulders",
+          "biceps",
+          "triceps",
+          "quads",
+          "hamstrings",
+          "glutes",
+          "calves",
+          "core"
+        ],
+        required: true
+      },
+
       sets: {
         type: Number,
         required: true

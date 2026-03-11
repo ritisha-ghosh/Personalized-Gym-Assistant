@@ -4,20 +4,24 @@ const { applyWeeklyAdjustment } = require("../services/decisionTreeService");
 console.log("Workout controller loaded");
 
 
-// CREATE PLAN
 exports.createPlan = async (req, res) => {
   try {
-    console.log("🔥 CREATE PLAN BODY:", req.body);
-    console.log("🔥 USER:", req.user);
-
     const plan = await WorkoutPlan.create({
-      user: req.user.id,   // ✅ from JWT
+      user: req.user.id,
       title: req.body.title,
       goal: req.body.goal,
-      experienceLevel: req.body.experience,
-      duration: req.body.duration,
+      experienceLevel: req.body.experienceLevel,
+      durationWeeks: req.body.durationWeeks,
       daysPerWeek: req.body.daysPerWeek,
-      exercises: req.body.exercises,
+
+      exercises: req.body.exercises.map(ex => ({
+        name: ex.name,
+        muscleGroup: ex.muscleGroup,
+        sets: ex.sets,
+        reps: ex.reps,
+        restSeconds: ex.restSeconds || 60
+      })),
+
       notes: req.body.notes
     });
 
@@ -27,8 +31,8 @@ exports.createPlan = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ CREATE PLAN ERROR:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("CREATE PLAN ERROR:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -36,9 +40,10 @@ exports.createPlan = async (req, res) => {
 // GET USER PLANS
 exports.getUserPlans = async (req, res) => {
   try {
-    const { userId } = req.params;
+    // const { userId } = req.params;
 
-    const plans = await WorkoutPlan.find({ user: userId });
+    // const plans = await WorkoutPlan.find({ user: userId });
+    const plans = await WorkoutPlan.find({ user: req.user.id });
 
     res.json(plans);
 
