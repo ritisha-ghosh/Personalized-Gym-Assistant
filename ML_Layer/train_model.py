@@ -1,30 +1,50 @@
 # ml/train_model.py
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.tree import DecisionTreeClassifier
-import joblib
+import pandas as pd # type: ignore
+from sklearn.feature_extraction.text import TfidfVectorizer # type: ignore
+from sklearn.tree import DecisionTreeClassifier # type: ignore
+from sklearn.neighbors import NearestNeighbors # type: ignore
+import joblib # type: ignore
 import os
 
-print("🔄 Starting ETL Pipeline...")
+print("🔄 Starting Dual ETL Pipeline...")
 
-# 1. EXTRACT: Load external data
-print("📥 Extracting data from dataset.csv...")
-df = pd.read_csv("dataset.csv")
+# ==========================================
+# PIPELINE 1: NLP INTENT CLASSIFICATION
+# ==========================================
+print("📥 Extracting NLP data from dataset.csv...")
+df_nlp = pd.read_csv("dataset.csv")
 
-# 2. TRANSFORM: Convert text to mathematical vectors (ignoring stop words)
-print("⚙️ Transforming text data...")
+print("⚙️ Transforming NLP text data...")
 vectorizer = TfidfVectorizer(stop_words='english')
-X = vectorizer.fit_transform(df['query'])
-y = df['intent']
+X_nlp = vectorizer.fit_transform(df_nlp['query'])
+y_nlp = df_nlp['intent']
 
-# 3. LOAD / TRAIN: Feed data into the Decision Tree Model
 print("🧠 Training Decision Tree Classifier...")
-model = DecisionTreeClassifier(random_state=42)
-model.fit(X, y)
+model_nlp = DecisionTreeClassifier(random_state=42)
+model_nlp.fit(X_nlp, y_nlp)
 
-# 4. PICKLE: Serialize the trained model and vocabulary for instant loading
-print("📦 Pickling the model...")
+print("📦 Pickling NLP models...")
 joblib.dump(vectorizer, 'vectorizer.pkl')
-joblib.dump(model, 'model.pkl')
+joblib.dump(model_nlp, 'model.pkl')
 
-print("✅ ETL Process Complete! 'vectorizer.pkl' and 'model.pkl' are ready for production.")
+# ==========================================
+# PIPELINE 2: COLLABORATIVE FILTERING 
+# ==========================================
+print("📥 Extracting User data from user_profiles_demo.csv...")
+df_users = pd.read_csv("user_profiles_demo.csv")
+
+print("⚙️ Transforming User metrics...")
+# Features: age, weight_kg, experience_level, goal_type
+X_users = df_users[['age', 'weight_kg', 'experience_level', 'goal_type']]
+
+print("🧠 Training NearestNeighbors Recommender...")
+# n_neighbors=1 because we want the single closest matching profile
+knn_model = NearestNeighbors(n_neighbors=1, metric='euclidean')
+knn_model.fit(X_users)
+
+print("📦 Pickling KNN models...")
+joblib.dump(knn_model, 'knn_model.pkl')
+# Pickle the dataframe so Flask can look up the plan ID later
+joblib.dump(df_users, 'df_users.pkl')
+
+print("✅ Dual ETL Process Complete! All 4 .pkl files are ready for production.")
