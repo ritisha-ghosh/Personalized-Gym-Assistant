@@ -10,7 +10,6 @@ const logRoutes = require("./routes/logRoutes");
 const workoutRoutes = require("./routes/workoutRoutes");
 
 // Load env vars from .env file
-// This MUST be at the very top, before any other code tries to access process.env
 dotenv.config();
 
 // Connect to Database
@@ -18,29 +17,31 @@ connectDB();
 
 const app = express();
 
-// Enable CORS for all routes
-// This allows your frontend (running on a different port) to make requests to the backend.
+// Enable CORS
 app.use(cors({
-  origin: 'http://localhost:5173', // Allow your Frontend URL (Vite default is 5173)
+  origin: 'http://localhost:5173',
   credentials: true
 }));
 
-// Body Parser Middleware to accept JSON
-app.use(express.json());
+// Body Parser Middleware (Improvement #1 added here)
+app.use(express.json({ limit: "10mb" }));
 
-// Auth Routes
+// Routes
 app.use("/api/auth", authRoutes);
-// DIET ROUTES
 app.use("/api/diet", dietRoutes);
-// DIET PLAN ROUTES
 app.use("/api/diet-plan", dietPlanRoutes);
-// Chat Route
 app.use("/api/chat", chatRoutes);
-// LOG ROUTES
 app.use("/api/logs", logRoutes);
-// WORKOUT ROUTES
 app.use("/api/workouts", workoutRoutes);
 
+// Global error protection (Improvement #2 added here)
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("Unhandled Promise Rejection:", err);
+});
 
 const PORT = process.env.PORT || 5000;
 

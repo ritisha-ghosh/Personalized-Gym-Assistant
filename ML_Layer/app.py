@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask import Flask, request, jsonify # type: ignore
+from flask_cors import CORS # type: ignore
+import joblib # type: ignore
 
 app = Flask(__name__)
 CORS(app) # Allows the backend to talk to this server
@@ -37,61 +38,67 @@ def handle_general_exception(e):
 # 🔹 UPDATED LOGIC WITH PREVENTING INITIAL LATENCY SPIKES IN STARTUP TIME OF FLASK
 # =================================================
 
-# --- 1. THE INTELLIGENCE (Training on Startup) ---
+# --- 1. THE INTELLIGENCE (Loading Trained Model) ---
 
 # Global variables for the ML model
 vectorizer = None
-X = None
-intents = ["exercise_info", "exercise_info", "exercise_info", "diet_plan", "diet_plan", "diet_plan", "log_workout", "log_workout"]
+model = None
+knn_model = None
+df_users = None
 
 def initialize_ml_engine():
-    """Initializes and pre-warms the ML model to prevent first-hit latency."""
-    global vectorizer, X
-    # Move heavy imports here to speed up initial script parsing
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
-
-    corpus = [
-        "how to do deadlift form check",      # exercise_info
-        "what is bench press",                # exercise_info
-        "tell me about squats",               # exercise_info
-        "suggest a diet for weight loss",     # diet_plan
-        "how much protein do i need",         # diet_plan
-        "what should i eat for bulk",         # diet_plan
-        "track my workout for today",         # log_workout
-        "i want to log my sets",              # log_workout
-    ]
-
-    vectorizer = TfidfVectorizer()
-    X = vectorizer.fit_transform(corpus)
-    
-    # Run a dummy prediction to 'warm up' the library
-    test_vec = vectorizer.transform(["warmup"])
-    _ = cosine_similarity(test_vec, X)
-    print("✅ ML Engine warmed up and ready.")
+    """Instantly loads the pickled ML models to prevent first-hit latency."""
+    global vectorizer, model, knn_model, df_users
+    try:
+        vectorizer = joblib.load('vectorizer.pkl')
+        model = joblib.load('model.pkl')
+        knn_model = joblib.load('knn_model.pkl')
+        df_users = joblib.load('df_users.pkl')
+        print("✅ ML Engine loaded all NLP and KNN Pickle files successfully.")
+    except Exception as e:
+        print(f"❌ CRITICAL ERROR: Could not load Pickles. Did you run train_model.py? Error: {e}")
 
 # --- 2. THE ENDPOINT ---
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Use the pre-initialized global variables
-    from sklearn.metrics.pairwise import cosine_similarity
-    import numpy as np
-    
     data = request.json
     if not data or 'query' not in data:
         raise APIError("Please provide a search query.")
     
     user_query = data.get('query', '')
-    text_vec = vectorizer.transform([user_query])
-    similarities = cosine_similarity(text_vec, X)
-    best_match_index = np.argmax(similarities)
     
-    intent = intents[best_match_index] if similarities[0][best_match_index] >= 0.2 else "unknown"
+    # 1. Vectorize the user's input using the Pickled vocabulary
+    text_vec = vectorizer.transform([user_query])
+    
+    # Out-of-Vocabulary Guardrail: Check if the vector is empty (unrecognized words)
+    if text_vec.nnz == 0:
+        return jsonify({
+            "status": "success",
+            "intent": "unknown",
+            "confidence": "low",
+            "message": "I'm still learning! I mostly understand fitness, workouts, and diet queries right now. Could you rephrase that?"
+        }), 200
+    
+    # 2. Predict the intent and get the confidence probability
+    predicted_intent = model.predict(text_vec)[0]
+    probabilities = model.predict_proba(text_vec)[0]
+    confidence_score = max(probabilities)
+
+    # 3. NLP Fallback Logic
+    if confidence_score >= 0.2:
+        intent = predicted_intent
+        confidence = "high"
+        message = "Intent processed successfully."
+    else:
+        intent = "unknown"
+        confidence = "low"
+        message = "I'm still learning! I mostly understand fitness, workouts, and diet queries right now. Could you rephrase that?"
     
     return jsonify({
         "status": "success",
         "intent": intent,
-        "confidence": "high" if intent != "unknown" else "low"
+        "confidence": confidence,
+        "message": message
     }), 200
 
 
@@ -165,7 +172,7 @@ def scale_difficulty():
 
 
 # =================================================
-# 🔹 4. DIET PLAN ENGINE (NEW ADDITION)
+# 🔹 4. DIET PLAN ENGINE 
 # =================================================
 
 # --- STATIC RECIPE DATA ---
@@ -243,6 +250,37 @@ def diet_recommendation():
         "recipes": recipes
     }), 200
 
+# =================================================
+# 🔹 5. COLLABORATIVE FILTERING ENGINE 
+# =================================================
+@app.route('/recommend-plan', methods=['POST'])
+def recommend_plan():
+    data = request.json
+    
+    # Extract user stats from the request
+    try:
+        age = float(data.get('age'))
+        weight = float(data.get('weight_kg'))
+        exp = float(data.get('experience_level'))
+        goal = float(data.get('goal_type'))
+    except (TypeError, ValueError):
+        raise APIError("Missing or invalid user metrics for recommendation.")
+
+    # 1. Format the target user's stats into a vector
+    target_user = [[age, weight, exp, goal]]
+    
+    # 2. Find the mathematically closest user profile (Nearest Neighbor)
+    distances, indices = knn_model.kneighbors(target_user)
+    closest_user_index = indices[0][0]
+    
+    # 3. Retrieve the plan that worked for the similar user
+    recommended_plan_id = df_users.iloc[closest_user_index]['recommended_plan_id']
+    
+    return jsonify({
+        "status": "success",
+        "message": "Collaborative filtering successful.",
+        "recommended_plan_id": str(recommended_plan_id)
+    }), 200
     
 
 if __name__ == '__main__':
@@ -250,3 +288,4 @@ if __name__ == '__main__':
     initialize_ml_engine()
     print("🧠 AI Brain is active on port 5001...")
     app.run(port=5001, debug=False) # Disable debug for faster performance
+    

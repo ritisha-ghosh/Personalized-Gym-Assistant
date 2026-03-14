@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom"; // 1. Import hook
+import { Mic, Search } from "lucide-react"; // Add Mic to imports
+import { useNavigate } from "react-router-dom"; // Add useNavigate
 import Layout from "../componenets/layout/Layout";
 import StatCard from "../componenets/cards/StatCard";
 import WorkoutCard from "../componenets/cards/WorkoutCard";
@@ -10,6 +12,8 @@ import WeightTrendCard from "../componenets/cards/WeightTrendCard";
 import { getUserProfile, getWorkouts } from "../utils/storageUtils";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
   const [userProfile, setUserProfile] = useState(null);
   const [recentWorkouts, setRecentWorkouts] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -152,6 +156,18 @@ const Dashboard = () => {
           </button>
         </div>
       )}
+
+      {/* --- NEW: VOICE ASSISTANT FAB --- */}
+      <button 
+        onClick={() => navigate('/chat')} // Redirects to chat so they can talk
+        className="fixed bottom-8 right-8 w-16 h-16 bg-[#df20af] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group border-4 border-white"
+      >
+        <div className="absolute -top-12 right-0 bg-slate-900 text-white text-[10px] py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          Talk to PulseAI
+        </div>
+        <Mic size={28} />
+      </button>
+      
     </Layout>
   );
 };

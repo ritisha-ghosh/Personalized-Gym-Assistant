@@ -12,14 +12,13 @@ const userLogSchema = new mongoose.Schema({
     enum: ["active", "rest", "injured", "sick", "missed"],
     required: true
   },
-  
-  //(The "AI Sensor") -Mod by Pritam
+
+  // AI Sensor - Modified by Pritam
   difficultyRating: {
     type: Number,
     min: 1,
     max: 10,
-    default: 5 
-    // 1-3: Too Easy, 4-7: Perfect, 8-10: Too Hard
+    default: 5
   },
 
   date: {
@@ -27,9 +26,12 @@ const userLogSchema = new mongoose.Schema({
     default: Date.now
   }
 
-}, { timestamps: true });
+}, {
+  timestamps: true,
+  collection: "userlogs"
+});
 
-// 🚀 Performance Index
+// 🚀 Performance Index (important for high-volume logging)
 userLogSchema.index({ user: 1, date: -1 });
 
 module.exports = mongoose.model("UserLog", userLogSchema);
