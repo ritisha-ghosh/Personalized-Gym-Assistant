@@ -109,3 +109,27 @@ exports.deleteLog = async (req, res) => {
     });
   }
 };
+
+
+
+// GET LAST 48 HOURS LOGS (FOR RECOVERY LOGIC)
+exports.getLast48HoursLogs = async (req, res) => {
+  try {
+    const logs = await UserLog.getLast48HoursLogs();
+
+    res.status(200).json({
+      success: true,
+      message: "Last 48 hours logs fetched successfully",
+      data: logs
+    });
+
+  } catch (error) {
+    console.error("Get last 48 hours logs error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching last 48 hours logs",
+      error: error.message
+    });
+  }
+};
