@@ -9,22 +9,27 @@ exports.createLog = async (req, res) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    const { status, difficultyRating } = req.body;
+    // ✅ Added weight in request body
+    const { status, difficultyRating, weight } = req.body;
 
-    // Basic validation
-    if (!status) {
-      return res.status(400).json({ message: "Status is required" });
+    // ✅ Updated validation
+    if (!status || weight === undefined) {
+      return res.status(400).json({
+        message: "Status and weight are required",
+      });
     }
 
+    // ✅ Added weight in database create
     const log = await UserLog.create({
       user: req.user._id,
       status,
-      difficultyRating
+      difficultyRating,
+      weight,
     });
 
     res.status(201).json({
       message: "Log created successfully",
-      log
+      log,
     });
 
   } catch (error) {
@@ -32,7 +37,7 @@ exports.createLog = async (req, res) => {
 
     res.status(500).json({
       message: "Server error while creating log",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -47,7 +52,7 @@ exports.getUserLogs = async (req, res) => {
 
     const logs = await UserLog.find({ user: req.user._id })
       .sort({ date: -1 })
-      .lean(); // improves performance for large log lists
+      .lean();
 
     res.json(logs);
 
@@ -55,7 +60,7 @@ exports.getUserLogs = async (req, res) => {
     console.error("Get logs error:", error);
 
     res.status(500).json({
-      message: "Server error while fetching logs"
+      message: "Server error while fetching logs",
     });
   }
 };
@@ -69,7 +74,10 @@ exports.updateLog = async (req, res) => {
     const updated = await UserLog.findByIdAndUpdate(
       logId,
       req.body,
-      { new: true, runValidators: true }
+      {
+        new: true,
+        runValidators: true,
+      }
     );
 
     if (!updated) {
@@ -82,7 +90,7 @@ exports.updateLog = async (req, res) => {
     console.error("Update log error:", error);
 
     res.status(500).json({
-      message: "Server error while updating log"
+      message: "Server error while updating log",
     });
   }
 };
@@ -99,17 +107,18 @@ exports.deleteLog = async (req, res) => {
       return res.status(404).json({ message: "Log not found" });
     }
 
-    res.json({ message: "Log deleted successfully" });
+    res.json({
+      message: "Log deleted successfully",
+    });
 
   } catch (error) {
     console.error("Delete log error:", error);
 
     res.status(500).json({
-      message: "Server error while deleting log"
+      message: "Server error while deleting log",
     });
   }
 };
-
 
 
 // GET LAST 48 HOURS LOGS (FOR RECOVERY LOGIC)
@@ -120,7 +129,7 @@ exports.getLast48HoursLogs = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Last 48 hours logs fetched successfully",
-      data: logs
+      data: logs,
     });
 
   } catch (error) {
@@ -129,7 +138,7 @@ exports.getLast48HoursLogs = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while fetching last 48 hours logs",
-      error: error.message
+      error: error.message,
     });
   }
 };

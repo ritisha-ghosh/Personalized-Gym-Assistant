@@ -21,6 +21,13 @@ const userLogSchema = new mongoose.Schema({
     default: 5
   },
 
+  weight: {
+    type: Number,
+    required: true,
+    min: 20,
+    max: 300
+  },
+
   date: {
     type: Date,
     default: Date.now
