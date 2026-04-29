@@ -71,10 +71,18 @@ const RegisterPage = () => {
 
   // ADD FORM DATA AND HANDLES ERRORS 
   const [formData, setFormData] = useState({
-    age: '',
-    weight: '',
-    height: ''
-  });
+  name: '',
+  email: '',
+  password: '',
+  age: '',
+  weight: '',
+  height: '',
+  gender: '',
+  fitnessGoal: 'Weight Loss',
+  dietType: 'standard',
+  activityLevel: 'moderate',
+  injuryStatus: ''
+});
 
   const [errors, setErrors] = useState({});
 
@@ -93,13 +101,13 @@ const RegisterPage = () => {
     return error;
   };
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
     // Validate on the fly
     const error = validate(name, value);
-    setErrors({ ...errors, [name]: error });
+  setErrors({ ...errors, [name]: error });
   };
 
   return (
@@ -227,7 +235,7 @@ const RegisterPage = () => {
                     type="number"
                     name="age" // Add name attribute
                     value={formData.age}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder="25"
                     className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.age ? "border-red-500 bg-red-50" : "border-slate-200 focus:border-pink-500"
                       }`}
@@ -241,7 +249,7 @@ const RegisterPage = () => {
                     type="number"
                     name="weight"
                     value={formData.weight}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder="70"
                     className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.weight ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
                       }`}
@@ -255,7 +263,7 @@ const RegisterPage = () => {
                     type="number"
                     name="height"
                     value={formData.height}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder="175"
                     className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.height ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
                       }`}

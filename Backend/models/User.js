@@ -54,12 +54,11 @@ const userSchema = new mongoose.Schema({
 
   // ✅ FIXED (lowercase, matches calculator)
   goal: {
-    type: String,
-    enum: ["muscle gain", "fat loss", "maintenance"],
-    lowercase: true,
-    trim: true
-  },
-
+  type: String,
+  enum: ["muscle gain", "fat loss", "maintenance"],
+  lowercase: true,
+  trim: true
+},
   injury: {
     type: String,
     default: "none"
