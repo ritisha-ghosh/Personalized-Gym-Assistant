@@ -9,7 +9,7 @@ const RegisterPage = () => {
   // --- States ---
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [experience, setExperience] = useState('Beginner');
   const [exclusions, setExclusions] = useState([]);
 
@@ -23,7 +23,7 @@ const RegisterPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     setLoading(true);
     setError('');
 
@@ -48,7 +48,7 @@ const RegisterPage = () => {
     try {
       // Send data to Backend
       const response = await api.post('/auth/signup', payload);
-      
+
       if (response.data) {
         alert("Registration Successful! Please Log In.");
         navigate('/login'); // Redirect to Login on success
@@ -71,16 +71,16 @@ const RegisterPage = () => {
 
   // ADD FORM DATA AND HANDLES ERRORS 
   const [formData, setFormData] = useState({
-    age: '',
-    weight: '',
-    height: '',
     name: '',
     email: '',
     password: '',
+    age: '',
+    weight: '',
+    height: '',
     gender: '',
-    fitnessGoal: 'muscle gain',
-    dietType: 'vegetarian',
-    activityLevel: 'sedentary',
+    fitnessGoal: 'Weight Loss',
+    dietType: 'standard',
+    activityLevel: 'moderate',
     injuryStatus: ''
   });
 
@@ -101,7 +101,7 @@ const RegisterPage = () => {
     return error;
   };
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
@@ -147,7 +147,7 @@ const RegisterPage = () => {
           </div>
         </div>
 
-        <p className="text-slate-400 text-xs"> © 2025-{currentYear} All rights reserved.</p>
+        <p className="text-slate-400 text-xs"> © {currentYear} All rights reserved.</p>
 
       </div>
 
@@ -167,7 +167,7 @@ const RegisterPage = () => {
             <p className="text-slate-400 text-sm mt-2">Join us and start your personalized fitness journey.</p>
           </div>
 
-          <form className="space-y-10">
+          <form className="space-y-10" onSubmit={handleSubmit}>
 
             {/* SECTION 1: Personal Details */}
             <section>
@@ -181,38 +181,38 @@ const RegisterPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     name="name"
                     value={formData.name}
-                    onChange={handleChange}
-                    placeholder="e.g. Alex Johnson" 
+                    onChange={handleInputChange}
+                    placeholder="e.g. Alex Johnson"
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all"
                   />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     name="email"
                     value={formData.email}
-                    onChange={handleChange}
-                    placeholder="alex@example.com" 
+                    onChange={handleInputChange}
+                    placeholder="alex@example.com"
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all"
                   />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     name="password"
                     value={formData.password}
-                    onChange={handleChange}
-                    placeholder="••••••••" 
+                    onChange={handleInputChange}
+                    placeholder="••••••••"
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -228,14 +228,14 @@ const RegisterPage = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-6">
-              {/* AGE INPUT VALIDATION CHECK */}
+                {/* AGE INPUT VALIDATION CHECK */}
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Age</label>
                   <input
                     type="number"
                     name="age" // Add name attribute
                     value={formData.age}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder="25"
                     className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.age ? "border-red-500 bg-red-50" : "border-slate-200 focus:border-pink-500"
                       }`}
@@ -249,7 +249,7 @@ const RegisterPage = () => {
                     type="number"
                     name="weight"
                     value={formData.weight}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder="70"
                     className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.weight ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
                       }`}
@@ -263,7 +263,7 @@ const RegisterPage = () => {
                     type="number"
                     name="height"
                     value={formData.height}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder="175"
                     className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.height ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
                       }`}
@@ -275,10 +275,10 @@ const RegisterPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Gender</label>
-                  <select 
+                  <select
                     name="gender"
                     value={formData.gender}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
                   >
@@ -290,15 +290,16 @@ const RegisterPage = () => {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Fitness Goal</label>
-                  <select 
+                  <select
                     name="fitnessGoal"
                     value={formData.fitnessGoal}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
                   >
-                    <option value="muscle gain">Muscle Gain</option>
-                    <option value="fat loss">Fat Loss</option>
-                    <option value="maintenance">Maintenance</option>
+                    <option value="Weight Loss">Weight Loss</option>
+                    <option value="Muscle Gain">Muscle Gain</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Endurance">Endurance</option>
                   </select>
                 </div>
               </div>
@@ -337,21 +338,29 @@ const RegisterPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Diet Type</label>
-                  <select 
+                  <select
                     name="dietType"
                     value={formData.dietType}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
                   >
                     <option value="" disabled>Select Diet</option>
+                    <option value="standard">Standard (Omnivore)</option>
                     <option value="vegetarian">Vegetarian</option>
-                    <option value="non-vegetarian">Non-Vegetarian</option>
+                    <option value="vegan">Vegan</option>
+                    <option value="eggetarian">Eggetarian</option>
+                    <option value="pescatarian">Pescatarian</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Daily Activity</label>
-                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700">
+                  <select
+                    name="activityLevel"
+                    value={formData.activityLevel}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                  >
                     <option value="sedentary">Sedentary (Office Job)</option>
                     <option value="light">Lightly Active</option>
                     <option value="moderate">Moderately Active</option>
@@ -381,18 +390,33 @@ const RegisterPage = () => {
 
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Injury / Medical Conditions</label>
-                <input type="text" placeholder="e.g. Lower Back Pain, Asthma..." className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-pink-500" />
+                <input
+                  type="text"
+                  name="injuryStatus"
+                  value={formData.injuryStatus}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Lower Back Pain, Asthma..."
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-pink-500" />
               </div>
             </section>
 
             {/* Submit Button */}
             <div className="pt-2">
-            {/* UPDATE SUBMIT BUTTON AS VALIDATION CHECK */}
+              {/* UPDATE SUBMIT BUTTON AS VALIDATION CHECK */}
               <button
-                disabled={Object.values(errors).some(err => err !== "") || !formData.age}
-                className={`w-full font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 ${Object.values(errors).some(err => err !== "") || !formData.age
-                    ? "bg-slate-300 cursor-not-allowed"
-                    : "bg-[#db2777] hover:bg-[#be185d] text-white shadow-pink-100"
+              type="submit"
+                disabled={
+                  Object.values(errors).some(err => err !== "") ||
+                  !formData.name ||
+                  !formData.email ||
+                  !formData.password ||
+                  !formData.age ||
+                  !formData.gender
+                }
+                className={`w-full font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 ${
+                  Object.values(errors).some(err => err !== "") || !formData.name || !formData.email || !formData.password || !formData.age || !formData.gender
+                  ? "bg-slate-300 cursor-not-allowed text-slate-500"
+                  : "bg-[#db2777] hover:bg-[#be185d] text-white shadow-pink-100"
                   }`}
               >
                 Complete Registration
