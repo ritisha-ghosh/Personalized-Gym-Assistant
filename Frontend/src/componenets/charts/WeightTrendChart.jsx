@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -7,56 +7,58 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
 const WeightTrendChart = () => {
-    const data = [
-  { day: "Mon", actual: 82.1, predicted: 82.0 },
-  { day: "Tue", actual: 82.2, predicted: 82.1 },
-  { day: "Wed", actual: 82.3, predicted: 82.2 },
-  { day: "Thu", actual: 82.4, predicted: 82.35 },
-  { day: "Fri", actual: 82.6, predicted: 82.5 },
-  { day: "Sat", actual: 82.7, predicted: 82.6 },
-  { day: "Sun", actual: 82.8, predicted: 82.7 },
-];
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/logs", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        console.log(response);
+
+        const logs = Array.isArray(response)
+          ? response
+          : response.data || [];
+
+        const formattedData = logs
+          .slice()
+          .reverse()
+          .map((log) => ({
+            day: new Date(log.date).toLocaleDateString("en-US", {
+              weekday: "short",
+            }),
+            actual: log.weight,
+          }));
+
+        setData(formattedData);
+      })
+      .catch((error) => {
+        console.error("Error fetching logs:", error);
+      });
+  }, []);
+
   return (
     <div className="h-48">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
-          <XAxis
-            dataKey="day"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "#9CA3AF", fontSize: 12 }}
-          />
-          <YAxis
-            hide
-            domain={["dataMin - 0.5", "dataMax + 0.5"]}
-          />
-          <Tooltip
-            contentStyle={{
-              borderRadius: "12px",
-              border: "none",
-              boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
-            }}
-          />
+          <XAxis dataKey="day" />
+          <YAxis hide />
+          <Tooltip />
           <Line
             type="monotone"
             dataKey="actual"
             stroke="#FF00FF"
             strokeWidth={3}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="predicted"
-            stroke="#E5E7EB"
-            strokeDasharray="5 5"
-            strokeWidth={2}
-            dot={false}
           />
         </LineChart>
       </ResponsiveContainer>
     </div>
-  )
-}
+  );
+};
 
-export default WeightTrendChart
+export default WeightTrendChart;
