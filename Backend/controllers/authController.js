@@ -106,10 +106,20 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // 🔐 Normalize inputs (CRITICAL FIX)
-    const normalizedGoal = goal?.toLowerCase().trim();
+    // 🔐 Normalize inputs (CRITICAL FIX - Added fallbacks to map to strict schema)
+    let normalizedGoal = goal?.toLowerCase().trim();
+    if (normalizedGoal === 'weight loss') normalizedGoal = 'fat loss';
+    if (normalizedGoal === 'endurance') normalizedGoal = 'maintenance';
+
     const normalizedExperience = experience?.toLowerCase().trim();
-    const normalizedDietType = dietType?.toLowerCase().trim();
+    
+    let normalizedDietType = dietType?.toLowerCase().trim();
+    if (['standard', 'pescatarian', 'eggetarian'].includes(normalizedDietType)) {
+        normalizedDietType = 'non-vegetarian';
+    } else if (normalizedDietType === 'vegan') {
+        normalizedDietType = 'vegetarian';
+    }
+
     const normalizedGender = gender?.toLowerCase().trim();
 
     const salt = await bcrypt.genSalt(10);
@@ -165,7 +175,8 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Email and password required" });
     }
 
-    const user = await User.findOne({ email });
+    // FIX applied: added .select('+password') to retrieve hashed password
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -179,9 +190,8 @@ exports.login = async (req, res) => {
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
-    // 🔒 Store refresh token in DB
-    user.refreshToken = refreshToken;
-    await user.save();
+    // 🔒 Store refresh token in DB safely (Avoids crashing on old test accounts)
+    await User.findByIdAndUpdate(user._id, { refreshToken: refreshToken });
 
     res.json({
       message: "Login successful",

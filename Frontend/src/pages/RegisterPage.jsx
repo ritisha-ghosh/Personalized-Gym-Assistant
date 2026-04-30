@@ -8,11 +8,10 @@ const RegisterPage = () => {
 
   // --- States ---
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [backendError, setBackendError] = useState(''); // Renamed to avoid conflicts
   
   const [experience, setExperience] = useState('Beginner');
   const [exclusions, setExclusions] = useState([]);
-
 
   const toggleExclusion = (item) => {
     if (exclusions.includes(item)) {
@@ -25,16 +24,16 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault(); 
     setLoading(true);
-    setError('');
+    setBackendError('');
 
     // Construct the payload matching the Backend User Schema
     const payload = {
       name: formData.name,
       email: formData.email,
       password: formData.password,
-      age: formData.age || undefined,
-      weight: formData.weight || undefined,
-      height: formData.height || undefined,
+      age: formData.age ? Number(formData.age) : undefined,
+      weight: formData.weight ? Number(formData.weight) : undefined,
+      height: formData.height ? Number(formData.height) : undefined,
       gender: formData.gender,
       goal: formData.fitnessGoal,
       experience: experience,
@@ -55,7 +54,7 @@ const RegisterPage = () => {
       }
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || 'Registration failed. Please check your inputs and try again.');
+      setBackendError(err.response?.data?.message || 'Registration failed. Please check your inputs and try again.');
     } finally {
       setLoading(false);
     }
@@ -71,9 +70,17 @@ const RegisterPage = () => {
 
   // ADD FORM DATA AND HANDLES ERRORS 
   const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
     age: '',
     weight: '',
-    height: ''
+    height: '',
+    gender: '',
+    fitnessGoal: 'fat loss', // FIXED: Default matches DB schema
+    dietType: 'non-vegetarian', // FIXED: Default matches DB schema
+    activityLevel: 'moderate',
+    injuryStatus: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -81,19 +88,22 @@ const RegisterPage = () => {
   // Real-time validation function
   const validate = (name, value) => {
     let error = "";
-    if (name === "age") {
-      if (value < 10 || value > 100) error = "Age must be between 10-100";
+    if (value === "") return ""; // Prevent error on empty string while typing
+
+    const num = Number(value);
+    if (name === "age" && (num < 10 || num > 100)) {
+      error = "Age must be between 10-100";
     }
-    if (name === "weight") {
-      if (value < 30 || value > 250) error = "Weight must be 30kg - 250kg";
+    if (name === "weight" && (num < 30 || num > 300)) {
+      error = "Weight must be 30kg - 300kg";
     }
-    if (name === "height") {
-      if (value < 100 || value > 250) error = "Height must be 100cm - 250cm";
+    if (name === "height" && (num < 100 || num > 250)) {
+      error = "Height must be 100cm - 250cm";
     }
     return error;
   };
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
@@ -159,7 +169,14 @@ const RegisterPage = () => {
             <p className="text-slate-400 text-sm mt-2">Join us and start your personalized fitness journey.</p>
           </div>
 
-          <form className="space-y-10">
+          <form className="space-y-10" onSubmit={handleSubmit}>
+
+            {/* Display Backend Error if exists */}
+            {backendError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold">
+                {backendError}
+              </div>
+            )}
 
             {/* SECTION 1: Personal Details */}
             <section>
@@ -227,9 +244,9 @@ const RegisterPage = () => {
                     type="number"
                     name="age" // Add name attribute
                     value={formData.age}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder="25"
-                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.age ? "border-red-500 bg-red-50" : "border-slate-200 focus:border-pink-500"
+                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.age ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
                       }`}
                   />
                   {errors.age && <p className="text-[10px] text-red-500 mt-1 font-bold">{errors.age}</p>}
@@ -241,7 +258,7 @@ const RegisterPage = () => {
                     type="number"
                     name="weight"
                     value={formData.weight}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder="70"
                     className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.weight ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
                       }`}
@@ -255,7 +272,7 @@ const RegisterPage = () => {
                     type="number"
                     name="height"
                     value={formData.height}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder="175"
                     className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.height ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
                       }`}
@@ -288,10 +305,10 @@ const RegisterPage = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
                   >
-                    <option value="Weight Loss">Weight Loss</option>
-                    <option value="Muscle Gain">Muscle Gain</option>
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="Endurance">Endurance</option>
+                    {/* FIXED: MATCHES MONGOOSE SCHEMA */}
+                    <option value="fat loss">Fat Loss</option>
+                    <option value="muscle gain">Muscle Gain</option>
+                    <option value="maintenance">Maintenance</option>
                   </select>
                 </div>
               </div>
@@ -337,17 +354,20 @@ const RegisterPage = () => {
                     required
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
                   >
+                    {/* FIXED: MATCHES MONGOOSE SCHEMA */}
                     <option value="" disabled>Select Diet</option>
-                    <option value="standard">Standard (Omnivore)</option>
+                    <option value="non-vegetarian">Non-Vegetarian (Omnivore)</option>
                     <option value="vegetarian">Vegetarian</option>
-                    <option value="vegan">Vegan</option>
-                    <option value="eggetarian">Eggetarian</option>
-                    <option value="pescatarian">Pescatarian</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Daily Activity</label>
-                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700">
+                  <select 
+                    name="activityLevel"
+                    value={formData.activityLevel}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                  >
                     <option value="sedentary">Sedentary (Office Job)</option>
                     <option value="light">Lightly Active</option>
                     <option value="moderate">Moderately Active</option>
@@ -377,7 +397,14 @@ const RegisterPage = () => {
 
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Injury / Medical Conditions</label>
-                <input type="text" placeholder="e.g. Lower Back Pain, Asthma..." className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-pink-500" />
+                <input 
+                  type="text" 
+                  name="injuryStatus"
+                  value={formData.injuryStatus}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Lower Back Pain, Asthma..." 
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-pink-500" 
+                />
               </div>
             </section>
 
@@ -385,13 +412,14 @@ const RegisterPage = () => {
             <div className="pt-2">
             {/* UPDATE SUBMIT BUTTON AS VALIDATION CHECK */}
               <button
-                disabled={Object.values(errors).some(err => err !== "") || !formData.age}
-                className={`w-full font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 ${Object.values(errors).some(err => err !== "") || !formData.age
-                    ? "bg-slate-300 cursor-not-allowed"
+                type="submit"
+                disabled={Object.values(errors).some(err => err !== "") || !formData.age || loading}
+                className={`w-full font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 ${Object.values(errors).some(err => err !== "") || !formData.age || loading
+                    ? "bg-slate-300 cursor-not-allowed text-slate-500"
                     : "bg-[#db2777] hover:bg-[#be185d] text-white shadow-pink-100"
                   }`}
               >
-                Complete Registration
+                {loading ? 'Creating Profile...' : 'Complete Registration'}
               </button>
               <p className="text-[11px] text-slate-400 text-center mt-6">
                 By completing registration, you agree to our <span className="underline cursor-pointer">Terms of Service</span> and <span className="underline cursor-pointer">Privacy Policy</span>.
