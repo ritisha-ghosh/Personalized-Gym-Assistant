@@ -183,6 +183,9 @@
 
 - Even if DB is bypassed, engine clamps safely.
 
+## WEEEK-8
+Completed final ETL pipeline by cleaning the external dataset, mapping exercises to standardized muscle tags, and attaching GIF URLs for animated exercise demonstrations.
+
 # ##
 ## 📊 Task Status Summary
 
@@ -197,8 +200,8 @@
 | Diet preference integration | ✅ Completed |
 | Python AI recipe filtering | ✅ Completed |
 | Conduct "Stress Tests" | ✅ Completed |
-| WorkoutPlan intelligence v2 | ⏳ Pending |
 |Tagged all exercises with muscle group metadata (e.g., chest, triceps, quads) to enable future Muscle Recovery Tracker logic for intelligent workout filtering.|  ✅ Completed |
+| Final ETL for external dataset (Muscle Tags + GIF URLs) | ✅ Completed |
 
 ---
 
