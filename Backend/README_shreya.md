@@ -1,9 +1,16 @@
-Frontend Module - Gym & Fitness Assistant
-👩‍💻 Developer: Shreya
+# Frontend Module - Gym & Fitness Assistant
 
-📌 Weekly Development Progress
+---
 
-✅ Week 1: Dashboard Charting Library Research & Frontend Analytics Setup
+## 👩‍💻 Developer: Shreya
+
+---
+
+## 📌 Weekly Development Progress
+
+---
+
+## ✅ Week 1: Dashboard Charting Library Research & Frontend Analytics Setup
 
 📊 Charting Library Research
 Analyzed React-compatible charting libraries for dashboard visualization
@@ -86,7 +93,7 @@ Validated existing chart dashboard implementation
 Created foundation for future health metric dashboards and advanced visual analytics
 
 
-✅ Week 2: Weight Trends Component Development
+## ✅ Week 2: Weight Trends Component Development
 
 📈 Weight Trends Dashboard Component
 
@@ -143,7 +150,7 @@ Confirmed mock data displayed correctly.
 Successfully established Weight Trends dashboard module using mock data and created a production-ready frontend component for future real-time health metric integration.
 
 
-✅ Week 3: Dashboard API Integration & Live Weight Trends
+## ✅ Week 3: Dashboard API Integration & Live Weight Trends
 
 🔗 Frontend–Backend Integration
 Connected the React dashboard Weight Trends component to the protected Logs API for real-time data retrieval.
@@ -171,6 +178,95 @@ Weight chart rendering in dashboard
 
 🎯 Outcome
 Successfully completed real-time dashboard integration by converting the Weight Trends section from static mock visuals into a functional live analytics component.
+
+
+
+## ✅ Week 4: Workout Heatmap & Streak View
+
+📊 Smart Dashboard Enhancement  
+Implemented Workout Heatmap component to visualize user workout consistency over the last 30 days.
+
+🔥 Motivation Features  
+Displayed active workout days and missed days using color-coded grid blocks.  
+Added streak counter to show consecutive active workout days.
+
+🎨 UI Development  
+Built responsive dashboard widget using React and Tailwind CSS.
+
+🧪 Testing  
+Verified 30-day display logic, streak calculations, and dashboard rendering.
+
+🎯 Outcome  
+Improved user motivation and habit tracking through visual consistency analytics.
+
+
+
+## ✅ Week 5: Goal Comparison Dashboard Chart
+
+📊 Smart Dashboard Enhancement  
+Implemented Goal Comparison chart to compare current user metrics with target fitness goals.
+
+⚖️ Metrics Included  
+Displayed current weight vs target weight.  
+Calculated and compared current BMI vs target BMI.
+
+📈 Visualization  
+Built responsive comparison chart using Recharts BarChart.
+
+🎯 Motivation Feature  
+Highlighted remaining progress to help users track transformation goals.
+
+🧪 Testing  
+Verified calculations, chart rendering, and responsive dashboard layout.
+
+🎯 Outcome  
+Users can now visually monitor progress toward ideal weight and BMI targets.
+
+
+
+## ✅ Week 6: AI Goal Comparison Chart Finalization
+
+🤖 ML Model Integration
+Connected the Smart Dashboard Goal Comparison feature with the trained Flask-based AI model running from the ML Layer.
+
+📡 API Connectivity
+Integrated frontend React components with the live AI endpoint:
+
+POST /recommend-plan
+
+Used real-time model output to dynamically determine personalized fitness targets.
+
+📊 Goal Comparison Enhancements
+Updated the Goal Comparison chart to visually compare:
+
+Current Weight vs AI Recommended Target Weight
+Current BMI vs AI Recommended Target BMI
+
+⚡ Frontend Improvements
+Implemented asynchronous API fetching using React useEffect() and fetch().
+
+Added:
+
+Loading state while AI response is processed
+Error fallback handling
+Dynamic chart rendering using Recharts
+
+🧠 AI Personalization Logic
+Used collaborative filtering recommendations from the trained model to assign realistic target metrics based on similar user profiles.
+
+🧪 Testing & Validation
+Verified:
+
+Flask ML server startup on port 5001
+Successful API communication with frontend
+Correct chart rendering after receiving AI data
+Responsive UI behavior across dashboard layout
+
+🎯 Outcome
+The Smart Dashboard now reflects intelligent AI-generated fitness goals instead of static values, making progress tracking more personalized and realistic.
+
+
+
 
 🧱 Tech Stack
 
