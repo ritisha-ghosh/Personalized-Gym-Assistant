@@ -6,8 +6,8 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -15,20 +15,18 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      // 1. Call Backend Login Endpoint
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', {
+        email,
+        password
+      });
 
-      // 2. Save the Token and User Info
-      // Assuming backend sends { token: "...", refreshToken: "...", user: { name: "..." } }
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('refreshToken', response.data.refreshToken); // Save refresh token if available
-      localStorage.setItem('userProfile', JSON.stringify(response.data.user));
-
-      // 3. Redirect to Dashboard
-      navigate('/dashboard'); 
-      
+      if (response.data) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('userId', response.data.userId);
+        navigate('/dashboard');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid Credentials. Please try again.');
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
