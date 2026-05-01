@@ -9,8 +9,8 @@ const LoginPage = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,8 +18,10 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      // 1. Call Backend Login Endpoint
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', {
+        email,
+        password
+      });
 
       // 2. Save the Token and User Info
       // Assuming backend sends { token: "...", refreshToken: "...", user: { name: "..." } }

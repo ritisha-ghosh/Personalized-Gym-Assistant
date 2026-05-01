@@ -10,6 +10,8 @@ import TrainerInsight from "../componenets/cards/TrainerInsight";
 import Leaderboard from "../componenets/cards/Leaderboard";
 import WeightTrendCard from "../componenets/cards/WeightTrendCard";
 import { getUserProfile, getWorkouts } from "../utils/storageUtils";
+import WorkoutHeatmap from "../componenets/cards/WorkoutHeatmap";
+import GoalComparisonCard from "../componenets/cards/GoalComparisonCard";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -136,6 +138,8 @@ const Dashboard = () => {
         {/* Right Column */}
         <div className="space-y-6 lg:col-span-4">
           {shouldShow(["consistency", "week", "streak", "calendar"]) && <WeeklyConsistency />}
+          {shouldShow(["heatmap", "streak", "consistency", "activity"]) && <WorkoutHeatmap />}
+          {shouldShow(["goal", "comparison", "bmi", "weight target"]) && <GoalComparisonCard />}
           {shouldShow(["trainer", "insight", "ai", "tip", "advice"]) && <TrainerInsight />}
           {shouldShow(["leaderboard", "rank", "social", "community", "top"]) && <Leaderboard />}
         </div>

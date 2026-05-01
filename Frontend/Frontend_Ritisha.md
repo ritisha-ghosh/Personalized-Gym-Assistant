@@ -1,17 +1,18 @@
 # 1. Link your project to the specific repository (only if you haven't done this yet)
 git remote add origin https://github.com/Pritam7Chakraborty/Personalized-Gym-Assistant.git
 
-# 2. Switch to the 'Ritisha' branch (or create it if it doesn't exist)
-git checkout -b Ritisha
+# 2. Rename the local branch from 'ritisha' to 'Ritisha'
+git branch -m ritisha Ritisha
 
 # 3. Add all your changes
 git add .
 
 # 4. Commit the changes
-git commit -m "Updated Code "
+git commit -m "Register Schema Fix"
 
-# 5. Push the code to the remote branch
+# 5. Push the new branch and delete the old remote branch
 git push -u origin Ritisha
+git push origin --delete ritisha
 
 
 npm run dev
@@ -57,7 +58,7 @@ npm run dev
 Frontend/
 ├── src/
 │   ├── assets/                 # Static assets (images, icons)
-│   ├── components/
+│   ├── componenets/            # Reusable UI components
 │   │   ├── cards/              # Reusable card components
 │   │   │   ├── Leaderboard.jsx
 │   │   │   ├── StatCard.jsx
@@ -78,14 +79,15 @@ Frontend/
 │   │   ├── Dashboard.jsx
 │   │   ├── LandingPage.jsx
 │   │   ├── LoginPage.jsx
-│   │   ├── Nutrition.jsx 
+│   │   ├── Nutrition.jsx
 │   │   ├── Progression.jsx
 │   │   ├── RegisterPage.jsx
 │   │   ├── Settings.jsx
-|   |   ├── Tutorial.jsx
+│   │   ├── Tutorial.jsx
 │   │   ├── UserProfile.jsx
 │   │   └── Workout.jsx
 │   ├── utils/                  # Utility functions
+│   │   ├── api.js              # API service utility
 │   │   ├── storageUtils.js     # Local storage management
 │   │   ├── pdfUtils.js         # PDF/Export functionality
 │   │   └── fileUploadUtils.js  # File upload utilities
@@ -93,11 +95,16 @@ Frontend/
 │   ├── index.css               # Global styles (Tailwind)
 │   └── main.jsx                # Entry point
 ├── public/                     # Static files
+├── api.js                      # API service 
+├── README.md                   # Project README file
 ├── package.json                # Dependencies & scripts
+├── package-lock.json           # Exact dependency versions
 ├── vite.config.js              # Vite configuration
 ├── tailwind.config.js          # Tailwind CSS config
 ├── postcss.config.js           # PostCSS config
+├── .gitignore                  # Specifies files for Git to ignore
 └── eslint.config.js            # ESLint configuration
+
 ```
 
 ---
@@ -254,7 +261,7 @@ const [formData, setFormData] = useState({
 
 ---
 
-### 6. **Nutrition** (`Neutrations.jsx`)
+### 6. **Nutrition** (`Nutrition.jsx`)
 Nutrition tracking and macro management.
 
 **Features:**
@@ -798,54 +805,74 @@ localStorage.getItem('profile_image')
 ## API Integration
 
 ### Current Status
-The frontend is currently using LocalStorage for data persistence. To integrate with a backend API:
+The project includes a centralized API utility module located at `src/utils/api.js` to handle all communication with the backend. This module uses `axios` and is pre-configured with a request interceptor to automatically attach the user's JWT authentication token to every outgoing request.
 
-### Example API Endpoints to Connect
+### API Utility (`src/utils/api.js`)
+
+This file exports a pre-configured `axios` instance.
 
 ```javascript
-// Workouts
-GET    /api/workouts
-POST   /api/workouts
-PUT    /api/workouts/:id
-DELETE /api/workouts/:id
-
-// Nutrition
-GET    /api/nutrition
-POST   /api/nutrition
-DELETE /api/nutrition/:id
-
-// User
-GET    /api/user/profile
-PUT    /api/user/profile
-
-// Progression
-GET    /api/progression
-POST   /api/progression
-```
-
-### Steps to Connect Backend
-
-1. Install axios:
-```bash
-npm install axios
-```
-
-2. Create API service:
-```javascript
-// src/services/api.js
+// src/utils/api.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5000/api'; // Backend URL
 
-export const api = axios.create({
-  baseURL: API_URL,
+const api = axios.create({
+  baseURL: API_URL, // All requests will be prefixed with this
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
 });
+
+// Interceptor to add JWT token to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token'); // Assumes token is stored here after login
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Example exported functions for authentication
+export const signup = (userData) => api.post('/auth/signup', userData);
+export const login = (credentials) => api.post('/auth/login', credentials);
+
+export default api;
 ```
 
-3. Update utilities to use API instead of localStorage
+### Connecting Components to the Backend
+
+To fetch or send data, import the `api` instance or specific functions from `src/utils/api.js` and use them within your components, typically inside a `useEffect` hook for fetching data.
+
+**Example: Fetching user workouts in `Workout.jsx`**
+
+```jsx
+import { useEffect, useState } from 'react';
+import api from '../utils/api'; // Import the configured axios instance
+
+function Workout() {
+  const [workouts, setWorkouts] = useState([]);
+
+  useEffect(() => {
+    const fetchWorkouts = async () => {
+      try {
+        // The interceptor automatically adds the auth token
+        const response = await api.get('/workouts/user'); 
+        setWorkouts(response.data);
+      } catch (error) {
+        console.error("Failed to fetch workouts:", error);
+        // Handle error (e.g., show a notification)
+      }
+    };
+
+    fetchWorkouts();
+  }, []);
+
+  // ... component JSX
+}
+```
+
+The next step is to replace all calls to `storageUtils.js` with API calls using this `api` utility.
 
 ---
 
