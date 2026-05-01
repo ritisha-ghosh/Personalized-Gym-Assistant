@@ -1,31 +1,41 @@
 const express = require("express");
+const  protect  = require("../middleware/authMiddleware");
 
 const {
   createPlan,
   getUserPlans,
   updatePlan,
   deletePlan,
-  weeklyPlanAdjustment
+  weeklyPlanAdjustment,
+  generateSmartRecommendation
 } = require("../controllers/workoutController");
 
-const authMiddleware = require("../middleware/authMiddleware");
+
 const { validatePlan } = require("../middleware/validateWorkout");
 
 const router = express.Router();
 
+// 🛡️ Smart Recommendation
+router.get("/smart-recommendation", protect, generateSmartRecommendation);
+
 // CREATE WORKOUT PLAN
-router.post("/", authMiddleware, validatePlan, createPlan);
+// Change authMiddleware to protect
+router.post("/", protect, validatePlan, createPlan);
 
 // GET USER WORKOUT PLANS
-router.get("/", authMiddleware, getUserPlans);
+// Change authMiddleware to protect
+router.get("/", protect, getUserPlans);
 
 // UPDATE WORKOUT PLAN
-router.put("/:planId", authMiddleware, validatePlan, updatePlan);
+// Change authMiddleware to protect
+router.put("/:planId", protect, validatePlan, updatePlan);
 
 // DELETE WORKOUT PLAN
-router.delete("/:planId", authMiddleware, deletePlan);
+// Change authMiddleware to protect
+router.delete("/:planId", protect, deletePlan);
 
 // 🧠 AI Weekly Plan Adjustment
-router.post("/weekly-adjustment", authMiddleware, weeklyPlanAdjustment);
+// Change authMiddleware to protect
+router.post("/weekly-adjustment", protect, weeklyPlanAdjustment);
 
 module.exports = router;
