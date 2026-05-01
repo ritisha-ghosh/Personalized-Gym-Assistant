@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
-const userLogSchema = new mongoose.Schema({
+const userLogSchema = new mongoose.Schema(
+{
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -13,7 +14,6 @@ const userLogSchema = new mongoose.Schema({
     required: true
   },
 
-  // AI Sensor - Modified by Pritam
   difficultyRating: {
     type: Number,
     min: 1,
@@ -33,47 +33,45 @@ const userLogSchema = new mongoose.Schema({
     default: Date.now
   }
 
-}, {
+},
+{
   timestamps: true,
   collection: "userlogs"
-});
+}
+);
 
-// 🚀 Performance Index
+/* Performance Index */
 userLogSchema.index({ user: 1, date: -1 });
 
-/**
- * 🔥 Fetch last 48 hours logs for Recovery Logic
- */
-userLogSchema.statics.getLast48HoursLogs = async function () {
+/* Last 48 Hours Logs */
+userLogSchema.statics.getLast48HoursLogs = async function (userId) {
   const now = new Date();
   const last48Hours = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-  const logs = await this.aggregate([
+  return await this.aggregate([
     {
       $match: {
+        user: new mongoose.Types.ObjectId(userId),
         date: { $gte: last48Hours }
       }
     },
-    {
-      $sort: { date: -1 }
-    },
+    { $sort: { date: -1 } },
+
     {
       $group: {
         _id: "$user",
 
-        // Keep logs lightweight (important)
         logs: {
           $push: {
             status: "$status",
             difficultyRating: "$difficultyRating",
+            weight: "$weight",
             date: "$date"
           }
         },
 
         latestStatus: { $first: "$status" },
-
         avgDifficulty: { $avg: "$difficultyRating" },
-
         totalLogs: { $sum: 1 },
 
         missedCount: {
@@ -84,8 +82,6 @@ userLogSchema.statics.getLast48HoursLogs = async function () {
       }
     }
   ]);
-
-  return logs;
 };
 
 module.exports = mongoose.model("UserLog", userLogSchema);

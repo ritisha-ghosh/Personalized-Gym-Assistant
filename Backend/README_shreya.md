@@ -484,6 +484,49 @@ This frontend analytics module is designed to integrate with backend APIs and ML
 
 ---
 
+
+
+## Week 8 Progress Report – Backend Development (Shreya)
+
+### Overview
+Completed major backend production-readiness tasks for the Personalized Gym Assistant project. This week focused on professional API architecture, recovery-tracking data aggregation, and deployment/security improvements.
+
+---
+
+### ✅ Tasks Completed
+
+### 1. History Aggregation for Recovery Tracker
+Implemented MongoDB aggregation logic to fetch the authenticated user’s last 48 hours of workout/recovery logs.
+
+### Features:
+- Filters logs from the last 48 hours only
+- Returns user-specific data
+- Calculates:
+  - Latest workout status
+  - Average difficulty rating
+  - Total logs submitted
+  - Missed workout count
+- Returns recent log history for frontend recovery insights
+
+### Files Updated:
+- `models/UserLog.js`
+- `controllers/logController.js`
+- `routes/logRoutes.js`
+
+---
+
+### 2. API Versioning Upgrade
+Restructured backend endpoints into a professional versioned format:
+
+
+/api/v1/auth
+/api/v1/logs
+/api/v1/chat
+/api/v1/workouts
+/api/v1/diet
+/api/v1/diet-plan
+
+
 ## 🧱 Tech Stack
 
 - Node.js  
