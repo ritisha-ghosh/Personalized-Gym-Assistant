@@ -1,144 +1,76 @@
 const UserLog = require("../models/UserLog");
 
-// CREATE LOG
+/* CREATE LOG */
 exports.createLog = async (req, res) => {
-  console.log("CREATE LOG ROUTE HIT");
-
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
-
-    // ✅ Added weight in request body
     const { status, difficultyRating, weight } = req.body;
 
-    // ✅ Updated validation
-    if (!status || weight === undefined) {
-      return res.status(400).json({
-        message: "Status and weight are required",
-      });
-    }
-
-    // ✅ Added weight in database create
     const log = await UserLog.create({
       user: req.user._id,
       status,
       difficultyRating,
-      weight,
+      weight
     });
 
-    res.status(201).json({
-      message: "Log created successfully",
-      log,
-    });
+    res.status(201).json(log);
 
   } catch (error) {
-    console.error("Create log error:", error);
-
-    res.status(500).json({
-      message: "Server error while creating log",
-      error: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
-
-// GET ALL LOGS FOR LOGGED-IN USER
+/* GET USER LOGS */
 exports.getUserLogs = async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
-
     const logs = await UserLog.find({ user: req.user._id })
-      .sort({ date: -1 })
-      .lean();
+      .sort({ date: -1 });
 
     res.json(logs);
 
   } catch (error) {
-    console.error("Get logs error:", error);
-
-    res.status(500).json({
-      message: "Server error while fetching logs",
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
-
-// UPDATE LOG
+/* UPDATE LOG */
 exports.updateLog = async (req, res) => {
   try {
-    const { logId } = req.params;
-
     const updated = await UserLog.findByIdAndUpdate(
-      logId,
+      req.params.logId,
       req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
+      { new: true, runValidators: true }
     );
-
-    if (!updated) {
-      return res.status(404).json({ message: "Log not found" });
-    }
 
     res.json(updated);
 
   } catch (error) {
-    console.error("Update log error:", error);
-
-    res.status(500).json({
-      message: "Server error while updating log",
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
-
-// DELETE LOG
+/* DELETE LOG */
 exports.deleteLog = async (req, res) => {
   try {
-    const { logId } = req.params;
+    await UserLog.findByIdAndDelete(req.params.logId);
 
-    const deleted = await UserLog.findByIdAndDelete(logId);
-
-    if (!deleted) {
-      return res.status(404).json({ message: "Log not found" });
-    }
-
-    res.json({
-      message: "Log deleted successfully",
-    });
+    res.json({ message: "Log deleted successfully" });
 
   } catch (error) {
-    console.error("Delete log error:", error);
-
-    res.status(500).json({
-      message: "Server error while deleting log",
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
-
-// GET LAST 48 HOURS LOGS (FOR RECOVERY LOGIC)
+/* LAST 48 HOURS LOGS */
 exports.getLast48HoursLogs = async (req, res) => {
   try {
-    const logs = await UserLog.getLast48HoursLogs();
+    const data = await UserLog.getLast48HoursLogs(req.user._id);
 
-    res.status(200).json({
+    res.json({
       success: true,
-      message: "Last 48 hours logs fetched successfully",
-      data: logs,
+      data
     });
 
   } catch (error) {
-    console.error("Get last 48 hours logs error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Server error while fetching last 48 hours logs",
-      error: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
