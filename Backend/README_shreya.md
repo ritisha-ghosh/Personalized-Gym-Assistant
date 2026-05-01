@@ -518,7 +518,7 @@ Implemented MongoDB aggregation logic to fetch the authenticated user’s last 4
 ### 2. API Versioning Upgrade
 Restructured backend endpoints into a professional versioned format:
 
-```
+
 /api/v1/auth
 /api/v1/logs
 /api/v1/chat
