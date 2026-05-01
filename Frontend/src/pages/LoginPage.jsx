@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../../api'; // Ensure this points to your axios instance
+import { AuthContext } from '../context/AuthContext';
+import api from '../utils/api'; // Ensure this points to your axios instance
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // Access global login function
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,13 +23,24 @@ const LoginPage = () => {
         password
       });
 
-      if (response.data) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('userId', response.data.userId);
-        navigate('/dashboard');
-      }
+      // 2. Save the Token and User Info
+      // Assuming backend sends { token: "...", refreshToken: "...", user: { name: "..." } }
+      // localStorage.setItem('token', response.data.token);
+      // localStorage.setItem('refreshToken', response.data.refreshToken); // Save refresh token if available
+      // localStorage.setItem('userProfile', JSON.stringify(response.data.user));
+      
+      // Pass the user object and the tokens as defined in backend
+      login(response.data.user, { 
+        accessToken: response.data.accessToken, 
+        refreshToken: response.data.refreshToken 
+      });
+
+      // 3. Redirect to Dashboard
+      navigate('/dashboard'); 
+      
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      console.error("Login Error:", err);
+      setError(err.response?.data?.message || 'Invalid Credentials. Please try again.');
     } finally {
       setLoading(false);
     }
