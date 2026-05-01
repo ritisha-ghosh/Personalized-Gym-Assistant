@@ -486,14 +486,14 @@ This frontend analytics module is designed to integrate with backend APIs and ML
 
 
 
-## eek 8 Progress Report – Backend Development (Shreya)
+## Week 8 Progress Report – Backend Development (Shreya)
 
-### verview
+### Overview
 Completed major backend production-readiness tasks for the Personalized Gym Assistant project. This week focused on professional API architecture, recovery-tracking data aggregation, and deployment/security improvements.
 
 ---
 
-###  Tasks Completed
+### ✅ Tasks Completed
 
 ### 1. History Aggregation for Recovery Tracker
 Implemented MongoDB aggregation logic to fetch the authenticated user’s last 48 hours of workout/recovery logs.
@@ -518,6 +518,7 @@ Implemented MongoDB aggregation logic to fetch the authenticated user’s last 4
 ### 2. API Versioning Upgrade
 Restructured backend endpoints into a professional versioned format:
 
+```
 /api/v1/auth
 /api/v1/logs
 /api/v1/chat
@@ -525,22 +526,6 @@ Restructured backend endpoints into a professional versioned format:
 /api/v1/diet
 /api/v1/diet-plan
 
-🛡 Security
-
-Implemented:
-
-Helmet middleware
-Secure CORS
-dotenv environment config
-Hidden .env files
-Atlas credential protection
-📊 Recovery Aggregation Finalization
-
-Improved last 48-hour analytics endpoint.
-
-🎯 Outcome
-
-Backend became production-ready and demo-ready.
 
 ## 🧱 Tech Stack
 
