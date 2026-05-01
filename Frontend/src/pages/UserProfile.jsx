@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom'; 
+import React, { useState, useEffect, useContext } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Layout from "../componenets/layout/Layout";
+import { AuthContext } from '../context/AuthContext';
 import { getUserProfile, saveUserProfile } from "../utils/storageUtils";
 import { uploadImageToLocalStorage, validateImageFile } from "../utils/fileUploadUtils";
+import api from '../utils/api';
 
 const UserProfile = () => {
+  const { user } = useContext(AuthContext); // Get global user data
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
+
+  const [loading, setLoading] = useState(true);
 
   // --- State ---
   const [formData, setFormData] = useState({
@@ -22,15 +27,53 @@ const UserProfile = () => {
   const [saveStatus, setSaveStatus] = useState('');
   const [uploadError, setUploadError] = useState('');
 
+  // --- 1. Fetch Profile from Backend ---
   useEffect(() => {
-    const profile = getUserProfile();
-    setFormData({
-      height: profile.height,
-      weight: profile.weight,
-      bio: profile.bio,
-    });
-    setProfileImage(profile.profileImage);
+    const fetchProfile = async () => {
+      try {
+        // Assuming your backend has a /users/profile or /auth/me route
+        setLoading(true);
+        const response = await api.get('/auth/me');
+        const data = response.data.user;
+
+        setFormData({
+          height: data.height || 'Add height',
+          weight: data.weight || 'Add weight',
+          bio: data.bio || 'Tell us about your fitness journey...',
+        });
+        setProfileImage(data.profileImage || 'https://via.placeholder.com/150');
+        setSelectedGoal(data.goal || 'Muscle Gain');
+        setIsInjuryActive(data.isInjured || false);
+      } catch (err) {
+        console.error("Failed to load profile", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
   }, []);
+
+  //  --- 2. Save Changes to Backend ---
+  const handleSave = async () => {
+    setSaveStatus('Saving...');
+    try {
+      const payload = {
+        ...formData,
+        goal: selectedGoal,
+        isInjured: isInjuryActive,
+        profileImage
+      };
+
+      // Update the user in the database
+      await api.put('/users/update-profile', payload);
+
+      setSaveStatus('Profile updated in database!');
+      setTimeout(() => setSaveStatus(''), 3000);
+    } catch (err) {
+      setSaveStatus('Error saving profile');
+    }
+  };
 
   const profileImageGallery = [
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2000&auto=format&fit=crop',
@@ -63,7 +106,7 @@ const UserProfile = () => {
   };
 
   // Only filter stats. Badges in header stay static.
-  const filteredStats = stats.filter(stat => 
+  const filteredStats = stats.filter(stat =>
     !searchQuery || stat.label.toLowerCase().includes(lowerQuery)
   );
 
@@ -77,21 +120,21 @@ const UserProfile = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    const profile = getUserProfile();
-    const updatedProfile = {
-      ...profile,
-      ...formData,
-      selectedGoal,
-      isInjuryActive,
-      profileImage,
-      lastUpdated: new Date().toISOString(),
-    };
-    
-    saveUserProfile(updatedProfile);
-    setSaveStatus('Profile saved successfully!');
-    setTimeout(() => setSaveStatus(''), 3000);
-  };
+  // const handleSave = () => {
+  //   const profile = getUserProfile();
+  //   const updatedProfile = {
+  //     ...profile,
+  //     ...formData,
+  //     selectedGoal,
+  //     isInjuryActive,
+  //     profileImage,
+  //     lastUpdated: new Date().toISOString(),
+  //   };
+
+  //   saveUserProfile(updatedProfile);
+  //   setSaveStatus('Profile saved successfully!');
+  //   setTimeout(() => setSaveStatus(''), 3000);
+  // };
 
   const handleSelectProfileImage = (imageUrl) => {
     setProfileImage(imageUrl);
@@ -139,17 +182,17 @@ const UserProfile = () => {
       </style>
 
       <div className="font-jakarta max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-10">
-        
+
         {/* --- HEADER SECTION (Always Visible & Static) --- */}
         {/* Removed 'shouldShow' check so this stays visible during search */}
         <div className="mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
             <div className="relative group">
-              <div 
+              <div
                 className="w-24 sm:w-28 md:w-32 h-24 sm:h-28 md:h-32 rounded-full border-4 sm:border-[5px] border-white shadow-xl bg-cover bg-center flex-shrink-0"
                 style={{ backgroundImage: `url('${profileImage}')` }}
               ></div>
-              <button 
+              <button
                 onClick={() => setShowGalleryModal(true)}
                 className="absolute bottom-0 right-0 bg-[#df20af] w-9 h-9 rounded-full border-4 border-white flex items-center justify-center text-white shadow-md hover:scale-110 transition-transform"
               >
@@ -157,9 +200,13 @@ const UserProfile = () => {
               </button>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-1">Alex Rivera</h2>
-              <p className="text-slate-500 font-medium text-sm">Elite Member since Jan 2023</p>
-              
+              <h2 className="text-3xl font-bold text-slate-900 mb-1">
+                {user?.name || "User"}
+              </h2>
+              <p className="text-slate-500 font-medium text-sm">
+                {user?.email || "Member since 2026"}
+              </p>
+
               {/* Badges (Using full 'badges' array so they don't disappear) */}
               <div className="mt-3 flex flex-wrap gap-2">
                 {badges.slice(0, 3).map((badge, i) => (
@@ -170,7 +217,7 @@ const UserProfile = () => {
               </div>
             </div>
           </div>
-          
+
           <button className="bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#df20af]/20 flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0">
             <span className="material-symbols-outlined text-[18px]">edit</span>
             Edit Profile
@@ -199,132 +246,131 @@ const UserProfile = () => {
         )}
 
         <div className="grid grid-cols-1 gap-8">
-          
+
           {/* 1. Physical Metrics (Filtered) */}
           {showPhysicalMetrics && (
-          <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="material-symbols-outlined text-[#df20af]">straighten</span>
-              <h3 className="text-lg font-bold text-slate-900">Physical Metrics</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Current Height</label>
-                <div className="relative group">
-                  <input 
-                    name="height"
-                    value={formData.height} 
-                    onChange={handleInputChange}
-                    className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all text-lg group-hover:bg-slate-100/50" 
-                  />
+            <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+              <div className="flex items-center gap-2 mb-6">
+                <span className="material-symbols-outlined text-[#df20af]">straighten</span>
+                <h3 className="text-lg font-bold text-slate-900">Physical Metrics</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Current Height</label>
+                  <div className="relative group">
+                    <input
+                      name="height"
+                      value={formData.height}
+                      onChange={handleInputChange}
+                      className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all text-lg group-hover:bg-slate-100/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Target Weight</label>
+                  <div className="relative group">
+                    <input
+                      name="weight"
+                      value={formData.weight}
+                      onChange={handleInputChange}
+                      className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all text-lg group-hover:bg-slate-100/50"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Target Weight</label>
-                <div className="relative group">
-                  <input 
-                    name="weight"
-                    value={formData.weight} 
-                    onChange={handleInputChange}
-                    className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all text-lg group-hover:bg-slate-100/50" 
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
+            </section>
           )}
 
           {/* 2. Fitness Goals (Filtered) */}
           {showGoals && (
-          <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="material-symbols-outlined text-[#df20af]">target</span>
-              <h3 className="text-lg font-bold text-slate-900">Fitness Goals</h3>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { id: 'Muscle Gain', icon: 'fitness_center' },
-                  { id: 'Endurance', icon: 'directions_run' },
-                  { id: 'Weight Loss', icon: 'self_care' }
-                ].map((goal) => (
-                  <div 
-                    key={goal.id}
-                    onClick={() => setSelectedGoal(goal.id)}
-                    className={`p-5 border-2 rounded-2xl flex flex-col items-center text-center cursor-pointer transition-all duration-200 ${
-                      selectedGoal === goal.id 
-                        ? 'border-[#df20af] bg-[#df20af]/5 text-[#142E5C]' 
+            <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+              <div className="flex items-center gap-2 mb-6">
+                <span className="material-symbols-outlined text-[#df20af]">target</span>
+                <h3 className="text-lg font-bold text-slate-900">Fitness Goals</h3>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { id: 'Muscle Gain', icon: 'fitness_center' },
+                    { id: 'Endurance', icon: 'directions_run' },
+                    { id: 'Weight Loss', icon: 'self_care' }
+                  ].map((goal) => (
+                    <div
+                      key={goal.id}
+                      onClick={() => setSelectedGoal(goal.id)}
+                      className={`p-5 border-2 rounded-2xl flex flex-col items-center text-center cursor-pointer transition-all duration-200 ${selectedGoal === goal.id
+                        ? 'border-[#df20af] bg-[#df20af]/5 text-[#142E5C]'
                         : 'border-slate-100 hover:border-[#df20af]/30 hover:bg-slate-50 text-slate-500'
-                    }`}
-                  >
-                    <span className={`material-symbols-outlined mb-2 text-2xl ${selectedGoal === goal.id ? 'text-[#df20af] icon-filled' : 'text-slate-400'}`}>
-                      {goal.icon}
-                    </span>
-                    <span className={`font-bold text-sm ${selectedGoal === goal.id ? 'text-slate-900' : 'text-slate-500'}`}>
-                      {goal.id}
-                    </span>
-                  </div>
-                ))}
+                        }`}
+                    >
+                      <span className={`material-symbols-outlined mb-2 text-2xl ${selectedGoal === goal.id ? 'text-[#df20af] icon-filled' : 'text-slate-400'}`}>
+                        {goal.icon}
+                      </span>
+                      <span className={`font-bold text-sm ${selectedGoal === goal.id ? 'text-slate-900' : 'text-slate-500'}`}>
+                        {goal.id}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Bio / Motivation</label>
+                  <textarea
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleInputChange}
+                    className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-700 font-medium resize-none transition-all leading-relaxed hover:bg-slate-100/50"
+                    rows="3"
+                  ></textarea>
+                </div>
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Bio / Motivation</label>
-                <textarea 
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleInputChange}
-                  className="w-full bg-slate-50 border-none rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-700 font-medium resize-none transition-all leading-relaxed hover:bg-slate-100/50" 
-                  rows="3"
-                ></textarea>
-              </div>
-            </div>
-          </section>
+            </section>
           )}
 
           {/* 3. Injury Status (Filtered) */}
           {showInjury && (
-          <section className="bg-[#fdf8e6] p-8 rounded-2xl border border-[#f3eac5] flex flex-col md:flex-row items-start gap-6 relative overflow-hidden transition-all">
-            <div className="bg-[#f3eac5] p-3 rounded-xl text-[#856404] shrink-0">
-              <span className="material-symbols-outlined icon-filled">medical_services</span>
-            </div>
-            
-            <div className="flex-1 w-full relative z-10">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-bold text-[#856404]">Injury Status</h3>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only peer" 
-                    checked={isInjuryActive} 
-                    onChange={() => setIsInjuryActive(!isInjuryActive)} 
-                  />
-                  <div className="w-12 h-7 bg-[#dcdcdc] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#856404]"></div>
-                </label>
+            <section className="bg-[#fdf8e6] p-8 rounded-2xl border border-[#f3eac5] flex flex-col md:flex-row items-start gap-6 relative overflow-hidden transition-all">
+              <div className="bg-[#f3eac5] p-3 rounded-xl text-[#856404] shrink-0">
+                <span className="material-symbols-outlined icon-filled">medical_services</span>
               </div>
 
-              {isInjuryActive ? (
-                <div className="mt-2 transition-all duration-300 ease-in-out">
-                  <p className="text-[#967614] font-bold text-sm mb-4">Current Active Injury: Left Knee (Patellar Tendonitis)</p>
-                  <div className="bg-white/60 p-4 rounded-xl border border-white/50 backdrop-blur-sm">
-                    <p className="text-sm text-[#856404] leading-relaxed italic font-medium">
-                      "PulseAI is currently optimizing your lower body routines to avoid high-impact jumping and heavy squats. Focusing on glute isolation and eccentric movements."
-                    </p>
-                  </div>
+              <div className="flex-1 w-full relative z-10">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-bold text-[#856404]">Injury Status</h3>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={isInjuryActive}
+                      onChange={() => setIsInjuryActive(!isInjuryActive)}
+                    />
+                    <div className="w-12 h-7 bg-[#dcdcdc] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#856404]"></div>
+                  </label>
                 </div>
-              ) : (
-                <p className="text-[#967614]/70 font-medium text-sm mt-1">No active injuries reported. You are clear for full-intensity workouts.</p>
-              )}
-            </div>
-          </section>
+
+                {isInjuryActive ? (
+                  <div className="mt-2 transition-all duration-300 ease-in-out">
+                    <p className="text-[#967614] font-bold text-sm mb-4">Current Active Injury: Left Knee (Patellar Tendonitis)</p>
+                    <div className="bg-white/60 p-4 rounded-xl border border-white/50 backdrop-blur-sm">
+                      <p className="text-sm text-[#856404] leading-relaxed italic font-medium">
+                        "PulseAI is currently optimizing your lower body routines to avoid high-impact jumping and heavy squats. Focusing on glute isolation and eccentric movements."
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[#967614]/70 font-medium text-sm mt-1">No active injuries reported. You are clear for full-intensity workouts.</p>
+                )}
+              </div>
+            </section>
           )}
 
           {/* Empty State */}
           {searchQuery && !showPhysicalMetrics && !showGoals && !showInjury && filteredStats.length === 0 && (
-             <div className="py-20 text-center text-slate-400">
-               No profile sections match "{searchQuery}"
-             </div>
+            <div className="py-20 text-center text-slate-400">
+              No profile sections match "{searchQuery}"
+            </div>
           )}
 
           {/* Footer Buttons */}
@@ -340,13 +386,13 @@ const UserProfile = () => {
               </div>
             )}
             <div className="flex justify-end gap-4">
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="px-8 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors text-sm"
               >
                 Discard Changes
               </button>
-              <button 
+              <button
                 onClick={handleSave}
                 className="bg-[#df20af] text-white px-10 py-3 rounded-xl font-bold shadow-xl shadow-[#df20af]/30 hover:shadow-[#df20af]/40 hover:scale-[1.02] active:scale-95 transition-all text-sm"
               >
@@ -364,7 +410,7 @@ const UserProfile = () => {
           <div className="modal-content bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto">
             <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between z-10">
               <h2 className="text-2xl font-bold text-slate-900">Change Profile Picture</h2>
-              <button 
+              <button
                 onClick={() => setShowGalleryModal(false)}
                 className="text-slate-400 hover:text-slate-600 transition-colors"
               >
@@ -375,14 +421,14 @@ const UserProfile = () => {
               <div>
                 <label className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-4 block">Upload Custom Photo</label>
                 <div className="relative">
-                  <input 
-                    type="file" 
+                  <input
+                    type="file"
                     id="file-upload"
                     onChange={handleUploadImage}
                     accept="image/*"
                     className="sr-only"
                   />
-                  <label 
+                  <label
                     htmlFor="file-upload"
                     className="flex items-center justify-center gap-3 px-6 py-6 border-2 border-dashed border-[#df20af]/30 rounded-2xl cursor-pointer hover:border-[#df20af]/60 hover:bg-[#df20af]/5 transition-all"
                   >
@@ -398,15 +444,14 @@ const UserProfile = () => {
                 <label className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-4 block">Select from Gallery</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {profileImageGallery.map((imageUrl, index) => (
-                    <div 
+                    <div
                       key={index}
                       onClick={() => handleSelectProfileImage(imageUrl)}
-                      className={`relative rounded-2xl overflow-hidden cursor-pointer group transition-all transform hover:scale-105 ${
-                        profileImage === imageUrl ? 'ring-4 ring-[#df20af] shadow-lg' : 'hover:shadow-md'
-                      }`}
+                      className={`relative rounded-2xl overflow-hidden cursor-pointer group transition-all transform hover:scale-105 ${profileImage === imageUrl ? 'ring-4 ring-[#df20af] shadow-lg' : 'hover:shadow-md'
+                        }`}
                     >
-                      <img 
-                        src={imageUrl} 
+                      <img
+                        src={imageUrl}
                         alt={`Gallery ${index + 1}`}
                         className="w-full h-40 object-cover group-hover:brightness-75 transition-all"
                       />
@@ -421,13 +466,13 @@ const UserProfile = () => {
               </div>
             </div>
             <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 p-6 flex justify-end gap-4">
-              <button 
+              <button
                 onClick={() => setShowGalleryModal(false)}
                 className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors text-sm"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={() => setShowGalleryModal(false)}
                 className="bg-[#df20af] text-white px-8 py-2.5 rounded-xl font-bold hover:bg-[#c91d9d] transition-all shadow-lg shadow-[#df20af]/20 text-sm"
               >
