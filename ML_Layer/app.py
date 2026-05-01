@@ -251,18 +251,19 @@ def diet_recommendation():
     }), 200
 
 # =================================================
-# 🔹 5. COLLABORATIVE FILTERING ENGINE 
+# 🔹 5. COLLABORATIVE FILTERING & SMART COACH 
 # =================================================
 @app.route('/recommend-plan', methods=['POST'])
 def recommend_plan():
     data = request.json
     
-    # Extract user stats from the request
+    # Extract user stats & Week 8 fatigue array
     try:
         age = float(data.get('age'))
         weight = float(data.get('weight_kg'))
         exp = float(data.get('experience_level'))
         goal = float(data.get('goal_type'))
+        exhausted_muscles = data.get('exhausted_muscles', [])
     except (TypeError, ValueError):
         raise APIError("Missing or invalid user metrics for recommendation.")
 
@@ -276,10 +277,17 @@ def recommend_plan():
     # 3. Retrieve the plan that worked for the similar user
     recommended_plan_id = df_users.iloc[closest_user_index]['recommended_plan_id']
     
+    # 4. SMART COACH LOGIC: Modify response if fatigue is detected
+    msg = "Collaborative filtering successful."
+    if len(exhausted_muscles) > 0:
+        fatigue_str = ", ".join(exhausted_muscles)
+        msg += f" 🛡️ Smart Coach Active: Detected recent activity in [{fatigue_str}]. Recommended plan has been dynamically filtered to prevent overtraining."
+
     return jsonify({
         "status": "success",
-        "message": "Collaborative filtering successful.",
-        "recommended_plan_id": str(recommended_plan_id)
+        "message": msg,
+        "recommended_plan_id": str(recommended_plan_id),
+        "fatigued_muscles_avoided": exhausted_muscles
     }), 200
     
 

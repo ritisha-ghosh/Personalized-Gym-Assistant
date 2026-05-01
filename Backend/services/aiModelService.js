@@ -48,7 +48,8 @@ const getCollaborativeRecommendation = async (userStats) => {
       age: userStats.age,
       weight_kg: userStats.weight_kg,
       experience_level: userStats.experience_level,
-      goal_type: userStats.goal_type
+      goal_type: userStats.goal_type,
+      exhausted_muscles: userStats.exhausted_muscles || [] 
     });
     return response.data;
   } catch (error) {

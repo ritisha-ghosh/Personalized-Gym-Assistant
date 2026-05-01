@@ -53,7 +53,7 @@ const validatePlan = (req, res, next) => {
             }
 
             // FIXED FIELD NAME
-            if (!validMuscleGroups.includes(ex.muscleGroups)) {
+            if (!validMuscleGroups.includes(ex.muscleGroup)) {
                 return res.status(400).json({
                     error: `Invalid muscle group for exercise ${ex.name}`
                 });
