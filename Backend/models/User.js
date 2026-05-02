@@ -77,10 +77,8 @@ const userSchema = new mongoose.Schema({
   dietType: {
     type: String,
     enum: ["vegetarian", "non-vegetarian"],
-
     default: "vegetarian",
     lowercase: true
-
   },
 
   noOnion: {
@@ -91,6 +89,20 @@ const userSchema = new mongoose.Schema({
   noGarlic: {
     type: Boolean,
     default: false
+  },
+
+  // -------------------------
+  // 👤 PROFILE DATA
+  // -------------------------
+
+  bio: {
+    type: String,
+    default: ""
+  },
+
+  profileImage: {
+    type: String,
+    default: null
   }
 
 }, 

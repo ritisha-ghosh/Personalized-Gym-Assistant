@@ -19,6 +19,8 @@
 ### Part 2: Architecture & Design
 
 5. System Architecture Overview
+   5.5. Seven-Layer Architecture Pattern
+   5.6. Intelligent Layer Explained
 6. Technology Stack Deep Dive
 7. Database Design & ERD
 8. API Design & Endpoints
@@ -266,6 +268,766 @@ To empower fitness enthusiasts with:
 │  └─────────────────────────────────────────────────────────────────┘  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Section 3.5: Seven-Layer Architecture Pattern
+
+### 3.5.1 Introduction to 7-Layer Architecture
+
+The PersonalizedGymAssistant follows the **Seven-Layer Architecture** pattern, which is an enterprise-grade architecture pattern that separates concerns into distinct layers. Each layer has specific responsibilities and communicates with adjacent layers.
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│              SEVEN-LAYER ARCHITECTURE MODEL                  │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│ Layer 7: PRESENTATION LAYER (User Interface)                │
+│                                                              │
+│  Components: React Components, UI Elements, Pages            │
+│  Technology: React, Tailwind CSS, Recharts                   │
+│  Responsibility:                                             │
+│  - Display data to user                                      │
+│  - Capture user input                                        │
+│  - Format output for display                                │
+│  - Client-side validation                                    │
+│                                                              │
+│  Files:                                                      │
+│  ├─ pages/ (Dashboard, Workouts, etc.)                       │
+│  ├─ components/ (Buttons, Cards, Forms)                      │
+│  └─ App.jsx (Main component)                                 │
+└──────────────────────────────────────────────────────────────┘
+                              ▲
+                              │ HTTP/JSON
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│ Layer 6: APPLICATION LAYER (Business Logic - Frontend)       │
+│                                                              │
+│  Components: Hooks, Context, State Management               │
+│  Technology: React Hooks, Context API                        │
+│  Responsibility:                                             │
+│  - Client-side business logic                               │
+│  - State management                                          │
+│  - Data transformation                                       │
+│  - Orchestrate component interactions                        │
+│                                                              │
+│  Files:                                                      │
+│  ├─ hooks/ (useAuth, useWorkouts, etc.)                      │
+│  ├─ context/ (AuthContext)                                   │
+│  └─ utils/ (Helper functions)                                │
+└──────────────────────────────────────────────────────────────┘
+                              ▲
+                              │ REST API Calls
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│ Layer 5: API/GATEWAY LAYER (Communication)                  │
+│                                                              │
+│  Components: API Client, Request/Response Handlers           │
+│  Technology: Axios, HTTP/REST                                │
+│  Responsibility:                                             │
+│  - API communication                                         │
+│  - Request formatting                                        │
+│  - Response parsing                                          │
+│  - Error handling                                            │
+│  - Token management                                          │
+│                                                              │
+│  Files:                                                      │
+│  └─ utils/api.js (Axios instance)                            │
+└──────────────────────────────────────────────────────────────┘
+                              ▲
+                              │ HTTP/JSON
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│ Layer 4: BUSINESS LOGIC LAYER (Server-Side Processing)      │
+│                                                              │
+│  Components: Controllers, Services, Business Rules           │
+│  Technology: Express.js, Node.js                             │
+│  Responsibility:                                             │
+│  - Process requests                                          │
+│  - Implement business rules                                  │
+│  - Data validation                                           │
+│  - Call services                                             │
+│  - Prepare responses                                         │
+│  - Call ML services                                          │
+│                                                              │
+│  Files:                                                      │
+│  ├─ controllers/ (authController, workoutController)         │
+│  ├─ services/ (aiModelService, recommendationService)        │
+│  ├─ middleware/ (authentication, validation)                 │
+│  └─ routes/ (API endpoints)                                  │
+└──────────────────────────────────────────────────────────────┘
+                              ▲
+                              │ Queries & Updates
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│ Layer 3: INTELLIGENT LAYER (ML & AI Processing)             │
+│                                                              │
+│  Components: ML Models, Python Flask Service                 │
+│  Technology: Python, scikit-learn, Flask                     │
+│  Responsibility:                                             │
+│  - Intent classification                                     │
+│  - Personalized recommendations                              │
+│  - Predictive analytics                                      │
+│  - Pattern recognition                                       │
+│  - ML model inference                                        │
+│                                                              │
+│  Features:                                                   │
+│  ├─ Intent Classifier: Understand user queries               │
+│  ├─ Recommendation Engine: Suggest workouts/meals            │
+│  ├─ Difficulty Scaler: Adapt plans to performance            │
+│  └─ Predictor: Forecast progress                             │
+│                                                              │
+│  Files:                                                      │
+│  ├─ app_simple.py (Flask server)                             │
+│  ├─ train_model.py (Model training)                          │
+│  └─ models/ (Trained ML models)                              │
+└──────────────────────────────────────────────────────────────┘
+                              ▲
+                              │ Database Queries
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│ Layer 2: DATA ACCESS LAYER (ORM & Data Operations)           │
+│                                                              │
+│  Components: Mongoose Models, Database Queries               │
+│  Technology: Mongoose, MongoDB                               │
+│  Responsibility:                                             │
+│  - Map objects to database records                           │
+│  - Execute CRUD operations                                   │
+│  - Data validation (schema-level)                            │
+│  - Database indexing                                         │
+│  - Query optimization                                        │
+│  - Connection pooling                                        │
+│                                                              │
+│  Files:                                                      │
+│  └─ models/ (User.js, Workout.js, etc.)                      │
+│     ├─ User (authentication & profile)                       │
+│     ├─ Workout (exercise logs)                               │
+│     ├─ UserLog (weight tracking)                             │
+│     ├─ DietPlan (nutrition plans)                            │
+│     ├─ Diet (meal logs)                                      │
+│     ├─ Chat (conversation history)                           │
+│     └─ Feedback (user feedback)                              │
+└──────────────────────────────────────────────────────────────┘
+                              ▲
+                              │ Network Protocol
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│ Layer 1: DATA STORAGE LAYER (Persistent Storage)             │
+│                                                              │
+│  Components: MongoDB Atlas, Cloud Database                   │
+│  Technology: MongoDB, NoSQL                                  │
+│  Responsibility:                                             │
+│  - Persistent data storage                                   │
+│  - Data retrieval                                            │
+│  - ACID transactions                                         │
+│  - Backup & recovery                                         │
+│  - Data security & encryption                                │
+│  - Indexing & optimization                                   │
+│                                                              │
+│  Collections:                                                │
+│  ├─ users (200 documents max)                                │
+│  ├─ workouts (1000s of documents)                            │
+│  ├─ userLogs (100s per user)                                 │
+│  ├─ dietPlans (100s)                                         │
+│  ├─ diets (1000s)                                            │
+│  ├─ chats (1000s)                                            │
+│  └─ feedback (100s)                                          │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### 3.5.2 Layer Responsibilities & Communication
+
+```
+LAYER COMMUNICATION FLOW:
+
+User Action (Layer 7)
+    │
+    ▼
+Application Logic (Layer 6)
+    │ Calls API
+    ▼
+API Gateway (Layer 5)
+    │ HTTP Request
+    ▼
+Business Logic (Layer 4)
+    │ Processes & validates
+    ├─ Calls ML Service (Layer 3)
+    │
+    └─ Calls Data Access (Layer 2)
+       │ ORM operations
+       ▼
+    Database (Layer 1)
+       │ Returns data
+       ▼
+    Data Access (Layer 2)
+       │ Maps to objects
+       ▼
+    Business Logic (Layer 4)
+       │ Formats response
+       ▼
+    API Gateway (Layer 5)
+       │ Parses response
+       ▼
+    Application Logic (Layer 6)
+       │ Updates state
+       ▼
+    UI Updates (Layer 7)
+
+RESPONSIBILITY SEPARATION:
+
+Layer 7 (Presentation):
+├─ WHAT to show
+├─ HOW to show it
+└─ User interaction
+
+Layer 6 (Application):
+├─ Client-side rules
+├─ State management
+└─ Data transformation
+
+Layer 5 (API Gateway):
+├─ Protocol handling
+├─ Request/Response
+└─ Error translation
+
+Layer 4 (Business Logic):
+├─ Core rules
+├─ Data processing
+├─ ML integration
+└─ Response preparation
+
+Layer 3 (Intelligent):
+├─ ML inference
+├─ Pattern matching
+├─ Recommendations
+└─ Predictions
+
+Layer 2 (Data Access):
+├─ Database operations
+├─ Schema validation
+├─ Query building
+└─ Caching
+
+Layer 1 (Data Storage):
+├─ Persistent storage
+├─ Data integrity
+├─ Security
+└─ Performance
+
+BENEFITS OF 7-LAYER ARCHITECTURE:
+
+1. Separation of Concerns
+   ├─ Each layer has single responsibility
+   ├─ Easy to understand & modify
+   └─ Testable in isolation
+
+2. Scalability
+   ├─ Scale individual layers
+   ├─ Add/remove components easily
+   └─ Independent deployment
+
+3. Maintainability
+   ├─ Clear dependencies
+   ├─ Easy debugging
+   └─ Modular structure
+
+4. Reusability
+   ├─ Share components across layers
+   ├─ DRY principle
+   └─ Common utilities
+
+5. Security
+   ├─ Authentication at Layer 4
+   ├─ Validation at multiple levels
+   └─ Encryption at Layer 1 & 5
+
+6. Performance
+   ├─ Optimize each layer independently
+   ├─ Caching at multiple levels
+   └─ Efficient data flow
+```
+
+---
+
+## Section 3.6: Intelligent Layer (AI/ML) - Deep Dive
+
+### 3.6.1 What is the Intelligent Layer?
+
+The **Intelligent Layer** (Layer 3) is a specialized component that adds machine learning and artificial intelligence capabilities to the application. It's a separate Python-based microservice that communicates with the main application to provide smart features.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│         INTELLIGENT LAYER ARCHITECTURE                      │
+└─────────────────────────────────────────────────────────────┘
+
+INPUTS FROM APP
+    │
+    ├─► User Query (text)
+    ├─► User Profile (age, weight, goal, etc.)
+    ├─► User History (past workouts, meals)
+    └─► Performance Metrics (consistency, progress)
+    │
+    ▼
+INTELLIGENT LAYER (Python + Flask)
+    │
+    ├─► TEXT PROCESSING ENGINE
+    │   ├─ Lowercase & clean text
+    │   ├─ Tokenization (break into words)
+    │   ├─ Vectorization (TF-IDF)
+    │   └─ Feature extraction
+    │
+    ├─► MACHINE LEARNING MODELS
+    │   │
+    │   ├─ Model 1: Intent Classifier
+    │   │  ├─ Type: Naive Bayes / SVM
+    │   │  ├─ Input: Text vector
+    │   │  ├─ Output: Intent + confidence
+    │   │  │
+    │   │  └─ Example:
+    │   │     Input: "How to build chest?"
+    │   │     Output: intent="workout", 
+    │   │             confidence=0.95
+    │   │
+    │   ├─ Model 2: Recommendation Engine
+    │   │  ├─ Type: KNN (K-Nearest Neighbors)
+    │   │  ├─ Input: User profile vector
+    │   │  ├─ Output: Recommended workouts
+    │   │  │
+    │   │  └─ Example:
+    │   │     Input: age=28, weight=75, goal="Muscle Gain"
+    │   │     Output: Bench press, Squats, Deadlifts
+    │   │
+    │   ├─ Model 3: Difficulty Adapter
+    │   │  ├─ Type: Decision Tree / Regression
+    │   │  ├─ Input: Performance metrics
+    │   │  ├─ Output: Adjusted difficulty
+    │   │  │
+    │   │  └─ Example:
+    │   │     Input: current_difficulty=8, performance=0.8
+    │   │     Output: new_difficulty=7 (make easier)
+    │   │
+    │   └─ Model 4: Nutrition Predictor
+    │      ├─ Type: Classification
+    │      ├─ Input: Diet preferences
+    │      ├─ Output: Meal suggestions
+    │      │
+    │      └─ Example:
+    │         Input: dietType="vegan", noOnion=true
+    │         Output: [tofu curry, lentil pasta, ...]
+    │
+    ├─► DATA PROCESSING
+    │   ├─ Normalize user data
+    │   ├─ Handle missing values
+    │   ├─ Feature engineering
+    │   └─ Scale features
+    │
+    └─► RESPONSE GENERATION
+        ├─ Format predictions
+        ├─ Add confidence scores
+        ├─ Create explanations
+        └─ Prepare JSON response
+    │
+    ▼
+OUTPUTS TO APP
+    │
+    ├─► Intent Classification
+    │   {
+    │     intent: "workout",
+    │     confidence: 0.95,
+    │     message: "..."
+    │   }
+    │
+    ├─► Workout Recommendations
+    │   {
+    │     exercises: ["Bench Press", ...],
+    │     sets: 4,
+    │     reps: 8,
+    │     reason: "..."
+    │   }
+    │
+    ├─► Meal Suggestions
+    │   {
+    │     meals: ["Grilled Chicken", ...],
+    │     calories: 2500,
+    │     macros: {...}
+    │   }
+    │
+    └─► Progress Predictions
+        {
+          predictedWeight: 72,
+          timeframe: "4 weeks",
+          confidence: 0.87
+        }
+```
+
+### 3.6.2 ML Models Used
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│         MACHINE LEARNING MODELS EXPLAINED                   │
+└─────────────────────────────────────────────────────────────┘
+
+1. INTENT CLASSIFIER (Text Classification)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   
+   Problem: "How many sets for chest?"
+   
+   Step 1: Text Processing
+           Input: "How many sets for chest?"
+           ├─ Lowercase: "how many sets for chest?"
+           ├─ Remove punctuation: "how many sets for chest"
+           ├─ Tokenize: ["how", "many", "sets", "for", "chest"]
+           └─ Vectorize (TF-IDF):
+              [0.1, 0.2, 0.8, 0.1, 0.9] ← Weights
+   
+   Step 2: Model Prediction
+           Vector → Naive Bayes Model
+           ├─ Calculate probability for each intent
+           ├─ workout: 0.95
+           ├─ nutrition: 0.03
+           ├─ progress: 0.01
+           └─ motivation: 0.01
+   
+   Step 3: Output
+           {
+             intent: "workout",
+             confidence: 0.95,
+             alternatives: [
+               { intent: "nutrition", confidence: 0.03 }
+             ]
+           }
+
+2. RECOMMENDATION ENGINE (KNN Classifier)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   
+   Problem: "What exercises should I do?"
+   
+   User Profile:
+   ├─ Age: 28
+   ├─ Weight: 75 kg
+   ├─ Goal: "Muscle Gain"
+   ├─ Experience: "Intermediate"
+   └─ Available Time: 60 minutes
+   
+   Step 1: Feature Vector Creation
+           Features = [28, 75, 1, 2, 60]
+                      [age, weight, goal_idx, exp_idx, time]
+   
+   Step 2: Find K Nearest Neighbors
+           ├─ Compare with training data
+           ├─ Find 5 most similar users
+           ├─ User 1 (similarity: 0.95): likes Bench, Squat, Rows
+           ├─ User 2 (similarity: 0.92): likes Deadlift, Bench
+           ├─ User 3 (similarity: 0.90): likes Leg Press, Squats
+           ├─ User 4 (similarity: 0.88): likes Bench, Dumbbell Rows
+           └─ User 5 (similarity: 0.85): likes Power Cleans
+   
+   Step 3: Aggregate Recommendations
+           ├─ Bench Press: 4 votes → Most popular
+           ├─ Squat: 3 votes
+           ├─ Rows: 2 votes
+           ├─ Deadlift: 1 vote
+           └─ Leg Press: 1 vote
+   
+   Step 4: Output
+           {
+             exercises: [
+               { name: "Bench Press", sets: 4, reps: 8, why: "Popular with similar users" },
+               { name: "Squat", sets: 4, reps: 6, why: "Great for muscle gain" },
+               { name: "Rows", sets: 3, reps: 8, why: "Complements pressing" }
+             ],
+             confidence: 0.91
+           }
+
+3. DIFFICULTY ADAPTER (Decision Tree/Regression)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   
+   Problem: User finding workouts too easy
+   
+   Input Metrics:
+   ├─ Current difficulty: 7/10
+   ├─ Last week average: 8/10 ← User completed easily
+   ├─ Completion rate: 100%
+   ├─ Performance trend: ↑ Improving
+   └─ User feedback: "Too easy"
+   
+   Step 1: Decision Tree Logic
+           if (completion_rate > 90% && feedback == "too_easy") {
+             → INCREASE difficulty
+           } else if (user_fails > 30%) {
+             → DECREASE difficulty
+           } else {
+             → MAINTAIN difficulty
+           }
+   
+   Step 2: Adjustment Amount
+           Improvement rate = 0.15 (15% improvement)
+           New difficulty = 7 + (0.15 × 2) = 7.3 → 7
+         
+           Adjustments:
+           ├─ Increase reps: 8 → 10
+           ├─ Reduce rest time: 60s → 45s
+           ├─ Add weight: 100kg → 110kg
+           └─ Extra set: 3 → 4
+   
+   Step 3: Output
+           {
+             newDifficulty: 8,
+             adjustments: [
+               { exercise: "Bench Press", change: "Add 10kg" },
+               { exercise: "Squat", change: "Increase reps 6→8" }
+             ],
+             explanation: "Based on 100% completion rate, increasing difficulty"
+           }
+
+4. NUTRITION PREDICTOR (Classification/Filtering)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   
+   Problem: "What should I eat?"
+   
+   User Preferences:
+   ├─ Diet Type: "Vegan"
+   ├─ No Onion: true
+   ├─ No Garlic: true
+   ├─ Daily Calories: 2500
+   ├─ Protein Goal: 150g
+   └─ Carbs Goal: 250g
+   
+   Step 1: Database Filtering
+           All meals in database: 500 meals
+           ├─ Filter by diet type (Vegan): 150 meals
+           ├─ Filter no onion: 80 meals
+           ├─ Filter no garlic: 45 meals
+           └─ Final candidates: 45 meals
+   
+   Step 2: Ranking by Goals
+           For each meal, calculate:
+           ├─ Protein match: 150g target, meal has 35g → 0.95
+           ├─ Carb match: 250g target, meal has 60g → 0.96
+           ├─ Calorie match: 2500/3 meals = 833 per meal
+           └─ Overall score: 0.95 × 0.96 = 0.91
+   
+   Step 3: Sort & Select
+           Top 3 meals:
+           ├─ Tofu Stir Fry: score 0.94
+           ├─ Lentil Pasta: score 0.92
+           └─ Chickpea Curry: score 0.90
+   
+   Step 4: Output
+           {
+             meals: [
+               {
+                 name: "Tofu Stir Fry",
+                 calories: 800,
+                 protein: 38g,
+                 carbs: 65g,
+                 score: 0.94
+               },
+               ...
+             ],
+             dailyTotals: {
+               calories: 2450,
+               protein: 148g,
+               carbs: 248g
+             }
+           }
+```
+
+### 3.6.3 How Intelligent Layer Integrates with App
+
+```
+INTEGRATION FLOW:
+
+1. USER INTERACTION
+   ────────────────
+   User types in chat: "I want bigger arms"
+   
+   2. FRONTEND PROCESSING
+      ──────────────────
+      React component sends API request:
+      POST /api/chat
+      {
+        message: "I want bigger arms"
+      }
+   
+   3. BACKEND RECEIVES REQUEST
+      ───────────────────────
+      Express server receives at /api/chat route
+      ├─ Validates request
+      ├─ Extracts user ID from JWT token
+      └─ Passes to chatController
+   
+   4. BACKEND CALLS ML SERVICE
+      ──────────────────────
+      axios.post('http://localhost:5001/predict', {
+        query: "I want bigger arms",
+        user_context: {
+          age: 28,
+          weight: 75,
+          goal: "Muscle Gain",
+          experience: "Intermediate"
+        }
+      })
+   
+   5. ML SERVICE PROCESSES
+      ────────────────────
+      Flask receives request at /predict endpoint
+      ├─ Text preprocessing
+      │  ├─ Lowercase
+      │  ├─ Tokenize
+      │  └─ Vectorize
+      │
+      ├─ Intent classification
+      │  └─ Intent: "workout"
+      │     Confidence: 0.94
+      │
+      ├─ Generate recommendations
+      │  └─ Exercises: ["Bench Press", "Bicep Curls", ...]
+      │
+      └─ Format response
+         {
+           intent: "workout",
+           confidence: 0.94,
+           message: "For bigger arms, focus on...",
+           recommendations: [...]
+         }
+   
+   6. ML SERVICE RETURNS RESPONSE
+      ──────────────────────────
+      HTTP 200 OK
+      {
+        "intent": "workout",
+        "confidence": 0.94,
+        "message": "For bigger arms, try..."
+      }
+   
+   7. BACKEND PROCESSES ML RESPONSE
+      ────────────────────────────
+      Backend receives ML response:
+      ├─ Extract intent & confidence
+      ├─ Generate user-friendly response
+      ├─ Save to chat history (database)
+      │  INSERT INTO chats:
+      │  {
+      │    userId: "user_id",
+      │    query: "I want bigger arms",
+      │    response: "For bigger arms...",
+      │    intent: "workout",
+      │    confidence: 0.94,
+      │    timestamp: now()
+      │  }
+      │
+      └─ Return response to frontend
+   
+   8. FRONTEND RECEIVES RESPONSE
+      ─────────────────────────
+      ├─ Parse JSON
+      ├─ Update state with response
+      └─ Display in chat UI
+   
+   9. UI UPDATES
+      ──────────
+      User sees AI response:
+      "For bigger arms, I recommend:
+       - Bench Press: 4x8
+       - Bicep Curls: 3x10
+       - Rows: 3x8"
+
+REAL-TIME EXAMPLE:
+
+Chat Message: "How many calories should I eat?"
+              ↓
+          Intent: "nutrition"
+          Confidence: 0.97
+              ↓
+        Generate response based on:
+        - User weight (75kg)
+        - User goal (Muscle Gain)
+        - Activity level (Intermediate)
+              ↓
+        Calculate: ~2500 calories/day
+              ↓
+        Return: "For muscle gain at your weight,
+                 aim for 2500 calories daily with
+                 150g protein..."
+              ↓
+        Chat displays response
+        User satisfied!
+```
+
+### 3.6.4 Intelligent Layer Benefits
+
+```
+WHY USE INTELLIGENT LAYER?
+
+1. PERSONALIZATION
+   ├─ Unique recommendations per user
+   ├─ Adapts to individual progress
+   ├─ Learns from user behavior
+   └─ Continuously improves
+
+2. AUTOMATION
+   ├─ Automatic meal planning
+   ├─ Suggest next workouts
+   ├─ Adjust difficulty automatically
+   └─ No manual configuration needed
+
+3. INTELLIGENCE
+   ├─ Understand natural language
+   ├─ Recognize patterns
+   ├─ Make predictions
+   └─ Provide insights
+
+4. SCALABILITY
+   ├─ Handle unlimited users
+   ├─ No performance degradation
+   ├─ Parallel processing
+   └─ Load balancing
+
+5. FUTURE-PROOF
+   ├─ Easy to add new models
+   ├─ Can improve models over time
+   ├─ A/B testing capabilities
+   └─ Continuous learning
+
+EXAMPLE USE CASES:
+
+Use Case 1: Smart Chatbot
+─────────────────────────
+User: "What should I eat to lose weight?"
+      ↓
+ML: Detects "nutrition" + "weight loss"
+      ↓
+Response: "For weight loss, eat 2000 calories with..."
+
+Use Case 2: Adaptive Workouts
+──────────────────────────────
+User completed 10 workouts this week
+      ↓
+ML: Detects user is progressing well
+      ↓
+Recommendation: Increase difficulty by 10%
+
+Use Case 3: Progress Prediction
+────────────────────────────────
+User logged 50 workouts
+      ↓
+ML: Analyzes trend
+      ↓
+Prediction: "At current pace, you'll reach your goal
+            in 8 weeks"
+
+Use Case 4: Meal Recommendations
+─────────────────────────────────
+User is vegan + no onion
+      ↓
+ML: Filters 500 meals → 30 vegan meals
+      ↓
+Recommendation: "Try Tofu Stir Fry (850 cal, 35g protein)"
+```
+
+---
 
 ### 3.2 Technology Stack Comprehensive Diagram
 
@@ -2048,7 +2810,7 @@ USER LOGS WORKOUT
        │   ├─► Update state:
        │   │   setWorkouts([...oldWorkouts, newWorkout])
        │   │
-       │   ├─► Clear form:
+       │   ├���► Clear form:
        │   │   setFormData({...initialState})
        │   │
        │   ├─► Show success message:
@@ -3102,7 +3864,7 @@ PersonalizedGymAssistant is a **full-stack AI-powered fitness application** that
              │           │           │         │
        (1:M) │ (1:M)     │ (1:M)     │ (1:M)   │
              │           │           │         │
-   ┌─────────▼──────┐ ┌──▼──────────────┐  ┌──▼──────────────┐
+   ┌─────────▼──────�� ┌──▼──────────────┐  ┌──▼──────────────┐
    │ WORKOUT_PLANS  │ │  USER_LOGS      │  │  DIET_PLANS     │
    ├────────────────┤ ├─────────────────┤  ├─────────────────┤
    │ _id (PK)       │ │ _id (PK)        │  │ _id (PK)        │

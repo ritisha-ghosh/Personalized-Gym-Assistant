@@ -17,27 +17,43 @@ exports.getUserProfile = async (req, res) => {
 // Update user profile
 exports.updateUserProfile = async (req, res) => {
   try {
-    const { name, email, age, weight, height, gender, goal, injury, experience, dietType, noOnion, noGarlic, bio, profileImage } = req.body;
+    const { age, weight, height, gender, goal, injury, experience, dietType, noOnion, noGarlic, bio } = req.body;
+
+    const updateObj = {
+      age: age || undefined,
+      weight: weight || undefined,
+      height: height || undefined,
+      gender: gender || undefined,
+      goal: goal || undefined,
+      injury: injury || undefined,
+      experience: experience || undefined,
+      dietType: dietType || undefined,
+      noOnion: noOnion !== undefined ? noOnion : undefined,
+      noGarlic: noGarlic !== undefined ? noGarlic : undefined,
+      bio: bio || undefined
+    };
+
+    // Handle file upload if present
+    if (req.file) {
+      try {
+        const fs = require('fs');
+        const fileData = fs.readFileSync(req.file.path);
+        const base64Image = Buffer.from(fileData).toString('base64');
+        const mimeType = req.file.mimetype;
+        updateObj.profileImage = `data:${mimeType};base64,${base64Image}`;
+        
+        // Delete temporary file
+        fs.unlinkSync(req.file.path);
+      } catch (fileError) {
+        console.error("File processing error:", fileError);
+        return res.status(500).json({ message: "Error processing image file" });
+      }
+    }
 
     // Find user and update
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      {
-        name: name || undefined,
-        email: email || undefined,
-        age: age || undefined,
-        weight: weight || undefined,
-        height: height || undefined,
-        gender: gender || undefined,
-        goal: goal || undefined,
-        injury: injury || undefined,
-        experience: experience || undefined,
-        dietType: dietType || undefined,
-        noOnion: noOnion !== undefined ? noOnion : undefined,
-        noGarlic: noGarlic !== undefined ? noGarlic : undefined,
-        bio: bio || undefined,
-        profileImage: profileImage || undefined
-      },
+      updateObj,
       { new: true, runValidators: true }
     ).select("-password");
 
