@@ -245,3 +245,39 @@ exports.refreshAccessToken = async (req, res) => {
     return res.status(403).json({ message: "Refresh token expired or invalid" });
   }
 };
+
+// Get current user profile (protected route)
+exports.getCurrentUser = async (req, res) => {
+  try {
+    // req.user is set by authMiddleware
+    const user = req.user;
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        age: user.age,
+        gender: user.gender,
+        height: user.height,
+        weight: user.weight,
+        goal: user.goal,
+        profileImage: user.profileImage,
+        bio: user.bio,
+        injury: user.injury,
+        experience: user.experience,
+        dietType: user.dietType,
+        noOnion: user.noOnion,
+        noGarlic: user.noGarlic
+      }
+    });
+
+  } catch (error) {
+    console.error("Get current user error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

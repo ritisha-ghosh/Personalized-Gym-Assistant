@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
 import { Droplet, CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
 import { getNutrition, addNutrition, deleteNutrition } from "../utils/storageUtils";
+import api from '../utils/api';
+import { AuthContext } from '../context/AuthContext';
 
 const Neutrations = () => {
   // 2. Search Params Logic
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
+  const { user } = useContext(AuthContext);
 
   const [nutrition, setNutrition] = useState([]);
+  const [userDietData, setUserDietData] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     meal: '',
     calories: '',
@@ -19,9 +24,31 @@ const Neutrations = () => {
     fats: '',
   });
 
+  // Fetch user diet preferences and nutrition data
   useEffect(() => {
-    const saved = getNutrition();
-    setNutrition(saved);
+    const fetchNutritionData = async () => {
+      try {
+        setLoading(true);
+        const userResponse = await api.get('/users/profile');
+        const userData = userResponse.data.user;
+        setUserDietData({
+          dietType: userData.dietType,
+          noOnion: userData.noOnion,
+          noGarlic: userData.noGarlic,
+          goal: userData.goal,
+          weight: userData.weight
+        });
+      } catch (error) {
+        console.error("Failed to fetch diet data", error);
+      }
+
+      // Get local nutrition data
+      const saved = getNutrition();
+      setNutrition(saved);
+      setLoading(false);
+    };
+
+    fetchNutritionData();
   }, []);
 
   const totalCalories = nutrition.reduce((sum, item) => sum + (parseInt(item.calories) || 0), 0);
@@ -73,6 +100,16 @@ const Neutrations = () => {
     m.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#df20af]"></div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       {/* Inject Fonts locally */}
@@ -89,6 +126,13 @@ const Neutrations = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Nutrition Dashboard</h1>
+             {userDietData && (
+               <p className="text-sm text-slate-500">
+                 Diet Type: <span className="font-bold text-slate-700">{userDietData.dietType}</span> 
+                 {userDietData.noOnion && ' • No Onion'} 
+                 {userDietData.noGarlic && ' • No Garlic'}
+               </p>
+             )}
              {searchQuery && <p className="text-sm font-bold text-[#df20af]">Searching for: "{searchQuery}"</p>}
           </div>
           <button

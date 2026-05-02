@@ -31,19 +31,22 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        // Assuming your backend has a /users/profile or /auth/me route
         setLoading(true);
-        const response = await api.get('/auth/me');
+        const response = await api.get('/users/profile');
         const data = response.data.user;
 
         setFormData({
-          height: data.height || 'Add height',
-          weight: data.weight || 'Add weight',
+          height: data.height ? `${data.height} cm` : 'Add height',
+          weight: data.weight ? `${data.weight} kg` : 'Add weight',
           bio: data.bio || 'Tell us about your fitness journey...',
+          age: data.age || '',
+          gender: data.gender || '',
+          experience: data.experience || '',
+          injury: data.injury || 'none'
         });
         setProfileImage(data.profileImage || 'https://via.placeholder.com/150');
-        setSelectedGoal(data.goal || 'Muscle Gain');
-        setIsInjuryActive(data.isInjured || false);
+        setSelectedGoal(data.goal ? data.goal.charAt(0).toUpperCase() + data.goal.slice(1) : 'Muscle Gain');
+        setIsInjuryActive(data.injury && data.injury !== 'none' ? true : false);
       } catch (err) {
         console.error("Failed to load profile", err);
       } finally {
@@ -59,19 +62,25 @@ const UserProfile = () => {
     setSaveStatus('Saving...');
     try {
       const payload = {
-        ...formData,
-        goal: selectedGoal,
-        isInjured: isInjuryActive,
+        height: parseInt(formData.height) || formData.height,
+        weight: parseInt(formData.weight) || formData.weight,
+        bio: formData.bio,
+        age: formData.age,
+        gender: formData.gender,
+        experience: formData.experience,
+        injury: isInjuryActive ? formData.injury : 'none',
+        goal: selectedGoal.toLowerCase(),
         profileImage
       };
 
       // Update the user in the database
-      await api.put('/users/update-profile', payload);
-
-      setSaveStatus('Profile updated in database!');
+      const response = await api.put('/users/update-profile', payload);
+      setSaveStatus('Profile updated successfully!');
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (err) {
-      setSaveStatus('Error saving profile');
+      console.error("Error saving profile:", err);
+      setSaveStatus('Error saving profile: ' + (err.response?.data?.message || 'Unknown error'));
+      setTimeout(() => setSaveStatus(''), 3000);
     }
   };
 

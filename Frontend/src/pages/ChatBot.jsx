@@ -1,37 +1,29 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
 import { Send, PlusCircle, Bot, Search, Mic, MicOff, User, Sparkles } from 'lucide-react';
+import api from '../utils/api';
+import { AuthContext } from '../context/AuthContext';
 
 const ChatBot = () => {
   // 2. Get search query from URL
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
+  const { user } = useContext(AuthContext);
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false); // ADD Voice State
   const messagesEndRef = useRef(null);
+  const [isSending, setIsSending] = useState(false);
 
   // --- Initial Chat History ---
   const [messages, setMessages] = useState([
     {
       id: 1,
       sender: 'ai',
-      text: "Good morning, Alex! I've analyzed your sleep data from last night—it looks like you had 8 hours of high-quality rest. Perfect timing for that HIIT session we discussed.\n\nHow are you feeling today? Ready to hit the gym or do you need a modified routine?",
-      time: '09:15 AM'
-    },
-    {
-      id: 2,
-      sender: 'user',
-      text: "I'm feeling great, but my right shoulder is a bit stiff from yesterday's swim. Can we swap the overhead presses for something else in the HIIT circuit?",
-      time: '09:17 AM'
-    },
-    {
-      id: 3,
-      sender: 'ai',
-      text: "Absolutely. We'll avoid vertical pressing today. I've swapped the Overhead Press for **Lateral Raises** and increased the volume on **Push-ups** to maintain the intensity without straining your rotator cuff.\n\nI've updated your workout plan for today. Would you like me to show you the full routine now?",
-      time: '09:18 AM'
+      text: "Hello! I'm your AI fitness coach. I'm here to help you with personalized workout plans, nutrition advice, and progress tracking. What can I help you with today?",
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
 
@@ -77,7 +69,7 @@ const ChatBot = () => {
     }
   }, [messages, isTyping, searchQuery]);
 
-  const handleSend = (text = inputValue) => {
+  const handleSend = async (text = inputValue) => {
     if (!text.trim()) return;
 
     // 1. Add User Message
@@ -90,18 +82,34 @@ const ChatBot = () => {
     setMessages(prev => [...prev, newMessage]);
     setInputValue('');
     setIsTyping(true);
+    setIsSending(true);
 
-    // 2. Simulate AI Delay & Response
-    setTimeout(() => {
+    try {
+      // 2. Send to backend for AI response
+      const response = await api.post('/chat', {
+        message: text
+      });
+
       const aiResponse = {
         id: Date.now() + 1,
         sender: 'ai',
-        text: "I've logged that request! I'm analyzing your performance data to provide the best recommendation. Is there anything else you'd like to adjust?",
+        text: response.data.reply || "I'm processing your request. Please try again.",
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error("Chat error", error);
+      const errorResponse = {
+        id: Date.now() + 1,
+        sender: 'ai',
+        text: "Sorry, I encountered an error. Please try again.",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+      setIsSending(false);
+    }
   };
 
   const handleKeyDown = (e) => {

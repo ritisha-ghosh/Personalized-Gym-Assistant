@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom'; // 1. Import Hook
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
+import api from '../utils/api';
+import { AuthContext } from '../context/AuthContext';
 
 import { 
   User, 
@@ -18,8 +20,11 @@ import {
 } from 'lucide-react';
 
 const Settings = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('account');
   const [isLoading, setIsLoading] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('');
   
   // 2. Search Params Logic
   const [searchParams] = useSearchParams();
@@ -27,9 +32,12 @@ const Settings = () => {
 
   // --- State for Dynamic Settings ---
   const [formData, setFormData] = useState({
-    firstName: 'Alex',
-    lastName: 'Rivera',
-    email: 'alex.rivera@example.com',
+    firstName: '',
+    lastName: '',
+    email: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
     units: 'Metric (kg/cm)',
     language: 'English (US)',
     theme: 'Light',
@@ -38,6 +46,28 @@ const Settings = () => {
     marketingEmails: false,
     twoFactor: true,
   });
+
+  // Fetch user data on mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await api.get('/users/profile');
+        const userData = response.data.user;
+        const [firstName, lastName] = userData.name?.split(' ') || ['', ''];
+        
+        setFormData(prev => ({
+          ...prev,
+          firstName: firstName || '',
+          lastName: lastName || '',
+          email: userData.email || ''
+        }));
+      } catch (error) {
+        console.error("Failed to fetch user data", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   // --- Handlers ---
   const handleToggle = (key) => {
@@ -48,13 +78,85 @@ const Settings = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = () => {
+  const handleSaveSettings = async () => {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    setSaveStatus('Saving...');
+    try {
+      await api.put('/users/update-settings', {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        units: formData.units,
+        language: formData.language,
+        theme: formData.theme,
+        emailNotifs: formData.emailNotifs,
+        pushNotifs: formData.pushNotifs,
+        marketingEmails: formData.marketingEmails,
+        twoFactor: formData.twoFactor
+      });
+      setSaveStatus('Settings updated successfully!');
+      setTimeout(() => setSaveStatus(''), 3000);
+    } catch (error) {
+      setSaveStatus('Error saving settings: ' + (error.response?.data?.message || 'Unknown error'));
+    } finally {
       setIsLoading(false);
-      alert("Settings updated successfully!");
-    }, 1000);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
+      setSaveStatus('Please fill in all password fields');
+      return;
+    }
+    if (formData.newPassword !== formData.confirmPassword) {
+      setSaveStatus('New passwords do not match');
+      return;
+    }
+
+    setIsLoading(true);
+    setSaveStatus('Updating password...');
+    try {
+      await api.put('/users/update-password', {
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword
+      });
+      setSaveStatus('Password changed successfully!');
+      setFormData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }));
+      setTimeout(() => setSaveStatus(''), 3000);
+    } catch (error) {
+      setSaveStatus('Error: ' + (error.response?.data?.message || 'Failed to change password'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+      return;
+    }
+
+    const password = prompt('Please enter your password to confirm account deletion:');
+    if (!password) return;
+
+    setIsLoading(true);
+    setSaveStatus('Deleting account...');
+    try {
+      await api.delete('/users/delete-account', {
+        data: { password }
+      });
+      logout();
+      navigate('/');
+      setSaveStatus('Account deleted successfully');
+    } catch (error) {
+      setSaveStatus('Error: ' + (error.response?.data?.message || 'Failed to delete account'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // --- 3. SMART NAVIGATION CONFIGURATION ---
@@ -228,11 +330,27 @@ const Settings = () => {
                         </div>
                         <div>
                           <p className="font-bold text-sm">Google</p>
-                          <p className="text-xs text-slate-500">Connected as alex.rivera@gmail.com</p>
+                          <p className="text-xs text-slate-500">Connected as {formData.email}</p>
                         </div>
                       </div>
                       <button className="text-slate-400 hover:text-red-500 font-bold text-xs transition-colors">Disconnect</button>
                     </div>
+                  </div>
+
+                  {/* Save Account Settings Button */}
+                  {saveStatus && (
+                    <div className={`mt-4 p-3 rounded-lg text-sm font-bold ${saveStatus.includes('Error') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                      {saveStatus}
+                    </div>
+                  )}
+                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-100">
+                    <button 
+                      onClick={handleSaveSettings}
+                      disabled={isLoading}
+                      className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70"
+                    >
+                      {isLoading ? '...' : 'Save Changes'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -390,22 +508,64 @@ const Settings = () => {
             {activeTab === 'security' && (
               <div className="space-y-6 animate-fade-in">
                 <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-                  <h2 className="text-lg font-bold mb-6">Login & Security</h2>
+                  <h2 className="text-lg font-bold mb-6">Change Password</h2>
                   
-                  <div className="flex items-center justify-between py-4 border-b border-slate-100">
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-sm">Two-Factor Authentication</h3>
-                      <p className="text-xs text-slate-500 mt-1">Add an extra layer of security to your account</p>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Current Password</label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input 
+                          type="password"
+                          name="currentPassword"
+                          value={formData.currentPassword}
+                          onChange={handleChange}
+                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                        />
+                      </div>
                     </div>
-                    <button className="text-[#df20af] text-sm font-bold hover:underline">Configure</button>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">New Password</label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input 
+                          type="password"
+                          name="newPassword"
+                          value={formData.newPassword}
+                          onChange={handleChange}
+                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Confirm Password</label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input 
+                          type="password"
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between py-4">
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-sm">Change Password</h3>
-                      <p className="text-xs text-slate-500 mt-1">Last changed: 3 months ago</p>
+                  {saveStatus && (
+                    <div className={`mt-4 p-3 rounded-lg text-sm font-bold ${saveStatus.includes('Error') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                      {saveStatus}
                     </div>
-                    <button className="bg-slate-50 hover:bg-slate-100 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition-colors">Update</button>
+                  )}
+
+                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-100">
+                    <button 
+                      onClick={handleChangePassword}
+                      disabled={isLoading}
+                      className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70"
+                    >
+                      {isLoading ? '...' : 'Update Password'}
+                    </button>
                   </div>
                 </div>
 
@@ -413,7 +573,11 @@ const Settings = () => {
                   <h2 className="text-lg font-bold text-red-600 mb-2">Danger Zone</h2>
                   <p className="text-sm text-red-400 mb-6">Once you delete your account, there is no going back. Please be certain.</p>
                   
-                  <button className="flex items-center gap-2 bg-white border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-6 py-3 rounded-xl font-bold transition-all shadow-sm">
+                  <button 
+                    onClick={handleDeleteAccount}
+                    disabled={isLoading}
+                    className="flex items-center gap-2 bg-white border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-6 py-3 rounded-xl font-bold transition-all shadow-sm disabled:opacity-70"
+                  >
                     <Trash2 size={18} />
                     Delete Account
                   </button>
@@ -421,21 +585,23 @@ const Settings = () => {
               </div>
             )}
 
-            {/* Save Button (Global) */}
-            <div className="flex justify-end pt-4">
-              <button 
-                onClick={handleSave}
-                disabled={isLoading}
-                className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-[#df20af]/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-wait"
-              >
-                {isLoading ? (
-                  <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                ) : (
-                  <Save size={18} />
-                )}
-                {isLoading ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
+            {/* Save Button (Global for Preferences/Notifications) */}
+            {(activeTab === 'preferences' || activeTab === 'notifications') && (
+              <div className="flex justify-end pt-4">
+                <button 
+                  onClick={handleSaveSettings}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-[#df20af]/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-wait"
+                >
+                  {isLoading ? (
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  ) : (
+                    <Save size={18} />
+                  )}
+                  {isLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            )}
 
           </div>
         </div>

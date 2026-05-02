@@ -6,6 +6,7 @@ const helmet = require("helmet");
 const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const dietRoutes = require("./routes/dietRouts");
 const dietPlanRoutes = require("./routes/dietPlanRoutes");
@@ -40,6 +41,7 @@ app.get("/", (req, res) => {
 
 /* OLD ROUTES (Stable) */
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/diet", dietRoutes);
 app.use("/api/diet-plan", dietPlanRoutes);
