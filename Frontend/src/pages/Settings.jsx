@@ -25,6 +25,7 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState('account');
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
   
   // 2. Search Params Logic
   const [searchParams] = useSearchParams();
@@ -282,77 +283,97 @@ const Settings = () => {
             {activeTab === 'account' && (
               <div className="space-y-6 animate-fade-in">
                 <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-                  <h2 className="text-lg font-bold mb-6">Personal Information</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">First Name</label>
-                      <input 
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        className="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Last Name</label>
-                      <input 
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        className="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Email Address</label>
-                      <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input 
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          className="w-full pl-11 bg-slate-50 border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-bold">Connected Accounts</h2>
-                    <button className="text-[#df20af] text-sm font-bold hover:underline">Add Account</button>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
-                          <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm">Google</p>
-                          <p className="text-xs text-slate-500">Connected as {formData.email}</p>
-                        </div>
-                      </div>
-                      <button className="text-slate-400 hover:text-red-500 font-bold text-xs transition-colors">Disconnect</button>
-                    </div>
-                  </div>
-
-                  {/* Save Account Settings Button */}
-                  {saveStatus && (
-                    <div className={`mt-4 p-3 rounded-lg text-sm font-bold ${saveStatus.includes('Error') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                      {saveStatus}
-                    </div>
-                  )}
-                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-100">
-                    <button 
-                      onClick={handleSaveSettings}
-                      disabled={isLoading}
-                      className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70"
+                    <h2 className="text-lg font-bold">Personal Information</h2>
+                    <button
+                      onClick={() => setIsEditMode(!isEditMode)}
+                      className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-4 py-2 rounded-xl text-sm font-bold transition-all"
                     >
-                      {isLoading ? '...' : 'Save Changes'}
+                      {isEditMode ? 'Close' : 'Edit'}
                     </button>
                   </div>
+
+                  {isEditMode ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">First Name</label>
+                        <input 
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Last Name</label>
+                        <input 
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Email Address</label>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                          <input 
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      {saveStatus && (
+                        <div className={`md:col-span-2 p-3 rounded-lg text-sm font-bold ${saveStatus.includes('Error') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                          {saveStatus}
+                        </div>
+                      )}
+
+                      <div className="md:col-span-2 flex justify-end gap-3 pt-4">
+                        <button 
+                          onClick={() => setIsEditMode(false)}
+                          className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-sm"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={handleSaveSettings}
+                          disabled={isLoading}
+                          className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70 text-sm"
+                        >
+                          {isLoading ? '...' : <><Save size={16} /> Save Changes</>}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-slate-50 p-4 rounded-xl">
+                        <p className="text-xs font-bold text-slate-500 uppercase">First Name</p>
+                        <p className="text-lg font-bold text-slate-900 mt-2">{formData.firstName || 'Not set'}</p>
+                      </div>
+                      <div className="bg-slate-50 p-4 rounded-xl">
+                        <p className="text-xs font-bold text-slate-500 uppercase">Last Name</p>
+                        <p className="text-lg font-bold text-slate-900 mt-2">{formData.lastName || 'Not set'}</p>
+                      </div>
+                      <div className="md:col-span-2 bg-slate-50 p-4 rounded-xl">
+                        <p className="text-xs font-bold text-slate-500 uppercase">Email Address</p>
+                        <p className="text-lg font-bold text-slate-900 mt-2">{formData.email || 'Not set'}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {!isEditMode && (
+                  <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-lg font-bold">Connected Accounts</h2>
+                    </div>
+                    <p className="text-slate-500 text-sm">No connected accounts. Social login has been removed for security purposes.</p>
+                  </div>
+                )}
               </div>
             )}
 

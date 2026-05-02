@@ -143,28 +143,7 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
-            <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest">
-              <span className="bg-white px-4 text-slate-400">Or continue with</span>
-            </div>
-          </div>
 
-          {/* Social Buttons (UI Only for now) */}
-          <div className="grid grid-cols-2 gap-4">
-            <button className="flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-slate-700 text-sm">
-              {/* Google Icon */}
-              <img src="https://www.svgrepo.com/show/355037/google.svg" className="w-5 h-5" alt="Google" />
-              Google
-            </button>
-
-            <button className="flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors font-semibold text-slate-700 text-sm">
-              {/* Apple Icon - Updated with a more reliable direct SVG link */}
-              <img src="https://purepng.com/public/uploads/large/purepng.com-apple-logologobrand-logoiconslogos-251519938788qhgdl.png" className="w-5 h-5" alt="Apple" />
-              Apple
-            </button>
-          </div>
 
           <p className="text-center mt-10 text-sm text-slate-400">
             Don't have an account? <Link to="/register" className="text-pink-500 font-bold hover:underline ml-1">Sign up now</Link>
