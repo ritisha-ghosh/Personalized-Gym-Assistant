@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
 import { Download, Filter } from 'lucide-react'; // Added Filter icon
@@ -11,28 +11,65 @@ import {
 } from 'recharts';
 import { downloadAsJSON, downloadAsCSV } from "../utils/pdfUtils";
 import { getProgression, getUserProfile } from "../utils/storageUtils";
+import api from '../utils/api';
+import { AuthContext } from '../context/AuthContext';
 
 const Progression = () => {
   // 2. Search Params Logic
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
+  const { user } = useContext(AuthContext);
 
   const [timeRange, setTimeRange] = useState('6 Months');
   const [weightData, setWeightData] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch user progress data from backend
   useEffect(() => {
-    const progression = getProgression();
-    const profile = getUserProfile();
-    setWeightData(progression.weightData || [
-      { month: 'JAN', weight: 85.0 },
-      { month: 'FEB', weight: 84.2 },
-      { month: 'MAR', weight: 83.5 },
-      { month: 'APR', weight: 81.8 },
-      { month: 'MAY', weight: 79.5 },
-      { month: 'JUN', weight: 78.4 },
-    ]);
-    setUserProfile(profile);
+    const fetchProgressionData = async () => {
+      try {
+        setLoading(true);
+        const profileResponse = await api.get('/users/profile');
+        const userData = profileResponse.data.user;
+        
+        setUserProfile({
+          name: userData.name,
+          weight: userData.weight,
+          goal: userData.goal,
+          experience: userData.experience
+        });
+
+        // Get local progression data as fallback
+        const progression = getProgression();
+        setWeightData(progression.weightData || [
+          { month: 'JAN', weight: userData.weight ? userData.weight - 5 : 85.0 },
+          { month: 'FEB', weight: userData.weight ? userData.weight - 4.2 : 84.2 },
+          { month: 'MAR', weight: userData.weight ? userData.weight - 3.5 : 83.5 },
+          { month: 'APR', weight: userData.weight ? userData.weight - 1.8 : 81.8 },
+          { month: 'MAY', weight: userData.weight ? userData.weight + 0.5 : 79.5 },
+          { month: 'JUN', weight: userData.weight || 78.4 },
+        ]);
+      } catch (error) {
+        console.error("Failed to fetch progression data", error);
+        // Fallback to local storage
+        const progression = getProgression();
+        const profile = getUserProfile();
+        setUserProfile(profile);
+        setWeightData(progression.weightData || [
+          { month: 'JAN', weight: 85.0 },
+          { month: 'FEB', weight: 84.2 },
+          { month: 'MAR', weight: 83.5 },
+          { month: 'APR', weight: 81.8 },
+          { month: 'MAY', weight: 79.5 },
+          { month: 'JUN', weight: 78.4 },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProgressionData();
   }, []);
 
   // --- Lift Stats Data ---
@@ -66,6 +103,20 @@ const Progression = () => {
   const handleExportCSV = () => {
     downloadAsCSV(weightData, `progression_${Date.now()}.csv`);
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#df20af]"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const currentWeight = userProfile?.weight || (weightData[weightData.length - 1]?.weight || 78.4);
+  const initialWeight = weightData[0]?.weight || 85.0;
+  const weightChange = (initialWeight - currentWeight).toFixed(1);
 
   return (
     <Layout>
@@ -113,8 +164,8 @@ const Progression = () => {
             {/* Profile Snippet */}
             <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200">
               <div className="text-right">
-                <p className="text-sm font-bold leading-none">{userProfile?.name || 'Alex Rivera'}</p>
-                <p className="text-[10px] font-bold text-emerald-500 uppercase mt-1">Athlete Level {userProfile?.level || 4}</p>
+                <p className="text-sm font-bold leading-none">{userProfile?.name || user?.name || 'User'}</p>
+                <p className="text-[10px] font-bold text-emerald-500 uppercase mt-1">Goal: {userProfile?.goal ? userProfile.goal.charAt(0).toUpperCase() + userProfile.goal.slice(1) : 'N/A'}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-200 to-yellow-500 border-2 border-white shadow-sm"></div>
             </div>
@@ -134,15 +185,15 @@ const Progression = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">Body Weight Trend</h2>
-                <p className="text-slate-400 text-sm mt-1">Consistent decline over the last 6 months</p>
+                <p className="text-slate-400 text-sm mt-1">Your weight progress over time</p>
               </div>
               <div className="text-right">
                 <div className="flex items-baseline justify-end gap-1">
-                  <span className="text-3xl font-bold text-[#df20af]">78.4</span>
+                  <span className="text-3xl font-bold text-[#df20af]">{currentWeight}</span>
                   <span className="text-slate-500 font-medium">kg</span>
                 </div>
-                <p className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg inline-block mt-1">
-                  -4.2KG OVERALL
+                <p className={`text-xs font-bold ${weightChange < 0 ? 'text-emerald-500 bg-emerald-50' : 'text-orange-500 bg-orange-50'} px-2 py-1 rounded-lg inline-block mt-1`}>
+                  {weightChange > 0 ? '+' : ''}{weightChange}KG {weightChange < 0 ? 'LOSS' : 'GAIN'}
                 </p>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useSearchParams } from "react-router-dom"; // 1. Import hook
 import { Mic, Search } from "lucide-react"; // Add Mic to imports
 import { useNavigate } from "react-router-dom"; // Add useNavigate
@@ -12,24 +12,55 @@ import WeightTrendCard from "../componenets/cards/WeightTrendCard";
 import { getUserProfile, getWorkouts } from "../utils/storageUtils";
 import WorkoutHeatmap from "../componenets/cards/WorkoutHeatmap";
 import GoalComparisonCard from "../componenets/cards/GoalComparisonCard";
+import { AuthContext } from '../context/AuthContext';
+import api from '../utils/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext); // Get user from AuthContext
 
   const [userProfile, setUserProfile] = useState(null);
   const [recentWorkouts, setRecentWorkouts] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [loading, setLoading] = useState(true);
 
   // 2. Get the search query from URL
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
 
+  // Fetch real data from backend
   useEffect(() => {
-    const profile = getUserProfile();
-    const workouts = getWorkouts();
-    
-    setUserProfile(profile);
-    setRecentWorkouts(workouts.slice(-3));
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        // Fetch user profile from backend
+        const profileResponse = await api.get('/users/profile');
+        const profileData = profileResponse.data.user;
+        
+        setUserProfile({
+          name: profileData.name,
+          weight: profileData.weight,
+          height: profileData.height,
+          age: profileData.age,
+          goal: profileData.goal,
+          experience: profileData.experience,
+          gender: profileData.gender
+        });
+
+        // Get local workouts as fallback
+        const workouts = getWorkouts();
+        setRecentWorkouts(workouts.slice(-3));
+      } catch (error) {
+        console.error("Failed to fetch dashboard data", error);
+        // Fallback to local storage
+        const profile = getUserProfile();
+        setUserProfile(profile);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
     
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
@@ -50,12 +81,12 @@ const Dashboard = () => {
     return keywords.some(k => k.toLowerCase().includes(query));
   };
 
-  // 4. Data for Stats (Moved to array for filtering)
+  // 4. Data for Stats (Moved to array for filtering) - Dynamic from user data
   const statsData = [
     { 
       id: 1, 
       title: "Current Weight", 
-      value: "82.5", 
+      value: userProfile?.weight?.toString() || "0", 
       unit: "kg", 
       footer: "-0.5kg this week", 
       accent: "text-teal-500",
@@ -63,33 +94,43 @@ const Dashboard = () => {
     },
     { 
       id: 2, 
-      title: "Goal (Hypertrophy)", 
-      value: "88.0", 
-      unit: "kg", 
-      footer: "+5.5kg to go", 
+      title: "Goal", 
+      value: userProfile?.goal ? userProfile.goal.charAt(0).toUpperCase() + userProfile.goal.slice(1) : "N/A", 
+      unit: "Target", 
+      footer: "Keep working hard", 
       accent: "text-pink-500",
-      keywords: ["goal", "hypertrophy", "target"]
+      keywords: ["goal", "target"]
     },
     { 
       id: 3, 
-      title: "Daily Calories", 
-      value: "1,420", 
-      unit: "/ 2,800 kcal", 
-      footer: "1,380 kcal remaining", 
+      title: "Height", 
+      value: userProfile?.height?.toString() || "0", 
+      unit: "cm", 
+      footer: "Body metrics", 
       accent: "text-pink-500",
-      keywords: ["calories", "kcal", "diet", "food", "nutrition"]
+      keywords: ["height", "cm", "metrics"]
     }
   ];
 
   // Filter stats based on search
   const filteredStats = statsData.filter(stat => shouldShow([stat.title, ...stat.keywords]));
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#df20af]"></div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       {/* Greeting */}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
-          {getGreeting()}, {userProfile?.name || "Athlete"}.
+          {getGreeting()}, {user?.name || "User"}.
         </h1>
         <p className="mt-1 text-sm sm:text-base font-medium text-slate-500">
           AI Trainer: "Keep up the great work! {recentWorkouts.length} workouts this week."

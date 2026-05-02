@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
 import { Calendar, Clock, BarChart3, Dumbbell, Play, CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { getWorkouts, addWorkout, deleteWorkout } from "../utils/storageUtils";
+import api from '../utils/api';
 
 const Workout = () => {
   // 2. Search Params Logic
@@ -11,7 +12,9 @@ const Workout = () => {
 
   const [activeTab, setActiveTab] = useState('Current Week');
   const [workouts, setWorkouts] = useState([]);
+  const [userWorkoutPlans, setUserWorkoutPlans] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     exercise: '',
     sets: '',
@@ -23,9 +26,24 @@ const Workout = () => {
   // --- NEW: Execution State to do checkable exercise---
   const [completedExerciseIds, setcompletedExerciseIds] = useState([]);
 
+  // Fetch workout plans from backend
   useEffect(() => {
-    const savedWorkouts = getWorkouts();
-    setWorkouts(savedWorkouts);
+    const fetchWorkoutPlans = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/workouts');
+        setUserWorkoutPlans(response.data || []);
+      } catch (error) {
+        console.error("Failed to fetch workout plans", error);
+      }
+      
+      // Also get local workouts
+      const savedWorkouts = getWorkouts();
+      setWorkouts(savedWorkouts);
+      setLoading(false);
+    };
+
+    fetchWorkoutPlans();
   }, []);
 
   // --- Smart Tab Switching ---
@@ -62,7 +80,7 @@ const Workout = () => {
     (w.reps && w.reps.toString().includes(searchQuery))
   );
 
-  // B. Define Static Routine Data
+  // B. Define Static Routine Data (with fallbacks for demo)
   const mondayRoutine = {
     day: 'Monday',
     title: 'Chest & Triceps',
@@ -115,6 +133,15 @@ const Workout = () => {
     return !searchQuery || titleMatch || dayMatch || exerciseMatch || descMatch;
   });
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#df20af]"></div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
