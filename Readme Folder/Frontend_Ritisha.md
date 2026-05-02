@@ -1,32 +1,57 @@
 # 1. Link your project to the specific repository (only if you haven't done this yet)
+
 git remote add origin https://github.com/Pritam7Chakraborty/Personalized-Gym-Assistant.git
 
 # 2. Switch to the 'Ritisha' branch (or create it if it doesn't exist)
+
 git checkout -b Ritisha
+
 # 2. Rename the local branch from 'ritisha' to 'Ritisha'
+
 git branch -m ritisha Ritisha
 
 # 3. Add all your changes
+
 git add .
 
 # 4. Commit the changes
+
 git commit -m "Register Schema Fix"
 
 # 5. Push the code to the remote branch
+
 # 5. Push the new branch and delete the old remote branch
+
 git push -u origin Ritisha
 git push origin --delete ritisha
 
+# push full project
+
+git checkout -b Ritisha
+git add .
+git commit -m "Register Schema Fix"
+git push -u origin Ritisha
+
+
+# Frontend And Backend run
 
 npm run dev
 
+# ml install
+
+python -m pip install -r requirements.txt
+
+# ML run
+
+python app.py
 
 # 🏋️ Personalized Gym Assistant - Frontend Documentation
 
 ## Table of Contents
+
 1. [Project Overview](#project-overview)
 2. [Project Structure](#project-structure)
-3. [Installation & Setup](#installation--setup)
+3. [Installation &amp; Setup](#installation--setup)
 4. [Technologies Used](#technologies-used)
 5. [Pages Documentation](#pages-documentation)
 6. [Components Documentation](#components-documentation)
@@ -43,6 +68,7 @@ npm run dev
 **Personalized Gym Assistant** is a comprehensive fitness management web application designed to help users track their workouts, monitor nutrition, analyze progression, and manage their fitness goals. The application features a modern, responsive UI built with React and Tailwind CSS, with local storage for data persistence.
 
 ### Key Features:
+
 - 📊 Dashboard with real-time metrics
 - 🏋️ Tutorial for new users
 - 💪 Workout tracking and management
@@ -115,32 +141,39 @@ Frontend/
 ## Installation & Setup
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
 - npm or yarn
 
 ### Step 1: Install Dependencies
+
 ```bash
 cd Frontend
 npm install
 ```
 
 ### Step 2: Run Development Server
+
 ```bash
 npm run dev
 ```
+
 The app will be available at `http://localhost:5173`
 
 ### Step 3: Build for Production
+
 ```bash
 npm run build
 ```
 
 ### Step 4: Preview Production Build
+
 ```bash
 npm run preview
 ```
 
 ### Step 5: Lint Code
+
 ```bash
 npm run lint
 ```
@@ -149,8 +182,8 @@ npm run lint
 
 ## Technologies Used
 
-| Technology       | Purpose              | Version  |
-|------------------|----------------------|----------|
+| Technology             | Purpose              | Version  |
+| ---------------------- | -------------------- | -------- |
 | **React**        | UI Framework         | ^19.1.0  |
 | **React Router** | Navigation & Routing | ^7.12.0  |
 | **Tailwind CSS** | Utility-first CSS    | ^3.4.19  |
@@ -165,9 +198,11 @@ npm run lint
 ## Pages Documentation
 
 ### 1. **Landing Page** (`LandingPage.jsx`)
+
 Main entry point of the application with introduction and call-to-action buttons.
 
 **Features:**
+
 - Hero section with app overview
 - Feature highlights
 - Call-to-action buttons (Login/Register)
@@ -178,9 +213,11 @@ Main entry point of the application with introduction and call-to-action buttons
 ---
 
 ### 2. **Login Page** (`LoginPage.jsx`)
+
 User authentication page for existing users.
 
 **Features:**
+
 - Email/password input fields
 - Form validation
 - Remember me option
@@ -191,9 +228,11 @@ User authentication page for existing users.
 ---
 
 ### 3. **Register Page** (`RegisterPage.jsx`)
+
 New user registration page.
 
 **Features:**
+
 - User information form
 - Password strength indicator
 - Terms & conditions
@@ -204,9 +243,11 @@ New user registration page.
 ---
 
 ### 4. **Dashboard** (`Dashboard.jsx`)
+
 Central hub showing user fitness overview and metrics.
 
 **Features:**
+
 - Welcome greeting with time-based personalization
 - Quick stats (weight, workouts, calories)
 - Recent workouts display
@@ -216,6 +257,7 @@ Central hub showing user fitness overview and metrics.
 - Weight trend visualization
 
 **State Management:**
+
 ```javascript
 const [userProfile, setUserProfile] = useState(null);
 const [recentWorkouts, setRecentWorkouts] = useState([]);
@@ -225,6 +267,7 @@ const [currentTime, setCurrentTime] = useState(new Date());
 **Route:** `/dashboard`
 
 **Data Sources:**
+
 - User profile from local storage
 - Recent workouts from storage
 - Dynamic greeting based on time
@@ -232,9 +275,11 @@ const [currentTime, setCurrentTime] = useState(new Date());
 ---
 
 ### 5. **Workout** (`Workout.jsx`)
+
 Complete workout management interface.
 
 **Features:**
+
 - Add new workouts with form
 - Track sets, reps, duration
 - View recent workouts (last 5)
@@ -243,6 +288,7 @@ Complete workout management interface.
 - Tab switching (Current Week/Next Week)
 
 **State Management:**
+
 ```javascript
 const [workouts, setWorkouts] = useState([]);
 const [showAddForm, setShowAddForm] = useState(false);
@@ -256,6 +302,7 @@ const [formData, setFormData] = useState({
 ```
 
 **CRUD Operations:**
+
 - **Create:** `addWorkout()` - Add new workout
 - **Read:** `getWorkouts()` - Fetch all workouts
 - **Delete:** `deleteWorkout()` - Remove workout
@@ -265,9 +312,11 @@ const [formData, setFormData] = useState({
 ---
 
 ### 6. **Nutrition** (`Nutrition.jsx`)
+
 Nutrition tracking and macro management.
 
 **Features:**
+
 - Add meals with calorie tracking
 - Macro tracking (protein, carbs, fats)
 - Daily calorie target vs consumed
@@ -277,6 +326,7 @@ Nutrition tracking and macro management.
 - Meal history
 
 **State Management:**
+
 ```javascript
 const [nutrition, setNutrition] = useState([]);
 const [showAddForm, setShowAddForm] = useState(false);
@@ -290,6 +340,7 @@ const [formData, setFormData] = useState({
 ```
 
 **Calculations:**
+
 - Total calories consumed
 - Total protein intake
 - Remaining calorie budget
@@ -299,9 +350,11 @@ const [formData, setFormData] = useState({
 ---
 
 ### 7. **Progression** (`Progression.jsx`)
+
 Analytics and progress tracking with export capabilities.
 
 **Features:**
+
 - Weight progress chart
 - Lift statistics (Bench Press, Squat, Deadlift)
 - Progress percentage tracking
@@ -311,6 +364,7 @@ Analytics and progress tracking with export capabilities.
 - Export to CSV
 
 **State Management:**
+
 ```javascript
 const [timeRange, setTimeRange] = useState('6 Months');
 const [weightData, setWeightData] = useState([]);
@@ -318,6 +372,7 @@ const [userProfile, setUserProfile] = useState(null);
 ```
 
 **Export Functions:**
+
 - `handleExportPDF()` - Export as JSON
 - `handleExportCSV()` - Export as CSV
 
@@ -326,9 +381,11 @@ const [userProfile, setUserProfile] = useState(null);
 ---
 
 ### 8. **User Profile** (`UserProfile.jsx`)
+
 User profile management and personal information.
 
 **Features:**
+
 - Profile picture upload & gallery
 - Personal information editing (height, weight, bio)
 - Fitness goals selection
@@ -338,6 +395,7 @@ User profile management and personal information.
 - Image validation
 
 **State Management:**
+
 ```javascript
 const [formData, setFormData] = useState({
   height: '178 cm',
@@ -351,6 +409,7 @@ const [uploadError, setUploadError] = useState('');
 ```
 
 **Features:**
+
 - Photo upload with validation
 - Image gallery selection
 - Profile picture compression
@@ -362,9 +421,11 @@ const [uploadError, setUploadError] = useState('');
 ---
 
 ### 9. **Settings** (`Settings.jsx`)
+
 Application settings and preferences.
 
 **Features:**
+
 - Account settings (name, email)
 - Preference settings (units, language, theme)
 - Notification preferences
@@ -372,6 +433,7 @@ Application settings and preferences.
 - Logout button linked to landing page
 
 **State Management:**
+
 ```javascript
 const [activeTab, setActiveTab] = useState('account');
 const [formData, setFormData] = useState({
@@ -389,6 +451,7 @@ const [formData, setFormData] = useState({
 ```
 
 **Tabs:**
+
 - Account Settings
 - Preferences
 - Notifications
@@ -399,9 +462,11 @@ const [formData, setFormData] = useState({
 ---
 
 ### 10. **ChatBot** (`ChatBot.jsx`)
+
 AI-powered assistance for fitness queries.
 
 **Features:**
+
 - Chat interface
 - AI responses
 - Fitness advice
@@ -416,6 +481,7 @@ AI-powered assistance for fitness queries.
 ### Layout Components
 
 #### **Layout** (`componenets/layout/Layout.jsx`)
+
 Main layout wrapper for all authenticated pages.
 
 ```jsx
@@ -425,20 +491,24 @@ Main layout wrapper for all authenticated pages.
 ```
 
 **Features:**
+
 - Fixed sidebar navigation
 - Header with user info
 - Main content area
 - Responsive design
 
 **Props:**
+
 - `children` - Page content
 
 ---
 
 #### **Sidebar** (`componenets/layout/Sidebar.jsx`)
+
 Navigation sidebar with menu items.
 
 **Menu Items:**
+
 - Dashboard
 - Workouts
 - Nutrition
@@ -450,6 +520,7 @@ Navigation sidebar with menu items.
 - Logout
 
 **Features:**
+
 - Active route highlighting
 - Icons from lucide-react
 - Logout button linking to landing page
@@ -458,9 +529,11 @@ Navigation sidebar with menu items.
 ---
 
 #### **Header** (`componenets/layout/Header.jsx`)
+
 Top navigation header.
 
 **Features:**
+
 - User information display
 - Search functionality
 - Notifications
@@ -471,9 +544,11 @@ Top navigation header.
 ### Card Components
 
 #### **StatCard** (`componenets/cards/StatCard.jsx`)
+
 Displays statistics with icons and trends.
 
 **Props:**
+
 ```javascript
 {
   title: string,
@@ -487,26 +562,31 @@ Displays statistics with icons and trends.
 ---
 
 #### **WorkoutCard** (`componenets/cards/WorkoutCard.jsx`)
+
 Displays individual workout details.
 
 ---
 
 #### **WeightTrendCard** (`componenets/cards/WeightTrendCard.jsx`)
+
 Shows weight progress visualization.
 
 ---
 
 #### **WeeklyConsistency** (`componenets/cards/WeeklyConsistency.jsx`)
+
 Weekly workout consistency display.
 
 ---
 
 #### **TrainerInsight** (`componenets/cards/TrainerInsight.jsx`)
+
 AI trainer insights and recommendations.
 
 ---
 
 #### **Leaderboard** (`componenets/cards/Leaderboard.jsx`)
+
 User leaderboard and rankings.
 
 ---
@@ -514,9 +594,11 @@ User leaderboard and rankings.
 ### Chart Components
 
 #### **WeightTrendChart** (`componenets/charts/WeightTrendChart.jsx`)
+
 Line chart showing weight progression using Recharts.
 
 **Dependencies:**
+
 - Recharts library
 - Chart data format: `[{ day: string, actual: number, predicted: number }]`
 
@@ -525,6 +607,7 @@ Line chart showing weight progression using Recharts.
 ### Common Components
 
 #### **ProgressRing** (`componenets/common/ProgressRing.jsx`)
+
 Circular progress indicator for metrics.
 
 ---
@@ -536,6 +619,7 @@ Circular progress indicator for metrics.
 **Functions:**
 
 #### User Profile
+
 ```javascript
 // Get user profile
 const profile = getUserProfile();
@@ -545,6 +629,7 @@ saveUserProfile(profileData);
 ```
 
 #### Workouts
+
 ```javascript
 // Get all workouts
 const workouts = getWorkouts();
@@ -560,6 +645,7 @@ deleteWorkout(id);
 ```
 
 #### Nutrition
+
 ```javascript
 // Get nutrition entries
 const meals = getNutrition();
@@ -572,6 +658,7 @@ deleteNutrition(id);
 ```
 
 #### Progression
+
 ```javascript
 // Get progression data
 const data = getProgression();
@@ -581,6 +668,7 @@ updateProgression(progressionData);
 ```
 
 #### Settings
+
 ```javascript
 // Get settings
 const settings = getSettings();
@@ -613,6 +701,7 @@ generateWorkoutPDF(workouts, userName);
 ```
 
 **Example Usage:**
+
 ```javascript
 import { downloadAsJSON, downloadAsCSV } from "../utils/pdfUtils";
 
@@ -651,11 +740,13 @@ deleteStoredImage(storageKey);
 ```
 
 **Validation Rules:**
+
 - Allowed types: JPEG, PNG, GIF, WebP
 - Max file size: 5MB
 - Image compression: 800x800px max, 0.8 quality
 
 **Example Usage:**
+
 ```javascript
 import { uploadImageToLocalStorage, validateImageFile } from "../utils/fileUploadUtils";
 
@@ -677,56 +768,59 @@ if (validation.valid) {
 ### ✅ Core Features
 
 1. **User Authentication**
+
    - Login/Register pages
    - Session management
-
 2. **Dashboard**
+
    - Real-time metrics
    - Recent workouts
    - AI trainer insights
    - Leaderboard
-
 3. **Workout Tracking**
+
    - Add/delete workouts
    - Track sets, reps, duration
    - Workout history
    - Weekly statistics
-
 4. **Nutrition Monitoring**
+
    - Add meals with macros
    - Calorie tracking
    - Daily target management
    - Macro distribution
-
 5. **Progress Analytics**
+
    - Weight tracking chart
    - Lift progression
    - Export capabilities (JSON/CSV)
    - Time range selection
-
 6. **Profile Management**
+
    - Photo upload with compression
    - Personal information
    - Fitness goals
    - Injury tracking
-
 7. **Settings**
+
    - Account preferences
    - Notification settings
    - Security settings
    - Units & language
-
 8. **AI ChatBot**
+
    - Fitness advice
    - Q&A assistance
 
 ### 📊 Data Visualization
+
 - Line charts for weight progression
 - Circular progress indicators
 - Bar charts for lifts
 - Weekly consistency visualization
 
 ### 📱 Responsive Design
+
 - Mobile-first approach
 - Tablet optimization
 - Desktop experience
@@ -763,6 +857,7 @@ localStorage.getItem('profile_image')
 ### Data Structure Examples
 
 **User Profile:**
+
 ```javascript
 {
   name: "Alex Rivera",
@@ -778,6 +873,7 @@ localStorage.getItem('profile_image')
 ```
 
 **Workout:**
+
 ```javascript
 {
   id: 1704067200000,
@@ -791,6 +887,7 @@ localStorage.getItem('profile_image')
 ```
 
 **Nutrition:**
+
 ```javascript
 {
   id: 1704067200000,
@@ -808,6 +905,7 @@ localStorage.getItem('profile_image')
 ## API Integration
 
 ### Current Status
+
 The project includes a centralized API utility module located at `src/utils/api.js` to handle all communication with the backend. This module uses `axios` and is pre-configured with a request interceptor to automatically attach the user's JWT authentication token to every outgoing request.
 
 ### API Utility (`src/utils/api.js`)
@@ -882,6 +980,7 @@ The next step is to replace all calls to `storageUtils.js` with API calls using 
 ## Deployment
 
 ### Build for Production
+
 ```bash
 npm run build
 ```
@@ -889,23 +988,27 @@ npm run build
 Output will be in the `dist/` folder.
 
 ### Deploy to Vercel
+
 ```bash
 npm install -g vercel
 vercel
 ```
 
 ### Deploy to Netlify
+
 ```bash
 npm install -g netlify-cli
 netlify deploy --prod --dir=dist
 ```
 
 ### Deploy to GitHub Pages
+
 ```bash
 npm install gh-pages --save-dev
 ```
 
 Update `package.json`:
+
 ```json
 {
   "homepage": "https://yourusername.github.io/repo-name",
@@ -916,6 +1019,7 @@ Update `package.json`:
 ```
 
 Then run:
+
 ```bash
 npm run deploy
 ```
@@ -925,6 +1029,7 @@ npm run deploy
 ## Performance Optimization
 
 ### Implemented:
+
 - ✅ Code splitting with React Router
 - ✅ Image compression in file uploads
 - ✅ LocalStorage caching
@@ -932,6 +1037,7 @@ npm run deploy
 - ✅ CSS optimization with Tailwind
 
 ### Recommended:
+
 - Lazy loading for images
 - Service Workers for offline support
 - Code minification (automatic with Vite)
@@ -952,23 +1058,27 @@ npm run deploy
 ## Troubleshooting
 
 ### Issue: Port 5173 already in use
+
 ```bash
 npm run dev -- --port 3000
 ```
 
 ### Issue: Dependencies not installing
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
 ```
 
 ### Issue: Tailwind styles not loading
+
 ```bash
 npm run build
 npm run preview
 ```
 
 ### Issue: LocalStorage not persisting
+
 - Check browser privacy settings
 - Ensure localStorage is not disabled
 - Check browser console for errors
@@ -993,6 +1103,7 @@ This project is part of a Final Year Project.
 ## Support
 
 For issues and questions:
+
 - Check the documentation
 - Review component props
 - Check browser console for errors
@@ -1000,6 +1111,6 @@ For issues and questions:
 
 ---
 
-**Last Updated:** January 26, 2026  
-**Version:** 1.0.0  
+**Last Updated:** January 26, 2026
+**Version:** 1.0.0
 **Status:** Production Ready ✅
