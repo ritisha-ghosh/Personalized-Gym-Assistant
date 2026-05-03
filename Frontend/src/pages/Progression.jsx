@@ -40,37 +40,42 @@ const Progression = () => {
           experience: userData.experience
         });
 
-        // Get local progression data as fallback
-        const progression = getProgression();
-        setWeightData(progression.weightData || [
-          { month: 'JAN', weight: userData.weight ? userData.weight - 5 : 85.0 },
-          { month: 'FEB', weight: userData.weight ? userData.weight - 4.2 : 84.2 },
-          { month: 'MAR', weight: userData.weight ? userData.weight - 3.5 : 83.5 },
-          { month: 'APR', weight: userData.weight ? userData.weight - 1.8 : 81.8 },
-          { month: 'MAY', weight: userData.weight ? userData.weight + 0.5 : 79.5 },
-          { month: 'JUN', weight: userData.weight || 78.4 },
-        ]);
+        // Get local progression data - USER-SPECIFIC
+        if (user?.id) {
+          const progression = getProgression(user.id);  // 👈 Pass userId
+          setWeightData(progression.weightData || [
+            { month: 'JAN', weight: userData.weight ? userData.weight - 5 : 85.0 },
+            { month: 'FEB', weight: userData.weight ? userData.weight - 4.2 : 84.2 },
+            { month: 'MAR', weight: userData.weight ? userData.weight - 3.5 : 83.5 },
+            { month: 'APR', weight: userData.weight ? userData.weight - 1.8 : 81.8 },
+            { month: 'MAY', weight: userData.weight ? userData.weight + 0.5 : 79.5 },
+            { month: 'JUN', weight: userData.weight || 78.4 },
+          ]);
+          console.log(`📥 Loaded progression data for user ${user.id}`);
+        }
       } catch (error) {
         console.error("Failed to fetch progression data", error);
         // Fallback to local storage
-        const progression = getProgression();
-        const profile = getUserProfile();
-        setUserProfile(profile);
-        setWeightData(progression.weightData || [
-          { month: 'JAN', weight: 85.0 },
-          { month: 'FEB', weight: 84.2 },
-          { month: 'MAR', weight: 83.5 },
-          { month: 'APR', weight: 81.8 },
-          { month: 'MAY', weight: 79.5 },
-          { month: 'JUN', weight: 78.4 },
-        ]);
+        if (user?.id) {
+          const progression = getProgression(user.id);  // 👈 Pass userId
+          const profile = getUserProfile(user.id);  // 👈 Pass userId
+          setUserProfile(profile);
+          setWeightData(progression.weightData || [
+            { month: 'JAN', weight: 85.0 },
+            { month: 'FEB', weight: 84.2 },
+            { month: 'MAR', weight: 83.5 },
+            { month: 'APR', weight: 81.8 },
+            { month: 'MAY', weight: 79.5 },
+            { month: 'JUN', weight: 78.4 },
+          ]);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchProgressionData();
-  }, []);
+  }, [user?.id]);  // 👈 Re-fetch when user changes
 
   // --- Lift Stats Data ---
   const liftStats = [

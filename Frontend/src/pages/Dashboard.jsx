@@ -47,14 +47,19 @@ const Dashboard = () => {
           gender: profileData.gender
         });
 
-        // Get local workouts as fallback
-        const workouts = getWorkouts();
-        setRecentWorkouts(workouts.slice(-3));
+        // Get local workouts - USER-SPECIFIC
+        if (user?.id) {
+          const workouts = getWorkouts(user.id);  // 👈 Pass userId
+          setRecentWorkouts(workouts.slice(-3));
+          console.log(`📥 Loaded ${workouts.length} workouts for user ${user.id} on Dashboard`);
+        }
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
         // Fallback to local storage
-        const profile = getUserProfile();
-        setUserProfile(profile);
+        if (user?.id) {
+          const profile = getUserProfile(user.id);  // 👈 Pass userId
+          setUserProfile(profile);
+        }
       } finally {
         setLoading(false);
       }
@@ -64,7 +69,7 @@ const Dashboard = () => {
     
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
-  }, []);
+  }, [user?.id]);  // 👈 Re-fetch when user changes
 
   const getGreeting = () => {
     const hour = currentTime.getHours();

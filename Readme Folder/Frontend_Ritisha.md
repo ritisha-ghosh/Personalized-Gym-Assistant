@@ -1,3 +1,46 @@
+# MY TOTAL WORK
+
+1. **Frontend total ui (Except login and register page).**
+2. **Frontend dynamic data fetch from backend connectivity (Name, All register real data, Edit data send to backend, Password change).**
+3. **Backend Edit on 2 file AuthController and AuthRouter and create UserController and UserRouter for frontend connectivity purpose.**
+
+---
+
+---
+
+
+
+# pull full project
+
+git pull origin main
+git checkout -b Ritisha
+git merge
+
+# push full project
+
+git checkout -b Ritisha
+git add .
+git commit -m "Register Schema Fix"
+git push -u origin Ritisha
+
+# Frontend And Backend run
+
+npm run dev
+
+# ml install
+
+python -m pip install -r requirements.txt
+
+# ML run
+
+python app.py
+
+---
+
+---
+
+
+
 # 1. Link your project to the specific repository (only if you haven't done this yet)
 
 git remote add origin https://github.com/Pritam7Chakraborty/Personalized-Gym-Assistant.git
@@ -25,25 +68,11 @@ git commit -m "Register Schema Fix"
 git push -u origin Ritisha
 git push origin --delete ritisha
 
-# push full project
+---
 
-git checkout -b Ritisha
-git add .
-git commit -m "Register Schema Fix"
-git push -u origin Ritisha
+---
 
 
-# Frontend And Backend run
-
-npm run dev
-
-# ml install
-
-python -m pip install -r requirements.txt
-
-# ML run
-
-python app.py
 
 # 🏋️ Personalized Gym Assistant - Frontend Documentation
 

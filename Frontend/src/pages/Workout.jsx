@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
 import Layout from "../componenets/layout/Layout";
 import { Calendar, Clock, BarChart3, Dumbbell, Play, CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { getWorkouts, addWorkout, deleteWorkout } from "../utils/storageUtils";
+import { AuthContext } from '../context/AuthContext';  // 👈 Import AuthContext
 import api from '../utils/api';
 
 const Workout = () => {
   // 2. Search Params Logic
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
+  const { user } = useContext(AuthContext);  // 👈 Get logged-in user
 
   const [activeTab, setActiveTab] = useState('Current Week');
   const [workouts, setWorkouts] = useState([]);
@@ -37,14 +39,17 @@ const Workout = () => {
         console.error("Failed to fetch workout plans", error);
       }
       
-      // Also get local workouts
-      const savedWorkouts = getWorkouts();
-      setWorkouts(savedWorkouts);
+      // Also get local workouts - NOW USER-SPECIFIC
+      if (user?.id) {
+        const savedWorkouts = getWorkouts(user.id);  // 👈 Pass userId
+        setWorkouts(savedWorkouts);
+        console.log(`📥 Loaded ${savedWorkouts.length} workouts for user ${user.id}`);
+      }
       setLoading(false);
     };
 
     fetchWorkoutPlans();
-  }, []);
+  }, [user?.id]);  // 👈 Re-fetch when user changes
 
   // --- Smart Tab Switching ---
   useEffect(() => {
@@ -56,17 +61,21 @@ const Workout = () => {
   }, [searchQuery]);
 
   const handleAddWorkout = () => {
-    if (formData.exercise.trim()) {
-      const newWorkout = addWorkout(formData);
+    if (formData.exercise.trim() && user?.id) {
+      const newWorkout = addWorkout(user.id, formData);  // 👈 Pass userId
       setWorkouts([...workouts, newWorkout]);
       setFormData({ exercise: '', sets: '', reps: '', duration: '', notes: '' });
       setShowAddForm(false);
+      console.log(`✅ Workout added for user ${user.id}`);
     }
   };
 
   const handleDeleteWorkout = (id) => {
-    deleteWorkout(id);
-    setWorkouts(workouts.filter(w => w.id !== id));
+    if (user?.id) {
+      deleteWorkout(user.id, id);  // 👈 Pass userId
+      setWorkouts(workouts.filter(w => w.id !== id));
+      console.log(`✅ Workout deleted for user ${user.id}`);
+    }
   };
 
   // --- 3. FILTER LOGIC ---

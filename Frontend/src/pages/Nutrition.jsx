@@ -42,31 +42,38 @@ const Neutrations = () => {
         console.error("Failed to fetch diet data", error);
       }
 
-      // Get local nutrition data
-      const saved = getNutrition();
-      setNutrition(saved);
+      // Get local nutrition data - USER-SPECIFIC
+      if (user?.id) {
+        const saved = getNutrition(user.id);  // 👈 Pass userId
+        setNutrition(saved);
+        console.log(`📥 Loaded ${saved.length} meals for user ${user.id}`);
+      }
       setLoading(false);
     };
 
     fetchNutritionData();
-  }, []);
+  }, [user?.id]);  // 👈 Re-fetch when user changes
 
   const totalCalories = nutrition.reduce((sum, item) => sum + (parseInt(item.calories) || 0), 0);
   const totalProtein = nutrition.reduce((sum, item) => sum + (parseInt(item.protein) || 0), 0);
   const calorieTarget = 2450;
 
   const handleAddMeal = () => {
-    if (formData.meal.trim() && formData.calories) {
-      const newMeal = addNutrition(formData);
+    if (formData.meal.trim() && formData.calories && user?.id) {
+      const newMeal = addNutrition(user.id, formData);  // 👈 Pass userId
       setNutrition([...nutrition, newMeal]);
       setFormData({ meal: '', calories: '', protein: '', carbs: '', fats: '' });
       setShowAddForm(false);
+      console.log(`✅ Meal added for user ${user.id}`);
     }
   };
 
   const handleDeleteMeal = (id) => {
-    deleteNutrition(id);
-    setNutrition(nutrition.filter(item => item.id !== id));
+    if (user?.id) {
+      deleteNutrition(user.id, id);  // 👈 Pass userId
+      setNutrition(nutrition.filter(item => item.id !== id));
+      console.log(`✅ Meal deleted for user ${user.id}`);
+    }
   };
 
   // --- 3. FILTER LOGIC ---
