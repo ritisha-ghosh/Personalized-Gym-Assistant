@@ -1,20 +1,24 @@
 import { Brain } from "lucide-react";
-import React from "react";
+import React, { useContext } from "react";
+import { DarkModeContext } from "../../context/DarkModeContext";
 
 const TrainerInsight = ({
   title = "Trainer Insight",
   message = `You're 200 calories short of your protein goal for today.
 Consider a whey shake before your Push session to maximize recovery.`,
 }) => {
+  const { isDarkMode } = useContext(DarkModeContext);
+
   return (
     <div
-      className="
+      className={`
         relative overflow-hidden
         rounded-2xl
-        bg-teal-50
-        border border-teal-100
+        border
         p-6
-      "
+        backdrop-blur-md
+        ${isDarkMode ? 'bg-teal-500/20 border-teal-500/30' : 'bg-teal-50/60 border-teal-100/60'}
+      `}
     >
       <div className="relative z-10 flex items-start gap-3">
         {/* Icon */}

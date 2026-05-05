@@ -111,7 +111,7 @@ const Neutrations = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#df20af]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00c4b4]"></div>
         </div>
       </Layout>
     );
@@ -140,11 +140,11 @@ const Neutrations = () => {
                  {userDietData.noGarlic && ' • No Garlic'}
                </p>
              )}
-             {searchQuery && <p className="text-sm font-bold text-[#df20af]">Searching for: "{searchQuery}"</p>}
+             {searchQuery && <p className="text-sm font-bold text-[#00c4b4]">Searching for: "{searchQuery}"</p>}
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center justify-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#df20af]/20 w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto"
           >
             <Plus size={18} />
             <span className="hidden sm:inline">Add Meal</span>
@@ -154,13 +154,13 @@ const Neutrations = () => {
 
         {/* Add Meal Form - Responsive */}
         {showAddForm && (
-          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-[#df20af]/20 space-y-4">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-[#00c4b4]/20 space-y-4">
             <input
               type="text"
               placeholder="Meal Name"
               value={formData.meal}
               onChange={(e) => setFormData({...formData, meal: e.target.value})}
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
             />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               <input
@@ -168,34 +168,34 @@ const Neutrations = () => {
                 placeholder="Calories"
                 value={formData.calories}
                 onChange={(e) => setFormData({...formData, calories: e.target.value})}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
+                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
               />
               <input
                 type="number"
                 placeholder="Protein (g)"
                 value={formData.protein}
                 onChange={(e) => setFormData({...formData, protein: e.target.value})}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
+                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
               />
               <input
                 type="number"
                 placeholder="Carbs (g)"
                 value={formData.carbs}
                 onChange={(e) => setFormData({...formData, carbs: e.target.value})}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
+                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
               />
               <input
                 type="number"
                 placeholder="Fats (g)"
                 value={formData.fats}
                 onChange={(e) => setFormData({...formData, fats: e.target.value})}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
+                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
               />
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleAddMeal}
-                className="flex-1 bg-[#df20af] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#c91d9d] transition text-sm"
+                className="flex-1 bg-[#00c4b4] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#00a89f] transition text-sm"
               >
                 Save Meal
               </button>
@@ -210,7 +210,7 @@ const Neutrations = () => {
         )}
 
         {/* --- Hero Section: Calories --- */}
-        <div className="bg-gradient-to-r from-[#df20af] to-[#ff52d0] rounded-[2rem] p-8 text-white shadow-xl shadow-[#df20af]/20 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-[#00c4b4] to-[#ff52d0] rounded-[2rem] p-8 text-white shadow-xl shadow-[#00c4b4]/20 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
           
           <div className="flex flex-col md:flex-row items-end justify-between gap-8 relative z-10">
@@ -266,9 +266,9 @@ const Neutrations = () => {
             <div className="relative w-20 h-20 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
                 <circle cx="40" cy="40" r="32" stroke="#f1f5f9" strokeWidth="8" fill="transparent" />
-                <circle cx="40" cy="40" r="32" stroke="#df20af" strokeWidth="8" fill="transparent" strokeDasharray="200" strokeDashoffset="110" strokeLinecap="round" />
+                <circle cx="40" cy="40" r="32" stroke="#00c4b4" strokeWidth="8" fill="transparent" strokeDasharray="200" strokeDashoffset="110" strokeLinecap="round" />
               </svg>
-              <span className="absolute text-sm font-bold text-[#df20af]">45%</span>
+              <span className="absolute text-sm font-bold text-[#00c4b4]">45%</span>
             </div>
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Carbs</p>
@@ -277,7 +277,7 @@ const Neutrations = () => {
                 <span className="text-sm text-slate-400 font-medium">/ 245g</span>
               </div>
               <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
-                <div className="h-full bg-[#df20af] w-[45%] rounded-full"></div>
+                <div className="h-full bg-[#00c4b4] w-[45%] rounded-full"></div>
               </div>
             </div>
           </div>
@@ -371,7 +371,7 @@ const Neutrations = () => {
                       </div>
                       <div className="col-span-2 flex gap-1.5">
                         <span className="px-1.5 py-0.5 rounded bg-blue-100 text-[#0ea5e9] text-[10px] font-bold">{meal.p}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-pink-100 text-[#df20af] text-[10px] font-bold">{meal.c}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-pink-100 text-[#00c4b4] text-[10px] font-bold">{meal.c}</span>
                         <span className="px-1.5 py-0.5 rounded bg-yellow-100 text-[#ca8a04] text-[10px] font-bold">{meal.f}</span>
                       </div>
                       <div className="col-span-1 flex justify-end">

@@ -197,7 +197,7 @@ const RegisterPage = () => {
                     onChange={handleInputChange}
                     placeholder="e.g. Alex Johnson" 
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-teal-500 outline-none transition-all" 
                   />
                 </div>
                 <div>
@@ -209,7 +209,7 @@ const RegisterPage = () => {
                     onChange={handleInputChange}
                     placeholder="alex@example.com" 
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-teal-500 outline-none transition-all" 
                   />
                 </div>
                 <div>
@@ -221,7 +221,7 @@ const RegisterPage = () => {
                     onChange={handleInputChange}
                     placeholder="••••••••" 
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-teal-500 outline-none transition-all" 
                   />
                 </div>
               </div>
@@ -246,7 +246,7 @@ const RegisterPage = () => {
                     value={formData.age}
                     onChange={handleInputChange}
                     placeholder="25"
-                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.age ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
+                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.age ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-teal-500"
                       }`}
                   />
                   {errors.age && <p className="text-[10px] text-red-500 mt-1 font-bold">{errors.age}</p>}
@@ -260,7 +260,7 @@ const RegisterPage = () => {
                     value={formData.weight}
                     onChange={handleInputChange}
                     placeholder="70"
-                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.weight ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
+                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.weight ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-teal-500"
                       }`}
                   />
                   {errors.weight && <p className="text-[9px] text-red-500 mt-1 font-bold">{errors.weight}</p>}
@@ -274,7 +274,7 @@ const RegisterPage = () => {
                     value={formData.height}
                     onChange={handleInputChange}
                     placeholder="175"
-                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.height ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
+                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.height ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-teal-500"
                       }`}
                   />
                   {errors.height && <p className="text-[9px] text-red-500 mt-1 font-bold">{errors.height}</p>}
@@ -289,7 +289,7 @@ const RegisterPage = () => {
                     value={formData.gender}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
                   >
                     <option value="" disabled>Select</option>
                     <option value="Male">Male</option>
@@ -303,7 +303,7 @@ const RegisterPage = () => {
                     name="fitnessGoal"
                     value={formData.fitnessGoal}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
                   >
                     {/* FIXED: MATCHES MONGOOSE SCHEMA */}
                     <option value="fat loss">Fat Loss</option>
@@ -352,7 +352,7 @@ const RegisterPage = () => {
                     value={formData.dietType}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
                   >
                     {/* FIXED: MATCHES MONGOOSE SCHEMA */}
                     <option value="" disabled>Select Diet</option>
@@ -366,7 +366,7 @@ const RegisterPage = () => {
                     name="activityLevel"
                     value={formData.activityLevel}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
                   >
                     <option value="sedentary">Sedentary (Office Job)</option>
                     <option value="light">Lightly Active</option>
@@ -403,7 +403,7 @@ const RegisterPage = () => {
                   value={formData.injuryStatus}
                   onChange={handleInputChange}
                   placeholder="e.g. Lower Back Pain, Asthma..." 
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-pink-500" 
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-teal-500" 
                 />
               </div>
             </section>

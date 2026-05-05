@@ -10,20 +10,24 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { downloadAsJSON, downloadAsCSV } from "../utils/pdfUtils";
-import { getProgression, getUserProfile } from "../utils/storageUtils";
+import { getProgression, getUserProfile, getLoginHeatmapData, getLoginDates } from "../utils/storageUtils";
 import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
+import { DarkModeContext } from '../context/DarkModeContext';
 
 const Progression = () => {
   // 2. Search Params Logic
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
   const { user } = useContext(AuthContext);
+  const { isDarkMode } = useContext(DarkModeContext);
 
   const [timeRange, setTimeRange] = useState('6 Months');
   const [weightData, setWeightData] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loginHeatmapData, setLoginHeatmapData] = useState([]);
+  const [loginCount, setLoginCount] = useState(0);
 
   // Fetch user progress data from backend
   useEffect(() => {
@@ -51,6 +55,13 @@ const Progression = () => {
             { month: 'MAY', weight: userData.weight ? userData.weight + 0.5 : 79.5 },
             { month: 'JUN', weight: userData.weight || 78.4 },
           ]);
+          
+          // Get login heatmap data - USER-SPECIFIC
+          const heatmap = getLoginHeatmapData(user.id);
+          const logins = getLoginDates(user.id);
+          setLoginHeatmapData(heatmap);
+          setLoginCount(logins.length);
+          
           console.log(`📥 Loaded progression data for user ${user.id}`);
         }
       } catch (error) {
@@ -59,6 +70,9 @@ const Progression = () => {
         if (user?.id) {
           const progression = getProgression(user.id);  // 👈 Pass userId
           const profile = getUserProfile(user.id);  // 👈 Pass userId
+          const heatmap = getLoginHeatmapData(user.id);
+          const logins = getLoginDates(user.id);
+          
           setUserProfile(profile);
           setWeightData(progression.weightData || [
             { month: 'JAN', weight: 85.0 },
@@ -68,6 +82,8 @@ const Progression = () => {
             { month: 'MAY', weight: 79.5 },
             { month: 'JUN', weight: 78.4 },
           ]);
+          setLoginHeatmapData(heatmap);
+          setLoginCount(logins.length);
         }
       } finally {
         setLoading(false);
@@ -109,11 +125,56 @@ const Progression = () => {
     downloadAsCSV(weightData, `progression_${Date.now()}.csv`);
   };
 
+  // Calculate current streak (consecutive days from today backwards)
+  const calculateStreak = () => {
+    const loginDates = getLoginDates(user?.id || '');
+    if (loginDates.length === 0) return 0;
+    
+    let streak = 0;
+    let checkDate = new Date();
+    
+    while (true) {
+      const dateStr = checkDate.toISOString().split('T')[0];
+      if (loginDates.includes(dateStr)) {
+        streak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  };
+
+  // Calculate longest streak ever
+  const calculateLongestStreak = () => {
+    const loginDates = getLoginDates(user?.id || '').sort();
+    if (loginDates.length === 0) return 0;
+    
+    let longest = 1;
+    let current = 1;
+    
+    for (let i = 1; i < loginDates.length; i++) {
+      const prevDate = new Date(loginDates[i - 1]);
+      const currDate = new Date(loginDates[i]);
+      const diffTime = currDate - prevDate;
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+      
+      if (diffDays === 1) {
+        current++;
+        longest = Math.max(longest, current);
+      } else {
+        current = 1;
+      }
+    }
+    
+    return longest;
+  };
+
   if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#df20af]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
         </div>
       </Layout>
     );
@@ -133,7 +194,7 @@ const Progression = () => {
         `}
       </style>
 
-      <div className="space-y-6 sm:space-y-8 font-sans text-slate-900">
+      <div className={`space-y-6 sm:space-y-8 font-sans ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
         
         {/* --- Page Header --- */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -146,7 +207,7 @@ const Progression = () => {
                   onClick={() => setTimeRange(range)}
                   className={`px-4 py-2 rounded-lg transition-all ${
                     timeRange === range 
-                      ? 'bg-white text-[#df20af] shadow-sm font-bold' 
+                      ? 'bg-white text-teal-500 shadow-sm font-bold' 
                       : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
@@ -179,23 +240,23 @@ const Progression = () => {
 
         {/* Search Indicator */}
         {searchQuery && (
-          <p className="text-sm font-bold text-[#df20af] animate-pulse">
+          <p className="text-sm font-bold text-teal-500 animate-pulse">
             Filtering results for: "{searchQuery}"
           </p>
         )}
 
         {/* --- Main Chart: Body Weight Trend --- */}
         {showChart && (
-          <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm animate-fade-in">
+          <div className={`p-8 rounded-[2rem] border shadow-sm animate-fade-in ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Body Weight Trend</h2>
-                <p className="text-slate-400 text-sm mt-1">Your weight progress over time</p>
+                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Body Weight Trend</h2>
+                <p className={`text-sm mt-1 ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-400'}`}>Your weight progress over time</p>
               </div>
               <div className="text-right">
                 <div className="flex items-baseline justify-end gap-1">
-                  <span className="text-3xl font-bold text-[#df20af]">{currentWeight}</span>
-                  <span className="text-slate-500 font-medium">kg</span>
+                  <span className="text-3xl font-bold text-teal-500">{currentWeight}</span>
+                  <span className={`font-medium ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>kg</span>
                 </div>
                 <p className={`text-xs font-bold ${weightChange < 0 ? 'text-emerald-500 bg-emerald-50' : 'text-orange-500 bg-orange-50'} px-2 py-1 rounded-lg inline-block mt-1`}>
                   {weightChange > 0 ? '+' : ''}{weightChange}KG {weightChange < 0 ? 'LOSS' : 'GAIN'}
@@ -208,25 +269,31 @@ const Progression = () => {
                 <AreaChart data={weightData}>
                   <defs>
                     <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#df20af" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#df20af" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#00c4b4" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#00c4b4" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    cursor={{ stroke: '#df20af', strokeWidth: 1, strokeDasharray: '4 4' }}
+                    contentStyle={{ 
+                      borderRadius: '12px', 
+                      border: 'none', 
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+                      color: isDarkMode ? '#f1f5f9' : '#000000'
+                    }}
+                    cursor={{ stroke: '#00c4b4', strokeWidth: 1, strokeDasharray: '4 4' }}
                   />
                   <XAxis 
                     dataKey="month" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} 
+                    tick={{ fill: isDarkMode ? '#94a3b8' : '#94a3b8', fontSize: 12, fontWeight: 600 }} 
                     dy={10}
                   />
                   <Area 
                     type="monotone" 
                     dataKey="weight" 
-                    stroke="#df20af" 
+                    stroke="#00c4b4" 
                     strokeWidth={4} 
                     fillOpacity={1} 
                     fill="url(#colorWeight)" 
@@ -241,10 +308,10 @@ const Progression = () => {
         {filteredLiftStats.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
             {filteredLiftStats.map((lift, index) => (
-              <div key={index} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col justify-between h-48">
+              <div key={index} className={`p-6 rounded-[2rem] border shadow-sm flex flex-col justify-between h-48 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
                 <div className="flex justify-between items-start">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">{lift.label}</h3>
-                  <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">{lift.growth}</span>
+                  <h3 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-400'}`}>{lift.label}</h3>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-lg ${isDarkMode ? 'text-emerald-400 bg-emerald-500/20' : 'text-emerald-500 bg-emerald-50'}`}>{lift.growth}</span>
                 </div>
                 
                 {/* Custom CSS Bar Chart */}
@@ -252,66 +319,161 @@ const Progression = () => {
                   {lift.bars.map((height, i) => (
                     <div 
                       key={i} 
-                      className={`w-full rounded-t-lg transition-all hover:opacity-80 ${i === lift.bars.length - 1 ? 'bg-[#00c4b4]' : 'bg-teal-50'}`}
+                      className={`w-full rounded-t-lg transition-all hover:opacity-80 ${i === lift.bars.length - 1 ? 'bg-[#00c4b4]' : isDarkMode ? 'bg-[#334155]' : 'bg-teal-50'}`}
                       style={{ height: `${height}%` }}
                     ></div>
                   ))}
                 </div>
 
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-2xl font-bold text-slate-900">{lift.weight}</span>
-                  <span className="text-sm text-slate-400 font-medium">{lift.unit}</span>
+                  <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{lift.weight}</span>
+                  <span className={`text-sm font-medium ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-400'}`}>{lift.unit}</span>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* --- Consistency Heatmap (GitHub Style) --- */}
+        {/* --- Consistency Heatmap (GitHub Style with Years) --- */}
         {showHeatmap && (
-          <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm overflow-x-auto animate-fade-in">
-            <div className="flex justify-between items-end mb-6 min-w-[600px]">
+          <div className={`p-8 rounded-[2rem] border shadow-sm overflow-x-auto animate-fade-in ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
+            <div className="flex justify-between items-end mb-8 min-w-[600px]">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Consistency Heatmap</h2>
-                <p className="text-slate-400 text-sm mt-1">You have trained <span className='text-[#df20af] font-bold'>24 days</span> this month.</p>
-              </div>
-              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase">
-                <span>Less</span>
-                <div className="flex gap-1">
-                  <div className="w-3 h-3 bg-slate-100 rounded-[2px]"></div>
-                  <div className="w-3 h-3 bg-teal-200 rounded-[2px]"></div>
-                  <div className="w-3 h-3 bg-teal-400 rounded-[2px]"></div>
-                  <div className="w-3 h-3 bg-teal-600 rounded-[2px]"></div>
-                </div>
-                <span>More</span>
+                <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Login Activity Heatmap</h2>
+                <p className={`text-sm mt-1 ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-400'}`}>
+                  You have logged in <span className='text-[#00c4b4] font-bold'>{loginCount} days</span> in the last year.
+                  <span className={`ml-2 font-bold ${isDarkMode ? 'text-[#00c4b4]' : 'text-teal-600'}`}>(Updated Today ✓)</span>
+                </p>
               </div>
             </div>
 
-            <div className="flex gap-2 min-w-[600px]">
-              {/* Days Column */}
-              <div className="grid grid-rows-7 gap-1 text-[10px] font-bold text-slate-300 uppercase h-full py-[2px] pr-2">
-                <span>Mon</span>
-                <span>Tue</span>
-                <span>Wed</span>
-                <span>Thu</span>
-                <span>Fri</span>
-                <span>Sat</span>
-                <span>Sun</span>
+            {/* Legend - Bottom Right */}
+            <div className={`flex items-center justify-end gap-2 text-[10px] font-bold uppercase mb-4 pb-2 border-b ${isDarkMode ? 'text-[#94a3b8] border-[#334155]' : 'text-slate-400 border-slate-200'}`}>
+              <span>Less</span>
+              <div className="flex gap-1">
+                <div className={`w-3 h-3 rounded-sm ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-100'}`}></div>
+                <div className={`w-3 h-3 rounded-sm ${isDarkMode ? 'bg-[#00c4b4]/40' : 'bg-teal-200'}`}></div>
+                <div className={`w-3 h-3 rounded-sm ${isDarkMode ? 'bg-[#00c4b4]/70' : 'bg-teal-400'}`}></div>
+                <div className={`w-3 h-3 rounded-sm ${isDarkMode ? 'bg-[#00c4b4]' : 'bg-teal-600'}`}></div>
               </div>
+              <span>More</span>
+            </div>
 
-              {/* Heatmap Grid */}
-              <div className="grid grid-rows-7 grid-flow-col gap-1">
-                {[...Array(365)].map((_, i) => { // ~52 weeks of data points
-                  const intensity = Math.random() > 0.8 ? 'bg-teal-600' : Math.random() > 0.6 ? 'bg-teal-400' : Math.random() > 0.4 ? 'bg-teal-200' : 'bg-slate-100';
-                  return (
+            <div className="overflow-x-auto -mx-2 px-2">
+              <div className="flex gap-1 items-start pb-4 min-w-min">
+                {/* Day labels on left (M-S) */}
+                <div className={`flex flex-col gap-1 pt-6 pr-3 min-w-[25px]`}>
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
                     <div 
                       key={i} 
-                      className={`w-3 h-3 rounded-[2px] ${intensity} hover:scale-125 transition-transform cursor-pointer`} 
-                      title={`Day ${i + 1}`}
-                    ></div>
-                  );
-                })}
+                      className={`text-[9px] font-bold uppercase text-center h-3 leading-none ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-400'}`}
+                    >
+                      {day.charAt(0)}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Weeks grid (horizontal columns) */}
+                <div className="flex gap-1">
+                  {/* Build proper calendar grid - Week starts on Monday */}
+                  {/* First, organize data by week with proper day alignment */}
+                  {(() => {
+                    const weeks = [];
+                    let currentWeek = Array(7).fill(null);
+                    let weekDayIdx = 0;
+
+                    // Get the first date and find what day of week it is (0=Sunday, 1=Monday, ... 6=Saturday)
+                    // We want Monday=0, so we'll adjust
+                    loginHeatmapData.forEach((day) => {
+                      const dateObj = new Date(day.date);
+                      // JavaScript getDay(): 0=Sunday, 1=Monday...6=Saturday
+                      // We want: 0=Monday, 1=Tuesday...6=Sunday
+                      let dayOfWeek = dateObj.getDay(); // 0-6
+                      dayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to Mon=0...Sun=6
+
+                      currentWeek[dayOfWeek] = day;
+
+                      // When Sunday (index 6) is filled, push the week and start a new one
+                      if (dayOfWeek === 6) {
+                        weeks.push([...currentWeek]);
+                        currentWeek = Array(7).fill(null);
+                      }
+                    });
+
+                    // Push last week even if incomplete
+                    if (currentWeek.some(d => d !== null)) {
+                      weeks.push(currentWeek);
+                    }
+
+                    return weeks.map((week, weekIdx) => {
+                      const firstValidDay = week.find(d => d !== null);
+                      let weekLabel = '';
+                      
+                      if (firstValidDay) {
+                        const weekStartDate = new Date(firstValidDay.date);
+                        const month = weekStartDate.toLocaleDateString('en-US', { month: 'short' });
+                        const date = weekStartDate.getDate();
+                        weekLabel = `${month} ${date}`;
+                      }
+
+                      return (
+                        <div key={weekIdx} className="flex flex-col gap-1 items-center">
+                          {/* Week label at top */}
+                          <div className={`text-[7px] font-bold h-5 flex items-end pb-0.5 min-h-6 ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-400'}`}>
+                            {weekIdx % 4 === 0 && weekLabel ? weekLabel : ''}
+                          </div>
+
+                          {/* 7 day cells (vertical column) - properly aligned */}
+                          <div className="flex flex-col gap-1">
+                            {week.map((day, dayIdx) => {
+                              let intensity = isDarkMode ? 'bg-[#334155]' : 'bg-slate-100';
+
+                              if (day && day.hasLogin) {
+                                // Color intensity based on login count
+                                if (day.count >= 3) {
+                                  intensity = isDarkMode ? 'bg-[#00c4b4]' : 'bg-teal-600';
+                                } else if (day.count === 2) {
+                                  intensity = isDarkMode ? 'bg-[#00c4b4]/70' : 'bg-teal-400';
+                                } else if (day.count === 1) {
+                                  intensity = isDarkMode ? 'bg-[#00c4b4]/40' : 'bg-teal-200';
+                                }
+                              }
+
+                              const isTodayOrRecent = () => {
+                                const today = new Date().toISOString().split('T')[0];
+                                return day && day.date === today;
+                              };
+
+                              return (
+                                <div 
+                                  key={dayIdx} 
+                                  className={`w-3 h-3 rounded-sm ${intensity} hover:ring-1 hover:ring-offset-1 ${isDarkMode ? 'hover:ring-[#00c4b4]' : 'hover:ring-teal-400'} transition-all cursor-pointer ${isTodayOrRecent() ? `ring-1 ring-offset-1 ${isDarkMode ? 'ring-[#00c4b4]' : 'ring-teal-400'}` : ''}`}
+                                  title={day ? `${day.date} (${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dayIdx]}): ${day.hasLogin ? `✓ Logged in` : 'No login'}` : 'No data'}
+                                ></div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
               </div>
+            </div>
+
+            {/* Login Stats Summary */}
+            <div className={`mt-8 pt-6 border-t ${isDarkMode ? 'border-[#334155]' : 'border-slate-200'} grid grid-cols-2 md:grid-cols-4 gap-4`}>
+              {[
+                { label: 'Total Days', value: loginCount },
+                { label: 'Current Streak', value: calculateStreak() },
+                { label: 'Longest Streak', value: calculateLongestStreak() },
+                { label: 'Consistency', value: `${((loginCount / 365) * 100).toFixed(1)}%` }
+              ].map((stat, i) => (
+                <div key={i} className="text-center">
+                  <p className="text-2xl font-bold text-[#00c4b4]">{stat.value}</p>
+                  <p className={`text-[11px] font-bold uppercase tracking-wider mt-1 ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-400'}`}>{stat.label}</p>
+                </div>
+              ))}
             </div>
           </div>
         )}

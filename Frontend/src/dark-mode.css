@@ -1,0 +1,367 @@
+
+/* ========================================
+   DARK MODE CSS - Personalized Gym Assistant
+   Dark theme with professional styling
+   ======================================== */
+
+/* Light Mode - Default (NO CHANGES NEEDED - Tailwind handles it) */
+:root {
+  --primary-dark: #0f172a;
+  --secondary-dark: #1e293b;
+  --tertiary-dark: #334155;
+  --hover-dark: #475569;
+  
+  --text-dark-primary: #f1f5f9;
+  --text-dark-secondary: #cbd5e1;
+  --text-dark-tertiary: #94a3b8;
+  
+  --border-dark: #334155;
+  --accent-primary: #00c4b4;
+  --accent-hover: #00a89f;
+}
+
+/* ===== DARK MODE - Applied when .dark-mode class is present ===== */
+
+/* ===== ROOT & BODY ===== */
+body.dark-mode,
+html.dark-mode {
+  background-color: var(--primary-dark);
+  color: var(--text-dark-primary);
+}
+
+.dark-mode {
+  background-color: var(--primary-dark);
+  color: var(--text-dark-primary);
+}
+
+/* ===== LAYOUT CONTAINERS ===== */
+.dark-mode main,
+.dark-mode [role="main"],
+.dark-mode .flex-1 {
+  background-color: var(--primary-dark);
+  color: var(--text-dark-primary);
+}
+
+/* ===== HEADER & NAVIGATION ===== */
+.dark-mode header {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  border-color: var(--tertiary-dark) !important;
+  backdrop-filter: blur(10px);
+}
+
+.dark-mode nav {
+  background-color: var(--secondary-dark) !important;
+  border-color: var(--tertiary-dark) !important;
+}
+
+/* ===== SIDEBAR ===== */
+.dark-mode .bg-white:has(button) {
+  background-color: var(--secondary-dark) !important;
+  border-color: var(--tertiary-dark) !important;
+}
+
+.dark-mode aside,
+.dark-mode .sidebar {
+  background-color: var(--secondary-dark) !important;
+  border-color: var(--tertiary-dark) !important;
+}
+
+/* ===== CARDS AND CONTAINERS - TRANSPARENT WITH BACKDROP ===== */
+.dark-mode .bg-white,
+.dark-mode [class*="bg-white"] {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+  backdrop-filter: blur(10px) !important;
+  border-color: rgba(51, 65, 85, 0.6) !important;
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .rounded-\[2rem\],
+.dark-mode .rounded-2xl,
+.dark-mode .rounded-xl,
+.dark-mode .rounded-lg {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+  backdrop-filter: blur(10px) !important;
+  border-color: rgba(51, 65, 85, 0.6) !important;
+}
+
+/* ===== SHADOWS ===== */
+.dark-mode [class*="shadow-"] {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark-mode .shadow-lg {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ===== TEXT COLORS ===== */
+.dark-mode .text-slate-900 {
+  color: var(--text-dark-primary) !important;
+}
+
+.dark-mode .text-slate-800 {
+  color: var(--text-dark-primary) !important;
+}
+
+.dark-mode .text-slate-700 {
+  color: var(--text-dark-secondary) !important;
+}
+
+.dark-mode .text-slate-600 {
+  color: var(--text-dark-secondary) !important;
+}
+
+.dark-mode .text-slate-500 {
+  color: var(--text-dark-tertiary) !important;
+}
+
+.dark-mode .text-slate-400 {
+  color: var(--text-dark-tertiary) !important;
+}
+
+.dark-mode .text-slate-300 {
+  color: var(--text-dark-secondary) !important;
+}
+
+.dark-mode .text-gray-900 {
+  color: var(--text-dark-primary) !important;
+}
+
+.dark-mode .text-gray-800 {
+  color: var(--text-dark-primary) !important;
+}
+
+.dark-mode .text-gray-700 {
+  color: var(--text-dark-secondary) !important;
+}
+
+.dark-mode .text-gray-600 {
+  color: var(--text-dark-secondary) !important;
+}
+
+.dark-mode .text-gray-500 {
+  color: var(--text-dark-tertiary) !important;
+}
+
+.dark-mode .text-gray-400 {
+  color: var(--text-dark-tertiary) !important;
+}
+
+/* ===== INPUT FIELDS & FORMS ===== */
+.dark-mode input,
+.dark-mode textarea,
+.dark-mode select {
+  background-color: var(--tertiary-dark) !important;
+  color: var(--text-dark-primary) !important;
+  border-color: var(--border-dark) !important;
+}
+
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: var(--text-dark-tertiary) !important;
+}
+
+.dark-mode input:focus,
+.dark-mode textarea:focus,
+.dark-mode select:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px rgba(0, 196, 180, 0.15) !important;
+  background-color: var(--tertiary-dark) !important;
+}
+
+/* ===== BUTTONS ===== */
+.dark-mode .bg-slate-50 {
+  background-color: var(--tertiary-dark) !important;
+}
+
+.dark-mode .bg-slate-50:hover {
+  background-color: var(--hover-dark) !important;
+}
+
+.dark-mode .border-slate-200,
+.dark-mode .border-slate-100 {
+  border-color: var(--border-dark) !important;
+}
+
+.dark-mode button:not([class*="bg-teal"]):not([class*="bg-\[#00c4b4\]"]):not([class*="text-white"]) {
+  background-color: var(--tertiary-dark);
+  color: var(--text-dark-primary);
+  border-color: var(--border-dark) !important;
+}
+
+.dark-mode button:hover:not([class*="bg-teal"]):not([class*="bg-\[#00c4b4\]"]):not([class*="text-white"]) {
+  background-color: var(--hover-dark);
+}
+
+/* ===== ACCENT BUTTONS ===== */
+.dark-mode .bg-teal-500,
+.dark-mode .bg-\[#00c4b4\],
+.dark-mode [style*="background-color: rgb(0, 196, 180)"] {
+  background-color: var(--accent-primary) !important;
+}
+
+.dark-mode .bg-teal-500:hover,
+.dark-mode .bg-\[#00c4b4\]:hover {
+  background-color: var(--accent-hover) !important;
+}
+
+/* ===== BORDERS ===== */
+.dark-mode .border-slate-100,
+.dark-mode .border-slate-200,
+.dark-mode .border-slate-300 {
+  border-color: var(--border-dark) !important;
+}
+
+/* ===== BACKGROUNDS ===== */
+.dark-mode .bg-slate-50,
+.dark-mode .bg-slate-100 {
+  background-color: var(--tertiary-dark) !important;
+}
+
+.dark-mode .bg-slate-200 {
+  background-color: var(--hover-dark) !important;
+}
+
+/* ===== SPECIAL ELEMENTS ===== */
+.dark-mode .bg-pink-50,
+.dark-mode .bg-teal-50 {
+  background-color: rgba(0, 196, 180, 0.08) !important;
+}
+
+.dark-mode .bg-slate-900 {
+  background-color: var(--primary-dark) !important;
+}
+
+.dark-mode .bg-\[#eef7f6\] {
+  background-color: var(--tertiary-dark) !important;
+}
+
+/* ===== SEARCH BARS ===== */
+.dark-mode input[type="search"],
+.dark-mode input[type="text"],
+.dark-mode input[type="email"],
+.dark-mode input[type="password"] {
+  background-color: var(--tertiary-dark) !important;
+  color: var(--text-dark-primary) !important;
+  border-color: var(--border-dark) !important;
+}
+
+/* ===== CHARTS & DATA VISUALIZATION ===== */
+.dark-mode [class*="recharts"] {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .recharts-text {
+  fill: var(--text-dark-secondary);
+}
+
+.dark-mode .recharts-tooltip {
+  background-color: var(--secondary-dark) !important;
+  border-color: var(--border-dark) !important;
+}
+
+/* ===== MODALS & DIALOGS ===== */
+.dark-mode .fixed.inset-0.bg-black {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.dark-mode .fixed.inset-0 > div {
+  background-color: var(--secondary-dark) !important;
+  color: var(--text-dark-primary);
+}
+
+/* ===== SCROLLBARS ===== */
+.dark-mode::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark-mode::-webkit-scrollbar-track {
+  background: var(--secondary-dark);
+}
+
+.dark-mode::-webkit-scrollbar-thumb {
+  background: var(--border-dark);
+  border-radius: 4px;
+}
+
+.dark-mode::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* ===== GRADIENTS ===== */
+.dark-mode .bg-gradient-to-tr,
+.dark-mode .bg-gradient-to-br,
+.dark-mode .bg-gradient-to-r {
+  background: linear-gradient(135deg, var(--secondary-dark), var(--tertiary-dark)) !important;
+}
+
+/* ===== LOADING SPINNERS ===== */
+.dark-mode .animate-spin {
+  border-color: rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-primary);
+}
+
+/* ===== HEATMAP COLORS ===== */
+.dark-mode .bg-teal-200 {
+  background-color: rgba(0, 196, 180, 0.3) !important;
+}
+
+.dark-mode .bg-teal-400 {
+  background-color: rgba(0, 196, 180, 0.6) !important;
+}
+
+.dark-mode .bg-teal-600 {
+  background-color: rgba(0, 196, 180, 0.9) !important;
+}
+
+/* ===== FOCUS STYLES ===== */
+.dark-mode *:focus-visible {
+  outline-color: var(--accent-primary) !important;
+}
+
+.dark-mode input:focus-visible,
+.dark-mode button:focus-visible {
+  outline-offset: 2px;
+}
+
+/* ===== LINKS ===== */
+.dark-mode a {
+  color: var(--accent-primary);
+}
+
+.dark-mode a:hover {
+  color: var(--accent-hover);
+}
+
+/* ===== PROGRESS RINGS & INDICATORS ===== */
+.dark-mode circle[style*="stroke: rgb"] {
+  stroke: var(--accent-primary) !important;
+}
+
+.dark-mode [class*="border-teal"] {
+  border-color: var(--accent-primary) !important;
+}
+
+/* ===== STAT CARDS ===== */
+.dark-mode [class*="stat-card"],
+.dark-mode [class*="card"] {
+  background-color: var(--secondary-dark) !important;
+  border-color: var(--border-dark) !important;
+  color: var(--text-dark-primary);
+}
+
+/* ===== TRANSITIONS ===== */
+body.dark-mode *,
+html.dark-mode * {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  body.dark-mode *,
+  html.dark-mode * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

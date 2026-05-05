@@ -146,7 +146,7 @@ const Workout = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#df20af]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00c4b4]"></div>
         </div>
       </Layout>
     );
@@ -185,7 +185,7 @@ const Workout = () => {
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center justify-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#df20af]/20 w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto"
           >
             <Plus size={18} />
             <span className="hidden sm:inline">Add Workout</span>
@@ -195,20 +195,20 @@ const Workout = () => {
 
         {/* Smart Search Feedback */}
         {searchQuery && (
-          <p className="text-sm font-bold text-[#df20af] mt-2 animate-pulse transition-all">
+          <p className="text-sm font-bold text-[#00c4b4] mt-2 animate-pulse transition-all">
             Searching for "{searchQuery}" in {activeTab}...
           </p>
         )}
 
         {/* Add Workout Form */}
         {showAddForm && (
-          <div className="bg-white p-6 rounded-2xl border border-[#df20af]/20 space-y-4">
+          <div className="bg-white p-6 rounded-2xl border border-[#00c4b4]/20 space-y-4">
             <input
               type="text"
               placeholder="Exercise Name"
               value={formData.exercise}
               onChange={(e) => setFormData({ ...formData, exercise: e.target.value })}
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
             />
             <div className="grid grid-cols-2 gap-4">
               <input
@@ -216,20 +216,20 @@ const Workout = () => {
                 placeholder="Sets"
                 value={formData.sets}
                 onChange={(e) => setFormData({ ...formData, sets: e.target.value })}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
+                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
               />
               <input
                 type="text"
                 placeholder="Reps"
                 value={formData.reps}
                 onChange={(e) => setFormData({ ...formData, reps: e.target.value })}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#df20af]"
+                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
               />
             </div>
             <div className="flex gap-4">
               <button
                 onClick={handleAddWorkout}
-                className="flex-1 bg-[#df20af] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#c91d9d] transition"
+                className="flex-1 bg-[#00c4b4] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#00a89f] transition"
               >
                 Save Workout
               </button>
@@ -294,7 +294,7 @@ const Workout = () => {
           </div>
 
           <div className="flex items-center gap-4 px-4 w-full">
-            <div className="w-12 h-12 rounded-2xl bg-[#df20af]/10 text-[#df20af] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-[#00c4b4]/10 text-[#00c4b4] flex items-center justify-center">
               <Dumbbell size={24} />
             </div>
             <div>
@@ -310,13 +310,13 @@ const Workout = () => {
           {/* Active Card (Monday) - Only show if it matches search */}
           {showMondayCard && (
             <div className="lg:col-span-1 xl:col-span-1 row-span-2">
-              <div className="bg-white p-6 rounded-[2rem] border-2 border-[#df20af] shadow-xl shadow-[#df20af]/10 h-full flex flex-col">
+              <div className="bg-white p-6 rounded-[2rem] border-2 border-[#00c4b4] shadow-xl shadow-[#00c4b4]/10 h-full flex flex-col">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <span className="text-xs font-bold text-[#df20af] uppercase tracking-wider">{mondayRoutine.day}</span>
+                    <span className="text-xs font-bold text-[#00c4b4] uppercase tracking-wider">{mondayRoutine.day}</span>
                     <h3 className="text-2xl font-bold text-slate-900 mt-1">{mondayRoutine.title}</h3>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-[#df20af] text-white flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-[#00c4b4] text-white flex items-center justify-center">
                     <CheckCircle2 size={16} />
                   </div>
                 </div>
@@ -325,11 +325,11 @@ const Workout = () => {
                 <div className="space-y-2 mb-6">
                   <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
                     <span>Workout Progress</span>
-                    <span className="text-[#df20af]">{progressPercentage}%</span>
+                    <span className="text-[#00c4b4]">{progressPercentage}%</span>
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#df20af] transition-all duration-500"
+                      className="h-full bg-[#00c4b4] transition-all duration-500"
                       style={{ width: `${progressPercentage}%` }}
                     ></div>
                   </div>
@@ -362,7 +362,7 @@ const Workout = () => {
                             <span>{exercise.reps} Reps</span>
                           </div>
                         </div>
-                        <span className="text-xs font-bold text-[#df20af] bg-[#df20af]/5 px-2 py-1 rounded-lg">
+                        <span className="text-xs font-bold text-[#00c4b4] bg-[#00c4b4]/5 px-2 py-1 rounded-lg">
                           {exercise.weight}
                         </span>
                       </div>
@@ -381,7 +381,7 @@ const Workout = () => {
                   }}
 
                   className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md ${completedExerciseIds.length === mondayRoutine.exercises.length
-                      ? 'bg-[#df20af] text-white hover:bg-[#c91d9d] cursor-pointer' // Active state
+                      ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer' // Active state
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none' // Locked state
                     }`}
                 >
@@ -411,13 +411,13 @@ const Workout = () => {
                   {card.exercises.map((ex, i) => (
                     <div key={i} className="flex justify-between items-center text-sm border-b border-slate-50 pb-3 last:border-0">
                       <span className="font-bold text-slate-700">{ex.name}</span>
-                      <span className="text-[#df20af] font-bold text-xs bg-[#df20af]/5 px-2 py-1 rounded">{ex.detail}</span>
+                      <span className="text-[#00c4b4] font-bold text-xs bg-[#00c4b4]/5 px-2 py-1 rounded">{ex.detail}</span>
                     </div>
                   ))}
                 </div>
               )}
 
-              <button className="w-full mt-6 py-3 bg-[#df20af]/5 text-[#df20af] font-bold rounded-xl hover:bg-[#df20af]/10 transition-colors text-sm">
+              <button className="w-full mt-6 py-3 bg-[#00c4b4]/5 text-[#00c4b4] font-bold rounded-xl hover:bg-[#00c4b4]/10 transition-colors text-sm">
                 {card.type === 'recovery' ? 'View Details' : 'View Routine'}
               </button>
             </div>

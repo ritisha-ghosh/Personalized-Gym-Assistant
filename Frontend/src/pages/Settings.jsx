@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom'; // 1. Imp
 import Layout from "../componenets/layout/Layout";
 import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
+import { DarkModeContext } from '../context/DarkModeContext';
 
 import { 
   User, 
@@ -10,6 +11,7 @@ import {
   Shield, 
   Smartphone, 
   Moon, 
+  Sun,
   Globe, 
   ChevronRight, 
   LogOut, 
@@ -22,6 +24,7 @@ import {
 const Settings = () => {
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
+  const { isDarkMode, setDarkMode } = useContext(DarkModeContext);
   const [activeTab, setActiveTab] = useState('account');
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
@@ -41,7 +44,7 @@ const Settings = () => {
     confirmPassword: '',
     units: 'Metric (kg/cm)',
     language: 'English (US)',
-    theme: 'Light',
+    theme: isDarkMode ? 'Dark' : 'Light',
     emailNotifs: true,
     pushNotifs: true,
     marketingEmails: false,
@@ -76,7 +79,14 @@ const Settings = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // Apply theme change immediately
+    if (name === 'theme') {
+      const isDark = value === 'Dark';
+      setDarkMode(isDark);
+    }
   };
 
   const handleSaveSettings = async () => {
@@ -223,10 +233,10 @@ const Settings = () => {
           /* Custom Toggle Switch */
           .toggle-checkbox:checked {
             right: 0;
-            border-color: #df20af;
+            border-color: #00c4b4;
           }
           .toggle-checkbox:checked + .toggle-label {
-            background-color: #df20af;
+            background-color: #00c4b4;
           }
         `}
       </style>
@@ -240,7 +250,7 @@ const Settings = () => {
           
           {/* Smart Search Feedback Message */}
           {searchQuery && (
-             <p className="text-sm font-bold text-[#df20af] mt-2 animate-pulse transition-all">
+             <p className="text-sm font-bold text-[#00c4b4] mt-2 animate-pulse transition-all">
                Searching for "{searchQuery}"... <span className="text-slate-400 font-normal">Found in {tabs.find(t => t.id === activeTab)?.label}</span>
              </p>
           )}
@@ -258,7 +268,7 @@ const Settings = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                       activeTab === tab.id 
-                        ? 'bg-[#df20af]/10 text-[#df20af]' 
+                        ? 'bg-[#00c4b4]/10 text-[#00c4b4]' 
                         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                     }`}
                   >
@@ -287,7 +297,7 @@ const Settings = () => {
                     <h2 className="text-lg font-bold">Personal Information</h2>
                     <button
                       onClick={() => setIsEditMode(!isEditMode)}
-                      className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                      className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 py-2 rounded-xl text-sm font-bold transition-all"
                     >
                       {isEditMode ? 'Close' : 'Edit'}
                     </button>
@@ -301,7 +311,7 @@ const Settings = () => {
                           name="firstName"
                           value={formData.firstName}
                           onChange={handleChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                         />
                       </div>
                       <div className="space-y-2">
@@ -310,7 +320,7 @@ const Settings = () => {
                           name="lastName"
                           value={formData.lastName}
                           onChange={handleChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">
@@ -321,7 +331,7 @@ const Settings = () => {
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                            className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                           />
                         </div>
                       </div>
@@ -342,7 +352,7 @@ const Settings = () => {
                         <button 
                           onClick={handleSaveSettings}
                           disabled={isLoading}
-                          className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70 text-sm"
+                          className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70 text-sm"
                         >
                           {isLoading ? '...' : <><Save size={16} /> Save Changes</>}
                         </button>
@@ -405,7 +415,7 @@ const Settings = () => {
 
                 <div className="flex items-center justify-between pb-6 border-b border-slate-100">
                   <div className="flex gap-4">
-                    <div className="w-10 h-10 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-pink-50 text-teal-500 rounded-full flex items-center justify-center">
                       <Moon size={20} />
                     </div>
                     <div>
@@ -467,11 +477,11 @@ const Settings = () => {
                       checked={formData.emailNotifs}
                       onChange={() => handleToggle('emailNotifs')}
                       className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 ease-in-out"
-                      style={formData.emailNotifs ? { right: 0, borderColor: '#df20af' } : { right: '50%', borderColor: '#e2e8f0' }}
+                      style={formData.emailNotifs ? { right: 0, borderColor: '#00c4b4' } : { right: '50%', borderColor: '#e2e8f0' }}
                     />
                     <label 
                       htmlFor="emailNotifs" 
-                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.emailNotifs ? 'bg-[#df20af]' : 'bg-slate-200'}`}
+                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.emailNotifs ? 'bg-[#00c4b4]' : 'bg-slate-200'}`}
                     ></label>
                   </div>
                 </div>
@@ -490,11 +500,11 @@ const Settings = () => {
                       checked={formData.pushNotifs}
                       onChange={() => handleToggle('pushNotifs')}
                       className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 ease-in-out"
-                      style={formData.pushNotifs ? { right: 0, borderColor: '#df20af' } : { right: '50%', borderColor: '#e2e8f0' }}
+                      style={formData.pushNotifs ? { right: 0, borderColor: '#00c4b4' } : { right: '50%', borderColor: '#e2e8f0' }}
                     />
                     <label 
                       htmlFor="pushNotifs" 
-                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.pushNotifs ? 'bg-[#df20af]' : 'bg-slate-200'}`}
+                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.pushNotifs ? 'bg-[#00c4b4]' : 'bg-slate-200'}`}
                     ></label>
                   </div>
                 </div>
@@ -513,11 +523,11 @@ const Settings = () => {
                       checked={formData.marketingEmails}
                       onChange={() => handleToggle('marketingEmails')}
                       className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 ease-in-out"
-                      style={formData.marketingEmails ? { right: 0, borderColor: '#df20af' } : { right: '50%', borderColor: '#e2e8f0' }}
+                      style={formData.marketingEmails ? { right: 0, borderColor: '#00c4b4' } : { right: '50%', borderColor: '#e2e8f0' }}
                     />
                     <label 
                       htmlFor="marketingEmails" 
-                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.marketingEmails ? 'bg-[#df20af]' : 'bg-slate-200'}`}
+                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.marketingEmails ? 'bg-[#00c4b4]' : 'bg-slate-200'}`}
                     ></label>
                   </div>
                 </div>
@@ -541,7 +551,7 @@ const Settings = () => {
                           name="currentPassword"
                           value={formData.currentPassword}
                           onChange={handleChange}
-                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -554,7 +564,7 @@ const Settings = () => {
                           name="newPassword"
                           value={formData.newPassword}
                           onChange={handleChange}
-                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -567,7 +577,7 @@ const Settings = () => {
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleChange}
-                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -583,7 +593,7 @@ const Settings = () => {
                     <button 
                       onClick={handleChangePassword}
                       disabled={isLoading}
-                      className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70"
+                      className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70"
                     >
                       {isLoading ? '...' : 'Update Password'}
                     </button>
@@ -612,7 +622,7 @@ const Settings = () => {
                 <button 
                   onClick={handleSaveSettings}
                   disabled={isLoading}
-                  className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-[#df20af]/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-wait"
+                  className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-[#00c4b4]/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-wait"
                 >
                   {isLoading ? (
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>

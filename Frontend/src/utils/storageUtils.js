@@ -18,6 +18,7 @@ const STORAGE_KEYS = {
   NUTRITION: 'nutrition',
   PROGRESSION: 'progression',
   SETTINGS: 'settings',
+  LOGIN_DATES: 'login_dates',
 };
 
 // ===== USER PROFILE =====
@@ -172,6 +173,57 @@ const getDefaultSettings = () => ({
   marketingEmails: false,
   twoFactor: true,
 });
+
+// ===== LOGIN TRACKING - USER-SPECIFIC =====
+export const trackLogin = (userId) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.LOGIN_DATES);
+  const loginDates = localStorage.getItem(key);
+  const dates = loginDates ? JSON.parse(loginDates) : [];
+  
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Only add if today's date is not already in the list
+  if (!dates.includes(today)) {
+    dates.push(today);
+    localStorage.setItem(key, JSON.stringify(dates));
+    console.log(`✅ Login tracked for user ${userId} on ${today}`);
+  }
+  
+  return dates;
+};
+
+export const getLoginDates = (userId) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.LOGIN_DATES);
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : [];
+};
+
+export const getLoginHeatmapData = (userId) => {
+  const loginDates = getLoginDates(userId);
+  // Count logins per day for intensity visualization
+  const loginCounts = {};
+  loginDates.forEach(date => {
+    loginCounts[date] = (loginCounts[date] || 0) + 1;
+  });
+  
+  // Generate 365 day heatmap data
+  const today = new Date();
+  const heatmapData = [];
+  
+  for (let i = 364; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    heatmapData.push({
+      date: dateStr,
+      hasLogin: loginDates.includes(dateStr),
+      count: loginCounts[dateStr] || 0,
+    });
+  }
+  
+  return heatmapData;
+};
 
 // ===== CLEAR USER-SPECIFIC DATA (When Logout) =====
 export const clearUserData = (userId) => {

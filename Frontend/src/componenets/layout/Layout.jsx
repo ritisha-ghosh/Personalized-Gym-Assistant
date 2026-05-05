@@ -1,19 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { Menu, X } from "lucide-react";
+import { DarkModeContext } from "../../context/DarkModeContext";
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isDarkMode } = useContext(DarkModeContext);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className={`min-h-screen text-slate-900 ${isDarkMode ? 'bg-[#0f172a]' : 'bg-slate-50'}`}>
       
       {/* Mobile Menu Button */}
       <div className="fixed top-4 left-4 z-50 lg:hidden">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 bg-white rounded-lg shadow-md hover:bg-slate-100 transition"
+          className={`p-2 rounded-lg shadow-md transition ${isDarkMode ? 'bg-[#1e293b] hover:bg-[#334155]' : 'bg-white hover:bg-slate-100'}`}
         >
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>

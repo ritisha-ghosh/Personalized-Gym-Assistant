@@ -165,14 +165,14 @@ const UserProfile = () => {
               <div
                 className="w-24 sm:w-28 md:w-32 h-24 sm:h-28 md:h-32 rounded-full border-4 sm:border-[5px] border-white shadow-xl bg-cover bg-center flex-shrink-0"
                 style={{
-                  backgroundImage: profileImage ? `url('${profileImage}')` : 'linear-gradient(135deg, #df20af, #c91d9d)',
-                  backgroundColor: !profileImage ? '#df20af' : 'transparent'
+                  backgroundImage: profileImage ? `url('${profileImage}')` : 'linear-gradient(135deg, #00c4b4, #00a89f)',
+                  backgroundColor: !profileImage ? '#00c4b4' : 'transparent'
                 }}
               ></div>
               {isEditMode && (
                 <button
                   onClick={() => setShowGalleryModal(true)}
-                  className="absolute bottom-0 right-0 bg-[#df20af] w-9 h-9 rounded-full border-4 border-white flex items-center justify-center text-white shadow-md hover:scale-110 transition-transform"
+                  className="absolute bottom-0 right-0 bg-teal-500 w-9 h-9 rounded-full border-4 border-white flex items-center justify-center text-white shadow-md hover:scale-110 transition-transform"
                 >
                   <span className="material-symbols-outlined text-[16px]">photo_camera</span>
                 </button>
@@ -187,12 +187,12 @@ const UserProfile = () => {
               </p>
               {formData.dietType && (
                 <p className="text-slate-400 font-medium text-xs mt-2">
-                  <span className="text-[#df20af] font-bold">Diet:</span> {formData.dietType.charAt(0).toUpperCase() + formData.dietType.slice(1)}
+                  <span className="text-teal-500 font-bold">Diet:</span> {formData.dietType.charAt(0).toUpperCase() + formData.dietType.slice(1)}
                 </p>
               )}
               {formData.goal && (
                 <p className="text-slate-400 font-medium text-xs">
-                  <span className="text-[#df20af] font-bold">Goal:</span> {formData.goal.charAt(0).toUpperCase() + formData.goal.slice(1)}
+                  <span className="text-teal-500 font-bold">Goal:</span> {formData.goal.charAt(0).toUpperCase() + formData.goal.slice(1)}
                 </p>
               )}
             </div>
@@ -200,7 +200,7 @@ const UserProfile = () => {
 
           <button
             onClick={() => setIsEditMode(!isEditMode)}
-            className="bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#df20af]/20 flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0"
+            className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0"
           >
             <span className="material-symbols-outlined text-[18px]">
               {isEditMode ? 'close' : 'edit'}
@@ -227,7 +227,7 @@ const UserProfile = () => {
             {/* Physical Metrics */}
             <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
               <div className="flex items-center gap-2 mb-6">
-                <span className="material-symbols-outlined text-[#df20af]">straighten</span>
+                <span className="material-symbols-outlined text-teal-500">straighten</span>
                 <h3 className="text-lg font-bold text-slate-900">Physical Metrics</h3>
               </div>
 
@@ -239,7 +239,7 @@ const UserProfile = () => {
                     value={formData.height}
                     onChange={handleInputChange}
                     type="number"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/20 focus:bg-white text-slate-900 font-bold transition-all"
                   />
                 </div>
                 <div className="space-y-2">
@@ -249,7 +249,7 @@ const UserProfile = () => {
                     value={formData.weight}
                     onChange={handleInputChange}
                     type="number"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/20 focus:bg-white text-slate-900 font-bold transition-all"
                   />
                 </div>
                 <div className="space-y-2">
@@ -259,7 +259,7 @@ const UserProfile = () => {
                     value={formData.age}
                     onChange={handleInputChange}
                     type="number"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-900 font-bold transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/20 focus:bg-white text-slate-900 font-bold transition-all"
                   />
                 </div>
               </div>
@@ -268,7 +268,7 @@ const UserProfile = () => {
             {/* Fitness Profile */}
             <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
               <div className="flex items-center gap-2 mb-6">
-                <span className="material-symbols-outlined text-[#df20af]">person</span>
+                <span className="material-symbols-outlined text-teal-500">person</span>
                 <h3 className="text-lg font-bold text-slate-900">Fitness Profile</h3>
               </div>
 
@@ -279,7 +279,7 @@ const UserProfile = () => {
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#df20af]/20 text-slate-900 font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/20 text-slate-900 font-bold"
                   >
                     <option value="">Select Gender</option>
                     <option value="male">Male</option>
@@ -293,7 +293,7 @@ const UserProfile = () => {
                     name="experience"
                     value={formData.experience}
                     onChange={handleInputChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#df20af]/20 text-slate-900 font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/20 text-slate-900 font-bold"
                   >
                     <option value="">Select Level</option>
                     <option value="beginner">Beginner</option>
@@ -307,7 +307,7 @@ const UserProfile = () => {
             {/* Goals & Diet */}
             <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
               <div className="flex items-center gap-2 mb-6">
-                <span className="material-symbols-outlined text-[#df20af]">target</span>
+                <span className="material-symbols-outlined text-teal-500">target</span>
                 <h3 className="text-lg font-bold text-slate-900">Goals & Diet</h3>
               </div>
 
@@ -318,7 +318,7 @@ const UserProfile = () => {
                     name="goal"
                     value={formData.goal}
                     onChange={handleInputChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#df20af]/20 text-slate-900 font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/20 text-slate-900 font-bold"
                   >
                     <option value="">Select Goal</option>
                     <option value="muscle gain">Muscle Gain</option>
@@ -332,7 +332,7 @@ const UserProfile = () => {
                     name="dietType"
                     value={formData.dietType}
                     onChange={handleInputChange}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#df20af]/20 text-slate-900 font-bold"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500/20 text-slate-900 font-bold"
                   >
                     <option value="">Select Diet Type</option>
                     <option value="vegetarian">Vegetarian</option>
@@ -345,7 +345,7 @@ const UserProfile = () => {
             {/* Bio */}
             <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
               <div className="flex items-center gap-2 mb-6">
-                <span className="material-symbols-outlined text-[#df20af]">description</span>
+                <span className="material-symbols-outlined text-teal-500">description</span>
                 <h3 className="text-lg font-bold text-slate-900">Bio / Motivation</h3>
               </div>
 
@@ -354,7 +354,7 @@ const UserProfile = () => {
                 value={formData.bio}
                 onChange={handleInputChange}
                 placeholder="Tell us about your fitness journey..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 focus:ring-2 focus:ring-[#df20af]/20 focus:bg-white text-slate-700 font-medium resize-none transition-all leading-relaxed"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 focus:ring-2 focus:ring-teal-500/20 focus:bg-white text-slate-700 font-medium resize-none transition-all leading-relaxed"
                 rows="4"
               ></textarea>
             </section>
@@ -414,7 +414,7 @@ const UserProfile = () => {
             {(formData.height || formData.weight || formData.age) && (
               <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                 <div className="flex items-center gap-2 mb-6">
-                  <span className="material-symbols-outlined text-[#df20af]">straighten</span>
+                  <span className="material-symbols-outlined text-teal-500">straighten</span>
                   <h3 className="text-lg font-bold text-slate-900">Physical Metrics</h3>
                 </div>
 
@@ -445,7 +445,7 @@ const UserProfile = () => {
             {(formData.gender || formData.experience) && (
               <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                 <div className="flex items-center gap-2 mb-6">
-                  <span className="material-symbols-outlined text-[#df20af]">person</span>
+                  <span className="material-symbols-outlined text-teal-500">person</span>
                   <h3 className="text-lg font-bold text-slate-900">Fitness Profile</h3>
                 </div>
 
@@ -470,14 +470,14 @@ const UserProfile = () => {
             {(formData.goal || formData.dietType) && (
               <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                 <div className="flex items-center gap-2 mb-6">
-                  <span className="material-symbols-outlined text-[#df20af]">target</span>
+                  <span className="material-symbols-outlined text-teal-500">target</span>
                   <h3 className="text-lg font-bold text-slate-900">Goals & Diet</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {formData.goal && (
                     <div className="bg-gradient-to-br from-[#df20af]/5 to-[#df20af]/10 p-4 rounded-xl border border-[#df20af]/20">
-                      <p className="text-xs font-bold text-[#df20af] uppercase">Fitness Goal</p>
+                      <p className="text-xs font-bold text-teal-500 uppercase">Fitness Goal</p>
                       <p className="text-lg font-bold text-slate-900 mt-2 capitalize">{formData.goal}</p>
                     </div>
                   )}
@@ -495,7 +495,7 @@ const UserProfile = () => {
             {formData.bio && (
               <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                 <div className="flex items-center gap-2 mb-6">
-                  <span className="material-symbols-outlined text-[#df20af]">description</span>
+                  <span className="material-symbols-outlined text-teal-500">description</span>
                   <h3 className="text-lg font-bold text-slate-900">Bio</h3>
                 </div>
                 <p className="text-slate-700 leading-relaxed">{formData.bio}</p>
@@ -554,7 +554,7 @@ const UserProfile = () => {
                   htmlFor="file-upload"
                   className="flex flex-col items-center justify-center gap-3 px-6 py-8 border-2 border-dashed border-[#df20af]/30 rounded-2xl cursor-pointer hover:border-[#df20af]/60 hover:bg-[#df20af]/5 transition-all"
                 >
-                  <span className="material-symbols-outlined text-4xl text-[#df20af]">cloud_upload</span>
+                  <span className="material-symbols-outlined text-4xl text-teal-500">cloud_upload</span>
                   <div className="text-center">
                     <p className="font-bold text-slate-900">Click to upload</p>
                     <p className="text-xs text-slate-500">or drag and drop</p>
@@ -573,3 +573,4 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
+

@@ -1,14 +1,12 @@
 # MY TOTAL WORK
 
-1. **Frontend total ui (Except login and register page).**
+1. **Frontend total ui and dark mode (Except login and register page).**
 2. **Frontend dynamic data fetch from backend connectivity (Name, All register real data, Edit data send to backend, Password change).**
 3. **Backend Edit on 2 file AuthController and AuthRouter and create UserController and UserRouter for frontend connectivity purpose.**
 
 ---
 
 ---
-
-
 
 # pull full project
 
@@ -38,8 +36,6 @@ python app.py
 ---
 
 ---
-
-
 
 # 1. Link your project to the specific repository (only if you haven't done this yet)
 
@@ -71,8 +67,6 @@ git push origin --delete ritisha
 ---
 
 ---
-
-
 
 # 🏋️ Personalized Gym Assistant - Frontend Documentation
 

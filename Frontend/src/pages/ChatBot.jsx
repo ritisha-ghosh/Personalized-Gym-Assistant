@@ -143,7 +143,7 @@ const ChatBot = () => {
 
           {/* Search Feedback */}
           {searchQuery && (
-            <div className="mt-2 flex items-center gap-2 text-sm font-bold text-[#df20af] animate-pulse">
+            <div className="mt-2 flex items-center gap-2 text-sm font-bold text-[#00c4b4] animate-pulse">
               <Search size={14} />
               Searching chat history for: "{searchQuery}"
             </div>
@@ -160,7 +160,7 @@ const ChatBot = () => {
                 className={`flex gap-4 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
               >
                 {/* Avatar */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm ${msg.sender === 'ai' ? 'bg-teal-500 text-white' : 'bg-pink-500'
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm ${msg.sender === 'ai' ? 'bg-teal-500 text-white' : 'bg-teal-500'
                   }`}>
                   {msg.sender === 'ai' ? (
                     <Bot size={20} />
@@ -178,7 +178,7 @@ const ChatBot = () => {
                   <div
                     className={`p-5 rounded-2xl shadow-sm text-sm leading-relaxed whitespace-pre-wrap ${msg.sender === 'ai'
                         ? 'bg-[#e0f7f6] text-slate-800 rounded-tl-none'
-                        : 'bg-[#df20af] text-white rounded-tr-none'
+                        : 'bg-[#00c4b4] text-white rounded-tr-none'
                       }`}
                   >
                     {/* Highlight search term if searching */}
@@ -244,7 +244,7 @@ const ChatBot = () => {
 
           {/* Input Box */}
           <div className="relative flex items-center gap-2">
-            <div className="absolute left-2 flex items-center justify-center w-10 h-10 text-slate-400 hover:text-[#df20af] cursor-pointer transition-colors">
+            <div className="absolute left-2 flex items-center justify-center w-10 h-10 text-slate-400 hover:text-[#00c4b4] cursor-pointer transition-colors">
               <PlusCircle size={24} />
             </div>
 
@@ -254,14 +254,14 @@ const ChatBot = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Message your AI Coach..."
-              className="w-full pl-12 pr-14 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#df20af]/20 text-slate-700 font-medium placeholder:text-slate-400 shadow-inner"
+              className="w-full pl-12 pr-14 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#00c4b4]/20 text-slate-700 font-medium placeholder:text-slate-400 shadow-inner"
             />
 
             {/* Voice Toggle Button */}
             <button 
               onClick={handleVoiceInput}
               className={`absolute right-14 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                isListening ? 'bg-red-500 text-white shadow-lg animate-bounce' : 'text-slate-400 hover:text-[#df20af]'
+                isListening ? 'bg-red-500 text-white shadow-lg animate-bounce' : 'text-slate-400 hover:text-[#00c4b4]'
               }`}
             >
               {isListening ? <MicOff size={20} /> : <Mic size={20} />}
@@ -270,7 +270,7 @@ const ChatBot = () => {
             <button
               onClick={() => handleSend()}
               disabled={!inputValue.trim()}
-              className="absolute right-2 w-10 h-10 bg-[#df20af] hover:bg-[#c91d9d] disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center text-white shadow-md transition-all transform active:scale-95"
+              className="absolute right-2 w-10 h-10 bg-[#00c4b4] hover:bg-[#00a89f] disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center text-white shadow-md transition-all transform active:scale-95"
             >
               <Send size={18} className={inputValue.trim() ? 'translate-x-0.5' : ''} />
             </button>

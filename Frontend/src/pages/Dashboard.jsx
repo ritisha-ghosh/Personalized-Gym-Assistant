@@ -10,14 +10,15 @@ import TrainerInsight from "../componenets/cards/TrainerInsight";
 import Leaderboard from "../componenets/cards/Leaderboard";
 import WeightTrendCard from "../componenets/cards/WeightTrendCard";
 import { getUserProfile, getWorkouts } from "../utils/storageUtils";
-import WorkoutHeatmap from "../componenets/cards/WorkoutHeatmap";
 import GoalComparisonCard from "../componenets/cards/GoalComparisonCard";
 import { AuthContext } from '../context/AuthContext';
+import { DarkModeContext } from '../context/DarkModeContext';
 import api from '../utils/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext); // Get user from AuthContext
+  const { isDarkMode } = useContext(DarkModeContext);
 
   const [userProfile, setUserProfile] = useState(null);
   const [recentWorkouts, setRecentWorkouts] = useState([]);
@@ -33,33 +34,47 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // Fetch user profile from backend
-        const profileResponse = await api.get('/users/profile');
-        const profileData = profileResponse.data.user;
-        
-        setUserProfile({
-          name: profileData.name,
-          weight: profileData.weight,
-          height: profileData.height,
-          age: profileData.age,
-          goal: profileData.goal,
-          experience: profileData.experience,
-          gender: profileData.gender
-        });
+        // Try to fetch user profile from backend
+        try {
+          const profileResponse = await api.get('/users/profile');
+          const profileData = profileResponse.data.user;
+          
+          setUserProfile({
+            name: profileData.name,
+            weight: profileData.weight,
+            height: profileData.height,
+            age: profileData.age,
+            goal: profileData.goal,
+            experience: profileData.experience,
+            gender: profileData.gender
+          });
+        } catch (apiError) {
+          console.log('API Error - using localStorage:', apiError?.message);
+          // Fallback to local storage if API fails
+          if (user?.id) {
+            const profile = getUserProfile(user.id);
+            setUserProfile(profile);
+          }
+        }
 
         // Get local workouts - USER-SPECIFIC
         if (user?.id) {
-          const workouts = getWorkouts(user.id);  // 👈 Pass userId
+          const workouts = getWorkouts(user.id);
           setRecentWorkouts(workouts.slice(-3));
           console.log(`📥 Loaded ${workouts.length} workouts for user ${user.id} on Dashboard`);
         }
       } catch (error) {
-        console.error("Failed to fetch dashboard data", error);
-        // Fallback to local storage
-        if (user?.id) {
-          const profile = getUserProfile(user.id);  // 👈 Pass userId
-          setUserProfile(profile);
-        }
+        console.error("Dashboard error:", error);
+        // Set default profile on complete failure
+        setUserProfile({
+          name: user?.name || 'User',
+          weight: 0,
+          height: 0,
+          age: 0,
+          goal: 'fitness',
+          experience: 'beginner',
+          gender: 'other'
+        });
       } finally {
         setLoading(false);
       }
@@ -69,7 +84,7 @@ const Dashboard = () => {
     
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
-  }, [user?.id]);  // 👈 Re-fetch when user changes
+  }, [user?.id]);
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -124,7 +139,7 @@ const Dashboard = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#df20af]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
         </div>
       </Layout>
     );
@@ -134,16 +149,16 @@ const Dashboard = () => {
     <Layout>
       {/* Greeting */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
+        <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
           {getGreeting()}, {user?.name || "User"}.
         </h1>
-        <p className="mt-1 text-sm sm:text-base font-medium text-slate-500">
+        <p className={`mt-1 text-sm sm:text-base font-medium ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>
           AI Trainer: "Keep up the great work! {recentWorkouts.length} workouts this week."
         </p>
         
         {/* Search Result Indicator */}
         {searchQuery && (
-          <p className="mt-4 text-sm font-bold text-[#df20af]">
+          <p className={`mt-4 text-sm font-bold ${isDarkMode ? 'text-[#00c4b4]' : 'text-teal-500'}`}>
             Showing results for: "{searchQuery}"
           </p>
         )}
@@ -184,7 +199,6 @@ const Dashboard = () => {
         {/* Right Column */}
         <div className="space-y-6 lg:col-span-4">
           {shouldShow(["consistency", "week", "streak", "calendar"]) && <WeeklyConsistency />}
-          {shouldShow(["heatmap", "streak", "consistency", "activity"]) && <WorkoutHeatmap />}
           {shouldShow(["goal", "comparison", "bmi", "weight target"]) && <GoalComparisonCard />}
           {shouldShow(["trainer", "insight", "ai", "tip", "advice"]) && <TrainerInsight />}
           {shouldShow(["leaderboard", "rank", "social", "community", "top"]) && <Leaderboard />}
@@ -210,7 +224,7 @@ const Dashboard = () => {
       {/* --- NEW: VOICE ASSISTANT FAB --- */}
       <button 
         onClick={() => navigate('/chat')} // Redirects to chat so they can talk
-        className="fixed bottom-8 right-8 w-16 h-16 bg-[#df20af] text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group border-4 border-white"
+        className="fixed bottom-8 right-8 w-16 h-16 bg-teal-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group border-4 border-white"
       >
         <div className="absolute -top-12 right-0 bg-slate-900 text-white text-[10px] py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
           Talk to PulseAI

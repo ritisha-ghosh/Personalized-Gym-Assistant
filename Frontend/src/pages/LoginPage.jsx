@@ -50,14 +50,14 @@ const LoginPage = () => {
     <div className="relative min-h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
 
       {/* Background Decorative Glow (Top Left) */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-pink-100/50 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-100/50 rounded-full blur-[120px] pointer-events-none"></div>
 
       {/* --- NAVBAR START --- */}
       <header className="w-full flex items-center justify-between px-8 py-5 z-10">
         {/* Linked Logo to Home */}
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           {/* Logo Icon */}
-          <div className="w-8 h-8 bg-[#db2777] rounded-md flex items-center justify-center rotate-45">
+          <div className="w-8 h-8 bg-teal-500 rounded-md flex items-center justify-center rotate-45">
             <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
           </div>
           <span className="text-xl font-bold text-slate-800 tracking-tight">Gym & Fitness Assistant</span>
@@ -66,7 +66,7 @@ const LoginPage = () => {
         <div className="flex items-center gap-4">
           <span className="hidden sm:block text-sm text-slate-500">New to here?</span>
           {/* Linked Sign Up Button */}
-          <Link to="/register" className="bg-[#db2777] hover:bg-[#be185d] text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md shadow-pink-100">
+          <Link to="/register" className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md shadow-teal-100">
             Sign Up
           </Link>
         </div>
@@ -137,7 +137,7 @@ const LoginPage = () => {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-[#f43f5e] hover:bg-[#e11d48] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-200 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-teal-200 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>
