@@ -3,6 +3,14 @@
  * Each user's data is isolated and stored with their userId
  */
 
+// Helper to get YYYY-MM-DD from a Date object, respecting local timezone
+const toYYYYMMDD = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
 // ===== HELPER: Generate User-Specific Keys =====
 const getUserStorageKey = (userId, dataType) => {
   if (!userId) {
@@ -180,8 +188,8 @@ export const trackLogin = (userId) => {
   const loginDates = localStorage.getItem(key);
   const dates = loginDates ? JSON.parse(loginDates) : [];
   
-  // Get today's date in YYYY-MM-DD format
-  const today = new Date().toISOString().split('T')[0];
+  // Get today's date in YYYY-MM-DD format, respecting local timezone
+  const today = toYYYYMMDD(new Date());
   
   // Only add if today's date is not already in the list
   if (!dates.includes(today)) {
@@ -214,7 +222,7 @@ export const getLoginHeatmapData = (userId) => {
   for (let i = 364; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = toYYYYMMDD(date); // Use local timezone-safe formatter
     heatmapData.push({
       date: dateStr,
       hasLogin: loginDates.includes(dateStr),

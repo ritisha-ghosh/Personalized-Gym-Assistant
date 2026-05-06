@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom'; // 1. Import Hook
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Layout from "../componenets/layout/Layout";
 import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
@@ -21,9 +21,9 @@ import {
   Lock
 } from 'lucide-react';
 
-const Settings = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useContext(AuthContext);
+const Settings = () => { // Renamed from Settings to Settings
+  const navigate = useNavigate(); // Assuming this is used for navigation
+  const { user, logout, setUser } = useContext(AuthContext); // Destructure setUser here
   const { isDarkMode, setDarkMode } = useContext(DarkModeContext);
   const [activeTab, setActiveTab] = useState('account');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,11 +32,9 @@ const Settings = () => {
   
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
-  // 2. Search Params Logic
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
 
-  // --- State for Dynamic Settings ---
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -53,7 +51,6 @@ const Settings = () => {
     twoFactor: true,
   });
 
-  // Fetch user data on mount
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -75,7 +72,6 @@ const Settings = () => {
     fetchUserData();
   }, []);
 
-  // --- Handlers ---
   const handleToggle = (key) => {
     setFormData(prev => ({ ...prev, [key]: !prev[key] }));
   };
@@ -84,33 +80,39 @@ const Settings = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     
-    // Apply theme change immediately
     if (name === 'theme') {
       const isDark = value === 'Dark';
       setDarkMode(isDark);
     }
   };
 
-  const handleSaveSettings = async () => {
+  // Function to handle saving account information (name, email)
+  const handleSaveAccountInfo = async () => {
+    // Combine first and last name for the backend
+    const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+
     setIsLoading(true);
     setSaveStatus('Saving...');
     try {
-      await api.put('/users/update-settings', {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        units: formData.units,
-        language: formData.language,
-        theme: formData.theme,
-        emailNotifs: formData.emailNotifs,
-        pushNotifs: formData.pushNotifs,
-        marketingEmails: formData.marketingEmails,
-        twoFactor: formData.twoFactor
+      const response = await api.put('/users/profile', {
+        name: fullName,
+        email: formData.email, // Email is disabled, so it won't change, but we send it for consistency
       });
-      setSaveStatus('Settings updated successfully!');
+      const updatedUser = response.data;
+
+      // Update AuthContext to reflect the new name and email across the app
+      if (user && setUser) {
+        setUser(prevUser => ({
+          ...prevUser,
+          name: updatedUser.name,
+          email: updatedUser.email,
+        }));
+      }
+
+      setSaveStatus('Account information updated successfully!');
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (error) {
-      setSaveStatus('Error saving settings: ' + (error.response?.data?.message || 'Unknown error'));
+      setSaveStatus('Error updating account information: ' + (error.response?.data?.message || 'Unknown error'));
     } finally {
       setIsLoading(false);
     }
@@ -150,7 +152,7 @@ const Settings = () => {
 
   const handleDeleteAccount = () => {
     setIsDeleteModalOpen(true);
-    setSaveStatus(''); // Clear previous status messages
+    setSaveStatus('');
   };
 
   const confirmDeleteAccount = async () => {
@@ -168,8 +170,6 @@ const Settings = () => {
       setIsDeleteModalOpen(false);
       logout();
       navigate('/');
-      // Success message won't be seen as we navigate away.
-      // A toast notification on the landing page would be a good enhancement.
     } catch (error) {
       setSaveStatus('Error: ' + (error.response?.data?.message || 'Failed to delete account'));
     } finally {
@@ -178,52 +178,42 @@ const Settings = () => {
     }
   };
 
-  // --- 3. SMART NAVIGATION CONFIGURATION ---
-  // Define keywords for each tab. If a search matches a keyword, we switch to that tab.
   const tabs = [
     { 
       id: 'account', 
       label: 'Account', 
       icon: User, 
-      // Keywords that should trigger the 'Account' tab
       keywords: ['name', 'first name', 'last name', 'email', 'profile', 'google', 'connect', 'disconnect', 'personal information'] 
     },
     { 
       id: 'preferences', 
       label: 'Preferences', 
       icon: Smartphone, 
-      // Keywords that should trigger the 'Preferences' tab
       keywords: ['theme', 'dark mode', 'light mode', 'language', 'english', 'spanish', 'units', 'metric', 'imperial', 'appearance', 'region'] 
     },
     { 
       id: 'notifications', 
       label: 'Notifications', 
       icon: Bell, 
-      // Keywords that should trigger the 'Notifications' tab
       keywords: ['email notifications', 'push', 'alert', 'marketing', 'promotions', 'updates', 'messages'] 
     },
     { 
       id: 'security', 
       label: 'Security', 
       icon: Shield, 
-      // Keywords that should trigger the 'Security' tab
       keywords: ['password', 'change password', '2fa', 'two-factor', 'two factor', 'authentication', 'delete account', 'danger zone', 'login'] 
     },
   ];
 
-  // --- 4. AUTO-SWITCH LOGIC ---
-  // This effect runs every time the search query changes
   useEffect(() => {
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       
-      // Find the tab where the Label OR any Keyword matches the search query
       const match = tabs.find(tab => 
         tab.label.toLowerCase().includes(lowerQuery) || 
         tab.keywords.some(keyword => keyword.includes(lowerQuery))
       );
 
-      // If a matching tab is found and it's not the current one, switch to it
       if (match && match.id !== activeTab) {
         setActiveTab(match.id);
       }
@@ -232,13 +222,11 @@ const Settings = () => {
 
   return (
     <Layout>
-      {/* Inject Fonts locally */}
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           body { font-family: 'Plus Jakarta Sans', sans-serif; }
           
-          /* Custom Toggle Switch */
           .toggle-checkbox:checked {
             right: 0;
             border-color: #00c4b4;
@@ -251,12 +239,10 @@ const Settings = () => {
 
       <div className="font-sans text-slate-900 max-w-5xl mx-auto">
         
-        {/* --- Header --- */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
           <p className="text-slate-500 text-sm mt-1">Manage your account preferences and app settings.</p>
           
-          {/* Smart Search Feedback Message */}
           {searchQuery && (
              <p className="text-sm font-bold text-[#00c4b4] mt-2 animate-pulse transition-all">
                Searching for "{searchQuery}"... <span className="text-slate-400 font-normal">Found in {tabs.find(t => t.id === activeTab)?.label}</span>
@@ -266,7 +252,6 @@ const Settings = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* --- Sidebar Navigation --- */}
           <div className="w-full lg:w-64 flex-shrink-0">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden sticky top-24">
               <nav className="flex flex-col p-2">
@@ -294,10 +279,8 @@ const Settings = () => {
             </div>
           </div>
 
-          {/* --- Main Content Area --- */}
           <div className="flex-1 space-y-6">
             
-            {/* Account Settings */}
             {activeTab === 'account' && (
               <div className="space-y-6 animate-fade-in">
                 <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
@@ -339,7 +322,9 @@ const Settings = () => {
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
+                            disabled
+                            title="Email address cannot be changed"
+                            className="w-full pl-11 bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-500 cursor-not-allowed outline-none transition-all"
                           />
                         </div>
                       </div>
@@ -358,7 +343,7 @@ const Settings = () => {
                           Cancel
                         </button>
                         <button 
-                          onClick={handleSaveSettings}
+                          onClick={handleSaveAccountInfo} // Use the specific function for account info
                           disabled={isLoading}
                           className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70 text-sm"
                         >
@@ -395,7 +380,6 @@ const Settings = () => {
               </div>
             )}
 
-            {/* Preferences */}
             {activeTab === 'preferences' && (
               <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 animate-fade-in space-y-8">
                 
@@ -467,11 +451,9 @@ const Settings = () => {
               </div>
             )}
 
-            {/* Notifications */}
             {activeTab === 'notifications' && (
               <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 animate-fade-in space-y-8">
                 
-                {/* Toggle Item */}
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm">Email Notifications</h3>
@@ -494,7 +476,6 @@ const Settings = () => {
                   </div>
                 </div>
 
-                {/* Toggle Item */}
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm">Push Notifications</h3>
@@ -517,7 +498,6 @@ const Settings = () => {
                   </div>
                 </div>
 
-                 {/* Toggle Item */}
                  <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm">Marketing Emails</h3>
@@ -543,7 +523,6 @@ const Settings = () => {
               </div>
             )}
 
-            {/* Security */}
             {activeTab === 'security' && (
               <div className="space-y-6 animate-fade-in">
                 <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
@@ -626,24 +605,6 @@ const Settings = () => {
                     Delete Account
                   </button>
                 </div>
-              </div>
-            )}
-
-            {/* Save Button (Global for Preferences/Notifications) */}
-            {(activeTab === 'preferences' || activeTab === 'notifications') && (
-              <div className="flex justify-end pt-4">
-                <button 
-                  onClick={handleSaveSettings}
-                  disabled={isLoading}
-                  className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-[#00c4b4]/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-wait"
-                >
-                  {isLoading ? (
-                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                  ) : (
-                    <Save size={18} />
-                  )}
-                  {isLoading ? 'Saving...' : 'Save Changes'}
-                </button>
               </div>
             )}
 

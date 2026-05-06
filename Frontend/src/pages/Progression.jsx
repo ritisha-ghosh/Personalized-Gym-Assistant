@@ -24,74 +24,50 @@ const Progression = () => {
 
   const [timeRange, setTimeRange] = useState('6 Months');
   const [weightData, setWeightData] = useState([]);
-  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loginHeatmapData, setLoginHeatmapData] = useState([]);
   const [loginCount, setLoginCount] = useState(0);
 
   // Fetch user progress data from backend
   useEffect(() => {
-    const fetchProgressionData = async () => {
+    const loadProgressionData = () => {
+      // If the user object from context isn't loaded yet, wait.
+      if (!user) {
+        setLoading(true);
+        return;
+      }
+
       try {
         setLoading(true);
-        const profileResponse = await api.get('/users/profile');
-        const userData = profileResponse.data.user;
-        
-        setUserProfile({
-          name: userData.name,
-          weight: userData.weight,
-          goal: userData.goal,
-          experience: userData.experience
-        });
+        // The user object from AuthContext is the single source of truth.
+        // No need to fetch the profile again here.
 
-        // Get local progression data - USER-SPECIFIC
-        if (user?.id) {
-          const progression = getProgression(user.id);  // 👈 Pass userId
-          setWeightData(progression.weightData || [
-            { month: 'JAN', weight: userData.weight ? userData.weight - 5 : 85.0 },
-            { month: 'FEB', weight: userData.weight ? userData.weight - 4.2 : 84.2 },
-            { month: 'MAR', weight: userData.weight ? userData.weight - 3.5 : 83.5 },
-            { month: 'APR', weight: userData.weight ? userData.weight - 1.8 : 81.8 },
-            { month: 'MAY', weight: userData.weight ? userData.weight + 0.5 : 79.5 },
-            { month: 'JUN', weight: userData.weight || 78.4 },
-          ]);
-          
-          // Get login heatmap data - USER-SPECIFIC
-          const heatmap = getLoginHeatmapData(user.id);
-          const logins = getLoginDates(user.id);
-          setLoginHeatmapData(heatmap);
-          setLoginCount(logins.length);
-          
-          console.log(`📥 Loaded progression data for user ${user.id}`);
-        }
+        const progression = getProgression(user.id);
+        // Use user.weight from context to generate mock chart data if needed.
+        setWeightData(progression.weightData || [
+          { month: 'JAN', weight: user.weight ? user.weight - 5 : 85.0 },
+          { month: 'FEB', weight: user.weight ? user.weight - 4.2 : 84.2 },
+          { month: 'MAR', weight: user.weight ? user.weight - 3.5 : 83.5 },
+          { month: 'APR', weight: user.weight ? user.weight - 1.8 : 81.8 },
+          { month: 'MAY', weight: user.weight ? user.weight + 0.5 : 79.5 },
+          { month: 'JUN', weight: user.weight || 78.4 },
+        ]);
+        
+        const heatmap = getLoginHeatmapData(user.id);
+        const logins = getLoginDates(user.id);
+        setLoginHeatmapData(heatmap);
+        setLoginCount(logins.length);
+        
+        console.log(`📥 Loaded progression data for user ${user.id}`);
       } catch (error) {
         console.error("Failed to fetch progression data", error);
-        // Fallback to local storage
-        if (user?.id) {
-          const progression = getProgression(user.id);  // 👈 Pass userId
-          const profile = getUserProfile(user.id);  // 👈 Pass userId
-          const heatmap = getLoginHeatmapData(user.id);
-          const logins = getLoginDates(user.id);
-          
-          setUserProfile(profile);
-          setWeightData(progression.weightData || [
-            { month: 'JAN', weight: 85.0 },
-            { month: 'FEB', weight: 84.2 },
-            { month: 'MAR', weight: 83.5 },
-            { month: 'APR', weight: 81.8 },
-            { month: 'MAY', weight: 79.5 },
-            { month: 'JUN', weight: 78.4 },
-          ]);
-          setLoginHeatmapData(heatmap);
-          setLoginCount(logins.length);
-        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProgressionData();
-  }, [user?.id]);  // 👈 Re-fetch when user changes
+    loadProgressionData();
+  }, [user]); // Re-run when the user object from context changes (e.g., after name update).
 
   // --- Lift Stats Data ---
   const liftStats = [
@@ -128,45 +104,55 @@ const Progression = () => {
   // Calculate current streak (consecutive days from today backwards)
   const calculateStreak = () => {
     const loginDates = getLoginDates(user?.id || '');
-    if (loginDates.length === 0) return 0;
-    
+    if (!loginDates || loginDates.length === 0) return 0;
+
+    const toYYYYMMDD = (date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
+
     let streak = 0;
     let checkDate = new Date();
-    
-    while (true) {
-      const dateStr = checkDate.toISOString().split('T')[0];
-      if (loginDates.includes(dateStr)) {
-        streak++;
-        checkDate.setDate(checkDate.getDate() - 1);
-      } else {
-        break;
-      }
+
+    // If today is not a login day, start checking from yesterday.
+    // This provides a better UX for users who haven't logged in yet today.
+    if (!loginDates.includes(toYYYYMMDD(checkDate))) {
+      checkDate.setDate(checkDate.getDate() - 1);
     }
+
+    // Count consecutive days backwards
+    while (loginDates.includes(toYYYYMMDD(checkDate))) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+
     return streak;
   };
 
   // Calculate longest streak ever
   const calculateLongestStreak = () => {
     const loginDates = getLoginDates(user?.id || '').sort();
-    if (loginDates.length === 0) return 0;
-    
+    if (loginDates.length <= 1) return loginDates.length;
+
     let longest = 1;
     let current = 1;
-    
+
     for (let i = 1; i < loginDates.length; i++) {
-      const prevDate = new Date(loginDates[i - 1]);
-      const currDate = new Date(loginDates[i]);
-      const diffTime = currDate - prevDate;
-      const diffDays = diffTime / (1000 * 60 * 60 * 24);
-      
+      // Use UTC dates at noon to safely calculate day differences, avoiding DST issues
+      const prevDate = new Date(loginDates[i - 1] + 'T12:00:00Z');
+      const currDate = new Date(loginDates[i] + 'T12:00:00Z');
+      const diffDays = Math.round((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+
       if (diffDays === 1) {
         current++;
-        longest = Math.max(longest, current);
       } else {
         current = 1;
       }
+      longest = Math.max(longest, current);
     }
-    
+
     return longest;
   };
 
@@ -180,7 +166,7 @@ const Progression = () => {
     );
   }
 
-  const currentWeight = userProfile?.weight || (weightData[weightData.length - 1]?.weight || 78.4);
+  const currentWeight = user?.weight || (weightData[weightData.length - 1]?.weight || 78.4);
   const initialWeight = weightData[0]?.weight || 85.0;
   const weightChange = (initialWeight - currentWeight).toFixed(1);
 
@@ -230,8 +216,8 @@ const Progression = () => {
             {/* Profile Snippet */}
             <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200">
               <div className="text-right">
-                <p className="text-sm font-bold leading-none">{userProfile?.name || user?.name || 'User'}</p>
-                <p className="text-[10px] font-bold text-emerald-500 uppercase mt-1">Goal: {userProfile?.goal ? userProfile.goal.charAt(0).toUpperCase() + userProfile.goal.slice(1) : 'N/A'}</p>
+                <p className="text-sm font-bold leading-none">{user?.name || 'User'}</p>
+                <p className="text-[10px] font-bold text-emerald-500 uppercase mt-1">Goal: {user?.goal ? user.goal.charAt(0).toUpperCase() + user.goal.slice(1) : 'N/A'}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-200 to-yellow-500 border-2 border-white shadow-sm"></div>
             </div>
@@ -382,11 +368,12 @@ const Progression = () => {
                     let currentWeek = Array(7).fill(null);
                     let weekDayIdx = 0;
 
-                    // Get the first date and find what day of week it is (0=Sunday, 1=Monday, ... 6=Saturday)
-                    // We want Monday=0, so we'll adjust
                     loginHeatmapData.forEach((day) => {
-                      const dateObj = new Date(day.date);
-                      // JavaScript getDay(): 0=Sunday, 1=Monday...6=Saturday
+                      // FIX: Parse date string as local time to avoid timezone shift issues.
+                      // new Date('YYYY-MM-DD') parses as UTC, which can shift the day.
+                      const dateObj = new Date(day.date + 'T00:00:00');
+                      
+                      // JS getDay(): 0=Sun, 1=Mon...6=Sat
                       // We want: 0=Monday, 1=Tuesday...6=Sunday
                       let dayOfWeek = dateObj.getDay(); // 0-6
                       dayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert to Mon=0...Sun=6
@@ -440,8 +427,11 @@ const Progression = () => {
                               }
 
                               const isTodayOrRecent = () => {
-                                const today = new Date().toISOString().split('T')[0];
-                                return day && day.date === today;
+                                if (!day) return false;
+                                const today = new Date();
+                                // Format today's date to YYYY-MM-DD to match the data
+                                const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                                return day.date === todayStr;
                               };
 
                               return (
