@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an instance of axios
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api/auth', // Your backend's base URL
+  baseURL: 'http://localhost:5000/api', // Your backend's base URL
   headers: {
     'Content-Type': 'application/json',
   },
@@ -26,15 +26,15 @@ api.interceptors.request.use(
 );
 
 // Export API functions that your components can call
-export const login = (credentials) => api.post('/login', credentials);
-export const signup = (userData) => api.post('/signup', userData);
+export const login = (credentials) => api.post('/auth/login', credentials);
+export const signup = (userData) => api.post('/auth/signup', userData); // Kept for legacy, but new flow uses OTP
 
 // This is the function to get the currently logged-in user's data
-export const getCurrentUser = () => api.get('/me');
+export const getCurrentUser = () => api.get('/users/profile'); // Corrected path to match user routes
 
 // This is the function to update the user's profile
-export const updateUserProfile = (profileData) => api.put('/me', profileData);
+export const updateUserProfile = (profileData) => api.put('/users/update-settings', profileData); // Corrected path to match user routes
 
-export const refreshAccessToken = () => api.post('/refresh-token');
+export const refreshAccessToken = () => api.post('/auth/refresh-token');
 
 export default api;

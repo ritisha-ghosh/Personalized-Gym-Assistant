@@ -1,6 +1,9 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
+// const dns = require("dns"); // Removed dns module as it caused certificate validation issues
 
 const generateAccessToken = (userId) => {
   return jwt.sign(
@@ -18,154 +21,254 @@ const generateRefreshToken = (userId) => {
   );
 };
 
-// exports.signup = async (req, res) => {
-//   try {
-//     const {
-//       name,
-//       email,
-//       password,
-//       age,
-//       weight,
-//       gender,
-//       height,
-//       goal,
-//       injury,
-//       experience,
-//       dietType,
-//       noOnion,
-//       noGarlic
-//     } = req.body;
+// In-memory store for pending verifications.
+// For production, it's better to use Redis or a DB collection with a TTL index.
+const pendingUsers = {};
+const passwordResetTokens = {}; // New in-memory store for password reset OTPs
 
-//     if (!name || !email || !password) {
-//       return res.status(400).json({ message: "Name, email, password required" });
-//     }
+// --- Nodemailer Setup ---
+// It will use the credentials from your .env file
+let transporter;
 
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
+// Function to initialize transporter after DNS lookup
+async function initializeTransporter() {
+  if (transporter) return; // Already initialized
 
-//     const salt = await bcrypt.genSalt(10);
-//     const hashedPassword = await bcrypt.hash(password, salt);
+  transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: false, // Use 'true' for port 465, 'false' for other ports like 587 (STARTTLS)
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    tls: {
+      // WARNING: This should be set to 'true' in production environments.
+      // Setting to 'false' bypasses certificate validation and can be a security risk.
+      // It's used here to debug 'ERR_TLS_CERT_ALTNAME_INVALID' issues often caused by local network/firewall/VPN.
+      rejectUnauthorized: false, 
+    },
+  });
 
-//     const user = await User.create({
-//       name,
-//       email,
-//       password: hashedPassword,
-//       age,
-//       weight,
-//       height,
-//       gender,
-//       goal,
-//       injury,
-//       experience,
-//       dietType,
-//       noOnion,
-//       noGarlic
-//     });
+  // Verify connection configuration
+  await transporter.verify();
+  console.log("Nodemailer transporter is ready to send emails.");
 
-//     res.status(201).json({
-//       message: "User registered successfully",
-//       userId: user._id
-//     });
+}
 
-//   } catch (error) {
-//     console.error("Signup error:", error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-exports.signup = async (req, res) => {
+/**
+ * @desc    Sends an OTP to the user's email to begin registration.
+ * @route   POST /api/auth/send-otp
+ * @access  Public
+ */
+exports.sendOtpForSignup = async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      age,
-      weight,
-      gender,
-      height,
-      goal,
-      injury,
-      experience,
-      dietType,
-      noOnion,
-      noGarlic
-    } = req.body;
+    // Ensure transporter is initialized before use
+    await initializeTransporter();
 
-    if (!name || !email || !password) {
-      return res.status(400).json({
-        message: "Name, email, password required"
-      });
-    }
+    const { email } = req.body;
 
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({
-        message: "User already exists"
-      });
+      return res.status(400).json({ message: "User with this email already exists" });
     }
 
-    // 🔐 Normalize inputs (CRITICAL FIX - Added fallbacks to map to strict schema)
-    let normalizedGoal = goal?.toLowerCase().trim();
-    if (normalizedGoal === 'weight loss') normalizedGoal = 'fat loss';
-    if (normalizedGoal === 'endurance') normalizedGoal = 'maintenance';
+    // Generate OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const expires = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
 
-    const normalizedExperience = experience?.toLowerCase().trim();
-    
-    let normalizedDietType = dietType?.toLowerCase().trim();
-    if (['standard', 'pescatarian', 'eggetarian'].includes(normalizedDietType)) {
-        normalizedDietType = 'non-vegetarian';
-    } else if (normalizedDietType === 'vegan') {
-        normalizedDietType = 'vegetarian';
-    }
+    // Store user data and OTP temporarily
+    pendingUsers[email] = {
+      data: req.body,
+      otp: otp,
+      expires: expires,
+    };
 
-    const normalizedGender = gender?.toLowerCase().trim();
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-
-      age,
-      weight,
-      height,
-
-      gender: normalizedGender,
-      goal: normalizedGoal,
-      injury,
-
-      experience: normalizedExperience,
-
-      dietType: normalizedDietType || "vegetarian",
-      noOnion: noOnion ?? false,
-      noGarlic: noGarlic ?? false
+    // --- DEBUG LOGGING: Check Nodemailer config before sending ---
+    console.log("Nodemailer config for sending OTP:", {
+      host: transporter.options.host, // Use the actual host Nodemailer is using
+      port: transporter.options.port, // Use the actual port Nodemailer is using
+      user: transporter.options.auth.user, // Use the actual user Nodemailer is using
+      pass: process.env.EMAIL_PASS ? '********' : 'NOT_SET' // Mask password for security
+    });
+    // Send email
+    await transporter.sendMail({
+      from: `"Personalized Gym Assistant" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Your OTP for Registration",
+      text: `Your One-Time Password is: ${otp}. It will expire in 10 minutes.`,
+      html: `<p>Your One-Time Password is: <strong>${otp}</strong>. It will expire in 10 minutes.</p>`,
     });
 
-    res.status(201).json({
-      message: "User registered successfully",
-      userId: user._id
-    });
+    res.status(200).json({ message: "OTP sent to your email successfully." });
 
   } catch (error) {
-    console.error("Signup error:", error);
-
-    // Better validation error response
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        message: error.message
-      });
+    console.error("Send OTP error:", error.message, error.stack); // Enhanced logging
+    if (error.code === 'EAUTH') {
+        return res.status(500).json({ message: "Email server authentication failed. Please check your EMAIL_USER and EMAIL_PASS in .env. For Gmail, ensure you're using an App Password." });
     }
-
-    res.status(500).json({
-      message: "Server error"
-    });
+    if (error.code === 'ERR_TLS_CERT_ALTNAME_INVALID') {
+        return res.status(500).json({ message: "Server error while sending OTP: TLS certificate validation failed. This is often due to local network interference (firewall, VPN, proxy) or a misconfigured system. We've temporarily disabled strict validation for debugging. If this persists, check your local network settings." });
+    }
+    if (error.code === 'ECONNREFUSED' && error.address === '127.0.0.1') {
+        return res.status(500).json({ message: "Server error while sending OTP: Connection refused by localhost. This usually means 'smtp.gmail.com' is resolving to '127.0.0.1' on your system. Please check your system's DNS settings, hosts file, or VPN/proxy configuration." });
+    }
+    res.status(500).json({ message: "Server error while sending OTP. Please check backend logs for details and ensure your email configuration in .env is correct." });
   }
 };
 
+/**
+ * @desc    Verifies the OTP and creates the new user.
+ * @route   POST /api/auth/verify-otp
+ * @access  Public
+ */
+exports.verifyOtpAndRegister = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const pending = pendingUsers[email];
+
+    // Validations
+    if (!pending) {
+      return res.status(400).json({ message: "Invalid request or OTP expired. Please register again." });
+    }
+    if (Date.now() > pending.expires) {
+      delete pendingUsers[email];
+      return res.status(400).json({ message: "OTP has expired. Please try registering again." });
+    }
+    if (pending.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP." });
+    }
+
+    // OTP is correct, create user
+    const userData = pending.data;
+
+    // --- Normalization from original signup function ---
+    let normalizedGoal = userData.goal?.toLowerCase().trim();
+    if (normalizedGoal === 'weight loss') normalizedGoal = 'fat loss';
+    if (normalizedGoal === 'endurance') normalizedGoal = 'maintenance';
+
+    const normalizedExperience = userData.experience?.toLowerCase().trim();
+
+    let normalizedDietType = userData.dietType?.toLowerCase().trim();
+    if (['standard', 'pescatarian', 'eggetarian'].includes(normalizedDietType)) {
+      normalizedDietType = 'non-vegetarian';
+    } else if (normalizedDietType === 'vegan') {
+      normalizedDietType = 'vegetarian';
+    }
+
+    const normalizedGender = userData.gender?.toLowerCase().trim();
+    // --- End Normalization ---
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(userData.password, salt);
+
+    const newUser = new User({
+      ...userData,
+      password: hashedPassword,
+      goal: normalizedGoal,
+      experience: normalizedExperience,
+      dietType: normalizedDietType,
+      gender: normalizedGender,
+    });
+
+    await newUser.save();
+
+    // Clean up the temporary store
+    delete pendingUsers[email];
+
+    res.status(201).json({ message: "User registered successfully. Please log in." });
+
+  } catch (error) {
+    console.error("Verify OTP error:", error);
+    if (error.code === 11000) { // Mongoose duplicate key error
+      return res.status(400).json({ message: "User with this email already exists." });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: "Server error during registration" });
+  }
+};
+
+/**
+ * @desc    Sends an OTP to the user's email for password reset.
+ * @route   POST /api/auth/forgot-password
+ * @access  Public
+ */
+exports.sendOtpForPasswordReset = async (req, res) => {
+  try {
+    // Ensure transporter is initialized before use
+    await initializeTransporter();
+
+    const { email } = req.body;
+
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(404).json({ message: "User with this email does not exist." });
+    }
+
+    // Generate OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const expires = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
+
+    // Store OTP temporarily
+    passwordResetTokens[email] = {
+      otp: otp,
+      expires: expires,
+    };
+
+    // Send email
+    await transporter.sendMail({
+      from: `"PulseAI - Personalized Gym Assistant" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Your Password Reset OTP",
+      text: `Your One-Time Password for password reset is: ${otp}. It will expire in 10 minutes.`,
+      html: `<p>Your One-Time Password for password reset is: <strong>${otp}</strong>. It will expire in 10 minutes.</p>`,
+    });
+
+    res.status(200).json({ message: "Password reset OTP sent to your email successfully." });
+
+  } catch (error) {
+    console.error("Send OTP for password reset error:", error.message, error.stack);
+    if (error.code === 'EAUTH') {
+        return res.status(500).json({ message: "Email server authentication failed. Please check your EMAIL_USER and EMAIL_PASS in .env. For Gmail, ensure you're using an App Password." });
+    }
+    if (error.code === 'ERR_TLS_CERT_ALTNAME_INVALID') {
+        return res.status(500).json({ message: "Server error while sending OTP: TLS certificate validation failed. This is often due to local network interference (firewall, VPN, proxy) or a misconfigured system. We've temporarily disabled strict validation for debugging. If this persists, check your local network settings." });
+    }
+    res.status(500).json({ message: "Server error while sending password reset OTP. Please check backend logs for details and ensure your email configuration in .env is correct." });
+  }
+};
+
+/**
+ * @desc    Resets the user's password after OTP verification.
+ * @route   POST /api/auth/reset-password
+ * @access  Public
+ */
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    const resetToken = passwordResetTokens[email];
+
+    if (!resetToken || resetToken.otp !== otp || Date.now() > resetToken.expires) {
+      return res.status(400).json({ message: "Invalid or expired OTP." });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await User.findOneAndUpdate({ email }, { password: hashedPassword });
+    delete passwordResetTokens[email]; // Clear the used OTP
+
+    res.status(200).json({ message: "Password reset successfully. You can now log in with your new password." });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ message: "Server error during password reset." });
+  }
+};
+
+// The old exports.signup function has been removed as it's replaced by the OTP flow.
 
 exports.login = async (req, res) => {
   try {

@@ -1,4 +1,3 @@
-
 /* ========================================
    DARK MODE CSS - Personalized Gym Assistant
    Dark theme with professional styling
@@ -49,7 +48,8 @@ html.dark-mode {
   backdrop-filter: blur(10px);
 }
 
-.dark-mode nav {
+/* Added :not(.bg-transparent) to fix landing page Nav! */
+.dark-mode nav:not(.bg-transparent) {
   background-color: var(--secondary-dark) !important;
   border-color: var(--tertiary-dark) !important;
 }
@@ -67,8 +67,7 @@ html.dark-mode {
 }
 
 /* ===== CARDS AND CONTAINERS - TRANSPARENT WITH BACKDROP ===== */
-.dark-mode .bg-white,
-.dark-mode [class*="bg-white"] {
+.dark-mode .bg-white {
   background-color: rgba(30, 41, 59, 0.6) !important;
   backdrop-filter: blur(10px) !important;
   border-color: rgba(51, 65, 85, 0.6) !important;
@@ -79,7 +78,7 @@ html.dark-mode {
 .dark-mode .rounded-2xl,
 .dark-mode .rounded-xl,
 .dark-mode .rounded-lg {
-  background-color: rgba(30, 41, 59, 0.6) !important;
+  background-color: rgba(30, 41, 59, 0) !important;
   backdrop-filter: blur(10px) !important;
   border-color: rgba(51, 65, 85, 0.6) !important;
 }
@@ -182,13 +181,14 @@ html.dark-mode {
   border-color: var(--border-dark) !important;
 }
 
-.dark-mode button:not([class*="bg-teal"]):not([class*="bg-\[#00c4b4\]"]):not([class*="text-white"]) {
+/* Added :not(.bg-transparent) to fix footer icons! */
+.dark-mode button:not([class*="bg-teal"]):not([class*="bg-\[#00c4b4\]"]):not([class*="text-white"]):not(.bg-transparent) {
   background-color: var(--tertiary-dark);
   color: var(--text-dark-primary);
   border-color: var(--border-dark) !important;
 }
 
-.dark-mode button:hover:not([class*="bg-teal"]):not([class*="bg-\[#00c4b4\]"]):not([class*="text-white"]) {
+.dark-mode button:hover:not([class*="bg-teal"]):not([class*="bg-\[#00c4b4\]"]):not([class*="text-white"]):not(.bg-transparent) {
   background-color: var(--hover-dark);
 }
 

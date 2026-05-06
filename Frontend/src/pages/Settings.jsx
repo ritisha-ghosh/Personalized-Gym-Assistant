@@ -30,6 +30,8 @@ const Settings = () => {
   const [saveStatus, setSaveStatus] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
   // 2. Search Params Logic
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
@@ -146,27 +148,33 @@ const Settings = () => {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!window.confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+  const handleDeleteAccount = () => {
+    setIsDeleteModalOpen(true);
+    setSaveStatus(''); // Clear previous status messages
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!deletePassword) {
+      setSaveStatus('Error: Password is required to delete your account.');
       return;
     }
-
-    const password = prompt('Please enter your password to confirm account deletion:');
-    if (!password) return;
-
+  
     setIsLoading(true);
     setSaveStatus('Deleting account...');
     try {
       await api.delete('/users/delete-account', {
-        data: { password }
+        data: { password: deletePassword }
       });
+      setIsDeleteModalOpen(false);
       logout();
       navigate('/');
-      setSaveStatus('Account deleted successfully');
+      // Success message won't be seen as we navigate away.
+      // A toast notification on the landing page would be a good enhancement.
     } catch (error) {
       setSaveStatus('Error: ' + (error.response?.data?.message || 'Failed to delete account'));
     } finally {
       setIsLoading(false);
+      setDeletePassword('');
     }
   };
 
@@ -543,7 +551,12 @@ const Settings = () => {
                   
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Current Password</label>
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Current Password</label>
+                        <Link to="/forgot-password" className="text-xs font-bold text-[#00c4b4] hover:underline">
+                          Forgot Password?
+                        </Link>
+                      </div>
                       <div className="relative">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input 
@@ -636,6 +649,42 @@ const Settings = () => {
 
           </div>
         </div>
+
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+            <div className="bg-white p-8 rounded-2xl shadow-lg max-w-sm w-full">
+              <h2 className="text-lg font-bold text-red-600">Confirm Account Deletion</h2>
+              <p className="text-sm text-slate-500 mt-2 mb-4">
+                This action is irreversible. To confirm, please enter your password.
+              </p>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all"
+              />
+              {saveStatus.includes('Error') && (
+                <p className="text-red-500 text-xs mt-2 font-bold">{saveStatus}</p>
+              )}
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteAccount}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70 text-sm"
+                >
+                  {isLoading ? 'Deleting...' : 'Delete Account'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

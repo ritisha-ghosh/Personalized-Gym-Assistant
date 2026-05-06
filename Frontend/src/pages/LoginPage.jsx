@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import api from '../utils/api'; // Ensure this points to your axios instance
+import { AuthContext } from '../context/AuthContext'; // Access global login function
+import api from '../services/api'; // Corrected import path for consistency
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -112,7 +112,9 @@ const LoginPage = () => {
             <div>
               <div className="flex justify-between mb-2">
                 <label className="text-sm font-bold text-slate-700">Password</label>
-                <button type="button" className="text-xs font-bold text-pink-500 hover:text-pink-600">Forgot Password?</button>
+                <Link to="/forgot-password" className="text-xs font-bold text-pink-500 hover:text-pink-600">
+                  Forgot Password?
+                </Link>
               </div>
               <div className="relative">
                 <span className="absolute inset-y-0 left-4 flex items-center text-slate-400">

@@ -12,6 +12,9 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import UserProfile from "./pages/UserProfile";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage"; // Import new page
+import ResetPasswordPage from "./pages/ResetPasswordPage"; // Import new page
+import OtpPage from "./pages/OtpPage"; // Import the OtpPage component
 
 // --- Main Feature Pages ---
 import Dashboard from './pages/Dashboard';
@@ -30,7 +33,10 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* New route */}
+          <Route path="/reset-password" element={<ResetPasswordPage />} /> {/* New route */}
+          <Route path="/register" element={<RegisterPage />} /> 
+          <Route path="/verify-otp" element={<OtpPage />} /> {/* Add the route for OTP verification */}
           
           {/* Protected / App Routes */}
           <Route path='/dashboard' element={<Dashboard/>}/>

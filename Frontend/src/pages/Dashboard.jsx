@@ -147,79 +147,81 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      {/* Greeting */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-          {getGreeting()}, {user?.name || "User"}.
-        </h1>
-        <p className={`mt-1 text-sm sm:text-base font-medium ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>
-          AI Trainer: "Keep up the great work! {recentWorkouts.length} workouts this week."
-        </p>
-        
-        {/* Search Result Indicator */}
-        {searchQuery && (
-          <p className={`mt-4 text-sm font-bold ${isDarkMode ? 'text-[#00c4b4]' : 'text-teal-500'}`}>
-            Showing results for: "{searchQuery}"
+      <div className={`min-h-full ${isDarkMode ? 'bg-[#0f172a]' : 'bg-white'}`}> {/* Added wrapper div with conditional background */}
+        {/* Greeting */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+            {getGreeting()}, {user?.name || "User"}.
+          </h1>
+          <p className={`mt-1 text-sm sm:text-base font-medium ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>
+            AI Trainer: "Keep up the great work! {recentWorkouts.length} workouts this week."
           </p>
-        )}
-      </div>
-
-      {/* Stats - Responsive grid (Filtered) */}
-      {filteredStats.length > 0 && (
-        <div className="mb-6 sm:mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredStats.map((stat) => (
-            <StatCard
-              key={stat.id}
-              title={stat.title}
-              value={stat.value}
-              unit={stat.unit}
-              footer={stat.footer}
-              accent={stat.accent}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        
-        {/* Left Column */}
-        <div className="space-y-6 lg:col-span-8">
-          {/* Conditionally render based on search keywords */}
-          {shouldShow(["workout", "training", "exercise", "plan"]) && <WorkoutCard />}
-          {shouldShow(["weight", "trend", "chart", "progress", "graph"]) && <WeightTrendCard />}
           
-          {/* If search is active but nothing matches in this column, show a polite message (optional) */}
-          {searchQuery && 
-           !shouldShow(["workout", "training", "exercise", "plan", "weight", "trend", "chart", "progress", "graph"]) && (
-             <div className="hidden lg:block text-slate-400 text-sm italic">No main charts match your search.</div>
-           )}
+          {/* Search Result Indicator */}
+          {searchQuery && (
+            <p className={`mt-4 text-sm font-bold ${isDarkMode ? 'text-[#00c4b4]' : 'text-teal-500'}`}>
+              Showing results for: "{searchQuery}"
+            </p>
+          )}
         </div>
 
-        {/* Right Column */}
-        <div className="space-y-6 lg:col-span-4">
-          {shouldShow(["consistency", "week", "streak", "calendar"]) && <WeeklyConsistency />}
-          {shouldShow(["goal", "comparison", "bmi", "weight target"]) && <GoalComparisonCard />}
-          {shouldShow(["trainer", "insight", "ai", "tip", "advice"]) && <TrainerInsight />}
-          {shouldShow(["leaderboard", "rank", "social", "community", "top"]) && <Leaderboard />}
+        {/* Stats - Responsive grid (Filtered) */}
+        {filteredStats.length > 0 && (
+          <div className="mb-6 sm:mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredStats.map((stat) => (
+              <StatCard
+                key={stat.id}
+                title={stat.title}
+                value={stat.value}
+                unit={stat.unit}
+                footer={stat.footer}
+                accent={stat.accent}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          
+          {/* Left Column */}
+          <div className="space-y-6 lg:col-span-8">
+            {/* Conditionally render based on search keywords */}
+            {shouldShow(["workout", "training", "exercise", "plan"]) && <WorkoutCard />}
+            {shouldShow(["weight", "trend", "chart", "progress", "graph"]) && <WeightTrendCard />}
+            
+            {/* If search is active but nothing matches in this column, show a polite message (optional) */}
+            {searchQuery && 
+            !shouldShow(["workout", "training", "exercise", "plan", "weight", "trend", "chart", "progress", "graph"]) && (
+                <div className="hidden lg:block text-slate-400 text-sm italic">No main charts match your search.</div>
+            )}
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6 lg:col-span-4">
+            {shouldShow(["consistency", "week", "streak", "calendar"]) && <WeeklyConsistency />}
+            {shouldShow(["goal", "comparison", "bmi", "weight target"]) && <GoalComparisonCard />}
+            {shouldShow(["trainer", "insight", "ai", "tip", "advice"]) && <TrainerInsight />}
+            {shouldShow(["leaderboard", "rank", "social", "community", "top"]) && <Leaderboard />}
+          </div>
+
         </div>
 
-      </div>
-
-      {/* Empty State if absolutely nothing matches */}
-      {searchQuery && 
-       filteredStats.length === 0 && 
-       !shouldShow(["workout", "weight", "consistency", "trainer", "leaderboard"]) && (
-        <div className="text-center py-20 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-          <p className="text-slate-500">No results found for "{searchQuery}".</p>
-          <button 
-             onClick={() => window.history.back()} 
-             className="mt-2 text-[#df20af] font-bold hover:underline"
-          >
-            Clear Search
-          </button>
-        </div>
-      )}
+        {/* Empty State if absolutely nothing matches */}
+        {searchQuery && 
+        filteredStats.length === 0 && 
+        !shouldShow(["workout", "weight", "consistency", "trainer", "leaderboard"]) && (
+            <div className="text-center py-20 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+            <p className="text-slate-500">No results found for "{searchQuery}".</p>
+            <button 
+                onClick={() => window.history.back()} 
+                className="mt-2 text-[#df20af] font-bold hover:underline"
+            >
+                Clear Search
+            </button>
+            </div>
+        )}
+      </div> {/* End of new wrapper div */}
 
       {/* --- NEW: VOICE ASSISTANT FAB --- */}
       <button 

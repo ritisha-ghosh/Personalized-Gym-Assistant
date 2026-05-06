@@ -9,8 +9,6 @@ const LandingPage = () => {
 
   return (
     <div className={`min-h-screen font-sans ${isDarkMode ? 'dark-mode' : 'bg-white'} selection:bg-teal-500 selection:text-white`}>
-      
-      {/* --- Global Styles for Fonts & Custom Effects --- */}
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800;900&family=Noto+Sans:wght@400;500;600;700&display=swap');
@@ -19,7 +17,6 @@ const LandingPage = () => {
           body { font-family: 'Epilogue', sans-serif; }
           .font-body { font-family: 'Noto Sans', sans-serif; }
           
-          /* Custom Utilities */
           .soft-shadow { box-shadow: 0 10px 30px -5px rgba(20, 46, 92, 0.05); }
           .teal-gradient { background: linear-gradient(135deg, #00c4b4 0%, #00a89f 100%); }
           .hero-gradient-text {
@@ -36,7 +33,6 @@ const LandingPage = () => {
         `}
       </style>
 
-      {/* --- Navigation --- */}
       <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b ${isDarkMode ? 'bg-[#0f172a]/80 border-[#334155]' : 'bg-white/80 border-gray-100'}`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
@@ -46,7 +42,7 @@ const LandingPage = () => {
             <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-[#00c4b4]' : 'text-[#142E5C]'}`}>PulseAI</h2>
           </Link>
           
-          <nav className={`hidden md:flex items-center gap-10 ${isDarkMode ? 'text-[#cbd5e1]' : 'text-[#142E5C]'}`}>
+          <nav className={`hidden md:flex items-center gap-10 bg-transparent ${isDarkMode ? 'text-[#cbd5e1]' : 'text-[#142E5C]'}`}>
             {['Features', 'How it Works',  'Pricing'].map((item) => (
               <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '-')}`} className={`text-sm font-bold transition-colors ${isDarkMode ? 'text-[#cbd5e1] hover:text-[#00c4b4] hover:bg-transparent' : 'text-[#142E5C] hover:text-[#00c4b4] hover:bg-transparent'}`}>
                 {item}
@@ -57,7 +53,7 @@ const LandingPage = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={toggleDarkMode}
-              className={`p-2 rounded-lg transition-all ${isDarkMode ? 'bg-transparent text-[#00c4b4] hover:bg-[#1e293b]/40' : 'bg-transparent text-slate-600 hover:bg-slate-100'}`}
+              className={`p-2 rounded-lg transition-all bg-transparent ${isDarkMode ? 'text-[#00c4b4] hover:bg-[#1e293b]/40' : 'text-slate-600 hover:bg-slate-100'}`}
               title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -65,7 +61,7 @@ const LandingPage = () => {
             <Link to="/login" className={`hidden sm:block text-sm font-bold px-4 py-2 rounded-lg transition-colors ${isDarkMode ? 'text-[#00c4b4] hover:text-[#00c4b4] hover:bg-[#1e293b]/40' : 'text-[#142E5C] hover:text-[#00c4b4] hover:bg-slate-100'}`}>
               Log in
             </Link>
-            <Link to="/register" className={`px-6 py-3 rounded-full text-sm font-bold shadow-lg transition-transform hover:scale-105 ${isDarkMode ? 'bg-[#00c4b4] text-[#0f172a] shadow-teal-500/30' : 'bg-[#00c4b4] text-white shadow-teal-500/30'}`}>
+            <Link to="/register" className="px-6 py-3 rounded-full text-sm font-bold shadow-lg transition-transform hover:scale-105 bg-[#00c4b4] !text-white shadow-teal-500/30">
               Start Free
             </Link>
           </div>
@@ -73,12 +69,10 @@ const LandingPage = () => {
       </header>
 
       <main>
-        {/* --- Hero Section --- */}
         <section className={`relative overflow-hidden pt-12 pb-24 lg:pt-24 lg:pb-32 ${isDarkMode ? 'bg-[#0f172a]' : ''}`}>
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col lg:flex-row items-center gap-16">
               
-              {/* Hero Text */}
               <div className="flex-1 text-center lg:text-left">
                 <span className={`inline-block px-4 py-1.5 mb-6 text-xs font-bold tracking-widest uppercase rounded-full ${isDarkMode ? 'bg-[#00c4b4]/20 text-[#00f5ff]' : 'bg-teal-500/10 text-teal-600'}`}>
                   Personal Training Redefined
@@ -91,17 +85,16 @@ const LandingPage = () => {
                   Experience 24/7 personalized coaching and high-precision real-time form correction. Achieve your peak performance without the premium cost of a human trainer.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <Link to="/register" className="bg-[#00c4b4] text-white px-10 py-5 rounded-xl text-base font-bold shadow-xl shadow-teal-500/30 hover:-translate-y-1 transition-all flex items-center justify-center">
+                  <Link to="/register" className="bg-[#00c4b4] !text-white px-10 py-5 rounded-xl text-base font-bold shadow-xl shadow-teal-500/30 hover:-translate-y-1 transition-all flex items-center justify-center">
                     Get Started for Free
                   </Link>
-                  <button className={`border-2 px-10 py-5 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-colors ${isDarkMode ? 'border-[#00c4b4] text-[#00c4b4] hover:bg-[#1e293b]' : 'border-gray-100 text-[#142E5C] hover:bg-gray-50'}`}>
+                  <button className={`border-2 px-10 py-5 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-colors ${isDarkMode ? 'border-[#00c4b4] text-[#00c4b4] hover:bg-[#1e293b] bg-transparent' : 'border-gray-100 text-[#142E5C] hover:bg-gray-50'}`}>
                     <span className="text-lg">▶</span>
                     See in Action
                   </button>
                 </div>
               </div>
 
-              {/* Hero Image & Floating Card */}
               <div className="flex-1 w-full max-w-2xl relative">
                 <div className={`absolute -inset-4 blur-3xl opacity-50 ${isDarkMode ? 'bg-gradient-to-r from-[#00c4b4]/20 to-[#00c4b4]/10' : 'bg-gradient-to-r from-teal-500/20 to-teal-500/10'}`}></div>
                 <div className={`relative p-4 rounded-3xl soft-shadow ${isDarkMode ? 'bg-[#1e293b]' : 'bg-white'}`}>
@@ -110,7 +103,6 @@ const LandingPage = () => {
                     style={{ backgroundImage: `url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070&auto=format&fit=crop')` }}
                   ></div>
                   
-                  {/* Floating Stats Card */}
                   <div className={`absolute -bottom-6 -left-6 p-6 rounded-2xl soft-shadow border max-w-[200px] ${isDarkMode ? 'bg-[#0f172a] border-[#334155]' : 'bg-white border-gray-50'}`}>
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-8 h-8 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center">
@@ -129,7 +121,6 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* --- Stats Grid --- */}
         <section className={`py-12 ${isDarkMode ? 'bg-[#1e293b]' : 'bg-[#f9fafb]'}`}>
           <div className="max-w-7xl mx-auto px-6">
             <div className={`grid grid-cols-2 lg:grid-cols-4 gap-8 ${isDarkMode ? 'divide-[#334155]' : 'divide-gray-200'} divide-x`}>
@@ -148,7 +139,6 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* --- Features Section --- */}
         <section className={`py-24 ${isDarkMode ? 'bg-[#0f172a]' : 'bg-white'}`} id="features">
           <div className="max-w-7xl mx-auto px-6">
             <div className={`text-center mb-16 max-w-2xl mx-auto ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>
@@ -157,7 +147,6 @@ const LandingPage = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Feature 1 */}
               <div className={`p-10 rounded-3xl border soft-shadow group hover:-translate-y-1 transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] hover:border-[#00c4b4]' : 'bg-white border-gray-50 hover:border-teal-300'}`}>
                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform ${isDarkMode ? 'bg-[#00c4b4]/20 text-[#00c4b4]' : 'bg-teal-500/10 text-teal-600'}`}>
                   🎯
@@ -166,7 +155,6 @@ const LandingPage = () => {
                 <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-[#cbd5e1]' : 'text-gray-600'}`}>Instant feedback on your movement using advanced computer vision to prevent injuries and maximize gains.</p>
               </div>
 
-              {/* Feature 2 */}
               <div className={`p-10 rounded-3xl border soft-shadow group hover:-translate-y-1 transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] hover:border-[#00c4b4]' : 'bg-white border-gray-50 hover:border-teal-300'}`}>
                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform ${isDarkMode ? 'bg-[#00c4b4]/20 text-[#00c4b4]' : 'bg-teal-500/10 text-teal-600'}`}>
                   ⚙️
@@ -175,7 +163,6 @@ const LandingPage = () => {
                 <p className={`leading-relaxed text-sm ${isDarkMode ? 'text-[#cbd5e1]' : 'text-gray-600'}`}>Workouts that evolve instantly based on your fatigue levels, heart rate, and strength improvements.</p>
               </div>
 
-              {/* Feature 3 */}
               <div className={`p-10 rounded-3xl border soft-shadow group hover:-translate-y-1 transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] hover:border-[#00c4b4]' : 'bg-white border-gray-50 hover:border-teal-300'}`}>
                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform ${isDarkMode ? 'bg-[#00c4b4]/20 text-[#00c4b4]' : 'bg-teal-500/10 text-teal-600'}`}>
                   📊
@@ -187,7 +174,6 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* --- CTA Section --- */}
         <section className={`py-32 ${isDarkMode ? 'bg-[#1e293b]' : 'bg-white'}`} id="pricing">
           <div className="max-w-5xl mx-auto px-6 text-center">
             <div className={`p-12 lg:p-20 rounded-[3rem] border soft-shadow ${isDarkMode ? 'bg-gradient-to-br from-[#1e293b] to-[#334155] border-[#334155]' : 'bg-gradient-to-br from-[#f9fafb] to-white border-gray-100'}`}>
@@ -196,7 +182,7 @@ const LandingPage = () => {
                 Join 50,000+ athletes who are already training smarter, not harder. Start your 14-day premium trial today.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/register" className="bg-[#00c4b4] text-white px-12 py-5 rounded-xl text-lg font-bold shadow-2xl shadow-teal-500/40 hover:-translate-y-1 transition-all">
+                <Link to="/register" className="bg-[#00c4b4] !text-white px-12 py-5 rounded-xl text-lg font-bold shadow-2xl shadow-teal-500/40 hover:-translate-y-1 transition-all">
                   Start Free Trial
                 </Link>
                 <button className={`px-12 py-5 rounded-xl text-lg font-bold transition-all ${isDarkMode ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f]' : 'bg-[#142E5C] text-white hover:bg-[#142E5C]/90'}`}>
@@ -209,7 +195,6 @@ const LandingPage = () => {
         </section>
       </main>
 
-      {/* --- Footer --- */}
       <footer className={`border-t py-20 ${isDarkMode ? 'bg-[#0f172a] border-[#334155]' : 'bg-white border-gray-100'}`}>
         <div className="max-w-7xl mx-auto px-6">
           <div className={`grid grid-cols-1 md:grid-cols-4 gap-12 mb-16 ${isDarkMode ? 'text-[#cbd5e1]' : 'text-gray-900'}`}>
@@ -254,7 +239,7 @@ const LandingPage = () => {
             <p className={`text-xs ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-400'}`}>© 2025-{currentYear} All rights reserved.</p>
             <div className={`flex gap-6 ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-400'}`}>
               {['share', 'public', 'thumb_up'].map(icon => (
-                <button key={icon} className="hover:text-teal-500 transition-colors">
+                <button key={icon} className="hover:text-teal-500 transition-colors bg-transparent border-none">
                   {icon === 'share' ? '📤' : icon === 'public' ? '🌍' : '👍'}
                 </button>
               ))}

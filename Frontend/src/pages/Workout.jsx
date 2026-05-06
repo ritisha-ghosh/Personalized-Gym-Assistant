@@ -5,6 +5,7 @@ import { Calendar, Clock, BarChart3, Dumbbell, Play, CheckCircle2, Plus, Trash2 
 import { getWorkouts, addWorkout, deleteWorkout } from "../utils/storageUtils";
 import { AuthContext } from '../context/AuthContext';  // 👈 Import AuthContext
 import api from '../utils/api';
+import { DarkModeContext } from '../context/DarkModeContext'; // Import DarkModeContext
 
 const Workout = () => {
   // 2. Search Params Logic
@@ -12,6 +13,7 @@ const Workout = () => {
   const searchQuery = searchParams.get("q") || "";
   const { user } = useContext(AuthContext);  // 👈 Get logged-in user
 
+  const { isDarkMode } = useContext(DarkModeContext); // Get dark mode state
   const [activeTab, setActiveTab] = useState('Current Week');
   const [workouts, setWorkouts] = useState([]);
   const [userWorkoutPlans, setUserWorkoutPlans] = useState([]);
@@ -310,7 +312,7 @@ const Workout = () => {
           {/* Active Card (Monday) - Only show if it matches search */}
           {showMondayCard && (
             <div className="lg:col-span-1 xl:col-span-1 row-span-2">
-              <div className="bg-white p-6 rounded-[2rem] border-2 border-[#00c4b4] shadow-xl shadow-[#00c4b4]/10 h-full flex flex-col">
+              <div className={`p-6 rounded-[2rem] border-2 border-[#00c4b4] shadow-xl shadow-[#00c4b4]/10 h-full flex flex-col ${isDarkMode ? 'bg-transparent' : 'bg-white'}`}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <span className="text-xs font-bold text-[#00c4b4] uppercase tracking-wider">{mondayRoutine.day}</span>
@@ -327,7 +329,7 @@ const Workout = () => {
                     <span>Workout Progress</span>
                     <span className="text-[#00c4b4]">{progressPercentage}%</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className={`w-full h-2 rounded-full overflow-hidden border ${isDarkMode ? 'bg-transparent border-[#334155]' : 'bg-slate-100 border-slate-100'}`}> {/* Conditional background and border */}
                     <div
                       className="h-full bg-[#00c4b4] transition-all duration-500"
                       style={{ width: `${progressPercentage}%` }}
@@ -343,7 +345,10 @@ const Workout = () => {
                       <div
                         key={exercise.id}
                         onClick={() => toggleExercise(exercise.id)}
-                        className={`flex gap-4 items-center p-3 rounded-xl transition-all cursor-pointer border ${isDone ? 'bg-green-50 border-green-200' : 'hover:bg-slate-50 border-transparent'
+                        className={`flex gap-4 items-center p-3 rounded-xl transition-all cursor-pointer border
+                          ${isDone
+                            ? (isDarkMode ? 'bg-green-500/20 border-green-500/30' : 'bg-green-50 border-green-200')
+                            : (isDarkMode ? 'bg-transparent border-[#334155]/60 hover:bg-[#334155]/40' : 'bg-transparent border-slate-100 hover:bg-slate-50')
                           }`}
                       >
                         {/* Checkbox Icon */}
@@ -395,9 +400,9 @@ const Workout = () => {
 
           {/* Routine Cards (Filtered) */}
           {filteredRoutineCards.map((card, idx) => (
-            <div key={idx} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+            <div key={idx} className={`p-6 rounded-[2rem] border shadow-sm hover:shadow-md transition-shadow flex flex-col ${isDarkMode ? 'bg-transparent border-[#334155]' : 'bg-transparent border-slate-100'}`}>
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{card.day}</span>
-              <h3 className="text-xl font-bold text-slate-900 mb-6">{card.title}</h3>
+              <h3 className="text-xl font-bold  text-slate-900 mb-6">{card.title}</h3>
 
               {card.type === 'recovery' ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center py-8">

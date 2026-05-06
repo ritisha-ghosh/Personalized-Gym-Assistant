@@ -20,8 +20,8 @@ const WorkoutCard = () => {
         backdrop-blur-md
         transition-colors
         ${isDarkMode 
-          ? 'bg-[#1e293b]/60 border-[#334155]/60' 
-          : 'bg-white/70 border-slate-100/70'}
+          ? 'bg-transparent border-[#334155]/60' 
+          : 'bg-transparent border-slate-100/70'}
       `}
     >
       {/* Left Content */}
