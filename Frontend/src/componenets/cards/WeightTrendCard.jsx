@@ -1,21 +1,25 @@
-import React from "react";
+import React, { useContext } from "react";
 import WeightTrendChart from "../charts/WeightTrendChart";
+import { DarkModeContext } from "../../context/DarkModeContext";
 
 const WeightTrendCard = () => {
+  const { isDarkMode } = useContext(DarkModeContext);
+
   return (
     <div
-      className="
-        bg-white
+      className={`
         rounded-2xl
         p-6
         shadow-sm
-        border border-gray-100
+        border
         w-full
-      "
+        backdrop-blur-md
+        ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}
+      `}
     >
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-navy-blue">
+        <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
           Weight Trend (7 Days)
         </h3>
 

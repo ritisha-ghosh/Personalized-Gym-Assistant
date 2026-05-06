@@ -1,7 +1,24 @@
 /**
- * Local Storage Utility Functions
- * Handles all local storage operations for data persistence
+ * Local Storage Utility Functions - USER-SPECIFIC
+ * Each user's data is isolated and stored with their userId
  */
+
+// Helper to get YYYY-MM-DD from a Date object, respecting local timezone
+const toYYYYMMDD = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+// ===== HELPER: Generate User-Specific Keys =====
+const getUserStorageKey = (userId, dataType) => {
+  if (!userId) {
+    console.warn('⚠️ No userId provided - data will not be saved per user');
+    return dataType; // Fallback (shouldn't happen)
+  }
+  return `${userId}_${dataType}`;
+};
 
 const STORAGE_KEYS = {
   USER_PROFILE: 'user_profile',
@@ -9,16 +26,20 @@ const STORAGE_KEYS = {
   NUTRITION: 'nutrition',
   PROGRESSION: 'progression',
   SETTINGS: 'settings',
+  LOGIN_DATES: 'login_dates',
 };
 
 // ===== USER PROFILE =====
-export const getUserProfile = () => {
-  const data = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
+export const getUserProfile = (userId) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.USER_PROFILE);
+  const data = localStorage.getItem(key);
   return data ? JSON.parse(data) : getDefaultUserProfile();
 };
 
-export const saveUserProfile = (profileData) => {
-  localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(profileData));
+export const saveUserProfile = (userId, profileData) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.USER_PROFILE);
+  localStorage.setItem(key, JSON.stringify(profileData));
+  console.log(`✅ Profile saved for user ${userId}`);
   return profileData;
 };
 
@@ -35,75 +56,94 @@ const getDefaultUserProfile = () => ({
   bio: 'Training for fitness goals',
 });
 
-// ===== WORKOUTS =====
-export const getWorkouts = () => {
-  const data = localStorage.getItem(STORAGE_KEYS.WORKOUTS);
+// ===== WORKOUTS - USER-SPECIFIC =====
+export const getWorkouts = (userId) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.WORKOUTS);
+  const data = localStorage.getItem(key);
+  console.log(`📥 Getting workouts for user ${userId}: ${data ? JSON.parse(data).length : 0} items`);
   return data ? JSON.parse(data) : [];
 };
 
-export const addWorkout = (workout) => {
-  const workouts = getWorkouts();
+export const addWorkout = (userId, workout) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.WORKOUTS);
+  const workouts = getWorkouts(userId);
   const newWorkout = {
     id: Date.now(),
+    userId: userId, // 👈 Store userId with data
     createdAt: new Date().toISOString(),
     ...workout,
   };
   workouts.push(newWorkout);
-  localStorage.setItem(STORAGE_KEYS.WORKOUTS, JSON.stringify(workouts));
+  localStorage.setItem(key, JSON.stringify(workouts));
+  console.log(`✅ Workout added for user ${userId}`);
   return newWorkout;
 };
 
-export const updateWorkout = (id, updates) => {
-  const workouts = getWorkouts();
+export const updateWorkout = (userId, id, updates) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.WORKOUTS);
+  const workouts = getWorkouts(userId);
   const index = workouts.findIndex(w => w.id === id);
   if (index !== -1) {
     workouts[index] = { ...workouts[index], ...updates, updatedAt: new Date().toISOString() };
-    localStorage.setItem(STORAGE_KEYS.WORKOUTS, JSON.stringify(workouts));
+    localStorage.setItem(key, JSON.stringify(workouts));
+    console.log(`✅ Workout updated for user ${userId}`);
     return workouts[index];
   }
   return null;
 };
 
-export const deleteWorkout = (id) => {
-  const workouts = getWorkouts();
+export const deleteWorkout = (userId, id) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.WORKOUTS);
+  const workouts = getWorkouts(userId);
   const filtered = workouts.filter(w => w.id !== id);
-  localStorage.setItem(STORAGE_KEYS.WORKOUTS, JSON.stringify(filtered));
+  localStorage.setItem(key, JSON.stringify(filtered));
+  console.log(`✅ Workout deleted for user ${userId}`);
   return true;
 };
 
-// ===== NUTRITION =====
-export const getNutrition = () => {
-  const data = localStorage.getItem(STORAGE_KEYS.NUTRITION);
+// ===== NUTRITION - USER-SPECIFIC =====
+export const getNutrition = (userId) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.NUTRITION);
+  const data = localStorage.getItem(key);
+  console.log(`📥 Getting nutrition for user ${userId}: ${data ? JSON.parse(data).length : 0} items`);
   return data ? JSON.parse(data) : [];
 };
 
-export const addNutrition = (nutrition) => {
-  const items = getNutrition();
+export const addNutrition = (userId, nutrition) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.NUTRITION);
+  const items = getNutrition(userId);
   const newItem = {
     id: Date.now(),
+    userId: userId, // 👈 Store userId with data
     createdAt: new Date().toISOString(),
     ...nutrition,
   };
   items.push(newItem);
-  localStorage.setItem(STORAGE_KEYS.NUTRITION, JSON.stringify(items));
+  localStorage.setItem(key, JSON.stringify(items));
+  console.log(`✅ Meal added for user ${userId}`);
   return newItem;
 };
 
-export const deleteNutrition = (id) => {
-  const items = getNutrition();
+export const deleteNutrition = (userId, id) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.NUTRITION);
+  const items = getNutrition(userId);
   const filtered = items.filter(item => item.id !== id);
-  localStorage.setItem(STORAGE_KEYS.NUTRITION, JSON.stringify(filtered));
+  localStorage.setItem(key, JSON.stringify(filtered));
+  console.log(`✅ Meal deleted for user ${userId}`);
   return true;
 };
 
-// ===== PROGRESSION =====
-export const getProgression = () => {
-  const data = localStorage.getItem(STORAGE_KEYS.PROGRESSION);
+// ===== PROGRESSION - USER-SPECIFIC =====
+export const getProgression = (userId) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.PROGRESSION);
+  const data = localStorage.getItem(key);
   return data ? JSON.parse(data) : getDefaultProgression();
 };
 
-export const updateProgression = (progressionData) => {
-  localStorage.setItem(STORAGE_KEYS.PROGRESSION, JSON.stringify(progressionData));
+export const updateProgression = (userId, progressionData) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.PROGRESSION);
+  localStorage.setItem(key, JSON.stringify(progressionData));
+  console.log(`✅ Progression updated for user ${userId}`);
   return progressionData;
 };
 
@@ -118,14 +158,17 @@ const getDefaultProgression = () => ({
   ],
 });
 
-// ===== SETTINGS =====
-export const getSettings = () => {
-  const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+// ===== SETTINGS - USER-SPECIFIC =====
+export const getSettings = (userId) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.SETTINGS);
+  const data = localStorage.getItem(key);
   return data ? JSON.parse(data) : getDefaultSettings();
 };
 
-export const saveSettings = (settings) => {
-  localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+export const saveSettings = (userId, settings) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.SETTINGS);
+  localStorage.setItem(key, JSON.stringify(settings));
+  console.log(`✅ Settings saved for user ${userId}`);
   return settings;
 };
 
@@ -139,9 +182,70 @@ const getDefaultSettings = () => ({
   twoFactor: true,
 });
 
-// ===== CLEAR ALL DATA =====
+// ===== LOGIN TRACKING - USER-SPECIFIC =====
+export const trackLogin = (userId) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.LOGIN_DATES);
+  const loginDates = localStorage.getItem(key);
+  const dates = loginDates ? JSON.parse(loginDates) : [];
+  
+  // Get today's date in YYYY-MM-DD format, respecting local timezone
+  const today = toYYYYMMDD(new Date());
+  
+  // Only add if today's date is not already in the list
+  if (!dates.includes(today)) {
+    dates.push(today);
+    localStorage.setItem(key, JSON.stringify(dates));
+    console.log(`✅ Login tracked for user ${userId} on ${today}`);
+  }
+  
+  return dates;
+};
+
+export const getLoginDates = (userId) => {
+  const key = getUserStorageKey(userId, STORAGE_KEYS.LOGIN_DATES);
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : [];
+};
+
+export const getLoginHeatmapData = (userId) => {
+  const loginDates = getLoginDates(userId);
+  // Count logins per day for intensity visualization
+  const loginCounts = {};
+  loginDates.forEach(date => {
+    loginCounts[date] = (loginCounts[date] || 0) + 1;
+  });
+  
+  // Generate 365 day heatmap data
+  const today = new Date();
+  const heatmapData = [];
+  
+  for (let i = 364; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = toYYYYMMDD(date); // Use local timezone-safe formatter
+    heatmapData.push({
+      date: dateStr,
+      hasLogin: loginDates.includes(dateStr),
+      count: loginCounts[dateStr] || 0,
+    });
+  }
+  
+  return heatmapData;
+};
+
+// ===== CLEAR USER-SPECIFIC DATA (When Logout) =====
+export const clearUserData = (userId) => {
+  Object.values(STORAGE_KEYS).forEach(dataType => {
+    const key = getUserStorageKey(userId, dataType);
+    localStorage.removeItem(key);
+  });
+  console.log(`✅ All data cleared for user ${userId}`);
+};
+
+// ===== CLEAR ALL DATA (Emergency) =====
 export const clearAllData = () => {
   Object.values(STORAGE_KEYS).forEach(key => {
     localStorage.removeItem(key);
   });
+  console.log('🧹 All localStorage cleared');
 };

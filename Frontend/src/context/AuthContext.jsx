@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { trackLogin } from '../utils/storageUtils';
 
 export const AuthContext = createContext();
 
@@ -8,18 +9,37 @@ export const AuthProvider = ({ children }) => {
 
   // Check for logged-in user on refresh
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    try {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        // Track login for today when page loads
+        if (userData?.id) {
+          trackLogin(userData.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = (userData, tokens) => {
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('accessToken', tokens.accessToken);
-    localStorage.setItem('refreshToken', tokens.refreshToken);
-    setUser(userData);
+    try {
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('accessToken', tokens.accessToken);
+      localStorage.setItem('refreshToken', tokens.refreshToken);
+      setUser(userData);
+      
+      // Track login date
+      if (userData?.id) {
+        trackLogin(userData.id);
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+    }
   };
 
   const logout = () => {

@@ -3,7 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const authMiddleware = require("../middleware/authMiddleware");
 const { 
-  getUserProfile, 
+  getUserProfile, // Now imported from userController
   updateUserProfile, 
   updateUserSettings,
   updatePassword,
@@ -40,6 +40,7 @@ const router = express.Router();
 
 // All routes are protected
 router.get("/profile", authMiddleware, getUserProfile);
+router.put("/profile", authMiddleware, updateUserProfile); // New route for name/email updates
 router.put("/update-profile", authMiddleware, upload.single('profileImage'), updateUserProfile);
 router.put("/update-settings", authMiddleware, updateUserSettings);
 router.put("/update-password", authMiddleware, updatePassword);

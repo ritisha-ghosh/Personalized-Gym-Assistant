@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../../api'; // Ensure this path matches your file structure
+import api from '../services/api';
+import { DarkModeContext } from '../context/DarkModeContext';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
+  const { isDarkMode } = useContext(DarkModeContext);
 
-  // --- States ---
   const [loading, setLoading] = useState(false);
-  const [backendError, setBackendError] = useState(''); // Renamed to avoid conflicts
+  const [backendError, setBackendError] = useState('');
   
   const [experience, setExperience] = useState('Beginner');
   const [exclusions, setExclusions] = useState([]);
@@ -26,7 +27,6 @@ const RegisterPage = () => {
     setLoading(true);
     setBackendError('');
 
-    // Construct the payload matching the Backend User Schema
     const payload = {
       name: formData.name,
       email: formData.email,
@@ -45,12 +45,10 @@ const RegisterPage = () => {
     };
 
     try {
-      // Send data to Backend
-      const response = await api.post('/auth/signup', payload);
+      const response = await api.post('/auth/send-otp', payload);
       
       if (response.data) {
-        alert("Registration Successful! Please Log In.");
-        navigate('/login'); // Redirect to Login on success
+        navigate('/verify-otp', { state: { email: formData.email } });
       }
     } catch (err) {
       console.error(err);
@@ -68,7 +66,6 @@ const RegisterPage = () => {
     "Sugar Free"
   ];
 
-  // ADD FORM DATA AND HANDLES ERRORS 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -77,18 +74,17 @@ const RegisterPage = () => {
     weight: '',
     height: '',
     gender: '',
-    fitnessGoal: 'fat loss', // FIXED: Default matches DB schema
-    dietType: 'non-vegetarian', // FIXED: Default matches DB schema
+    fitnessGoal: 'fat loss',
+    dietType: 'non-vegetarian',
     activityLevel: 'moderate',
     injuryStatus: ''
   });
 
   const [errors, setErrors] = useState({});
 
-  // Real-time validation function
   const validate = (name, value) => {
     let error = "";
-    if (value === "") return ""; // Prevent error on empty string while typing
+    if (value === "") return "";
 
     const num = Number(value);
     if (name === "age" && (num < 10 || num > 100)) {
@@ -107,20 +103,17 @@ const RegisterPage = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Validate on the fly
     const error = validate(name, value);
     setErrors({ ...errors, [name]: error });
   };
 
   return (
-    <div className="flex min-h-screen bg-white font-sans">
+    <div className={`flex min-h-screen font-sans ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-white'}`}>
 
-      {/* LEFT SIDE: MOTIVATIONAL PANEL (Hidden on small screens) */}
-      <div className="hidden lg:flex w-1/3 bg-[#e0f7f1] p-12 flex-col justify-between relative overflow-hidden">
+      <div className={`hidden lg:flex w-1/3 p-12 flex-col justify-between relative overflow-hidden ${isDarkMode ? 'bg-[#1e293b] border-r border-[#334155]' : 'bg-[#e0f7f1]'}`}>
         <div>
-          {/* Linked Logo */}
           <Link to="/" className="flex items-center gap-2 mb-16 hover:opacity-80 transition-opacity w-fit">
-            <div className="w-8 h-8 bg-[#db2777] rounded-md flex items-center justify-center rotate-45">
+            <div className="w-8 h-8 bg-[#00c4b4] rounded-md flex items-center justify-center rotate-45">
               <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
             </div>
             <span className="text-xl font-bold text-slate-800 tracking-tight">Gym & Fitness Assistant</span>
@@ -139,12 +132,11 @@ const RegisterPage = () => {
           </div>
         </div>
 
-        {/* Floating Image Placeholder */}
         <div className="relative flex justify-center">
-          <div className="w-64 h-64 bg-[#4fd1c5] rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden border-8 border-white/20">
-            <div className="w-40 h-10 bg-slate-200 rounded-full flex items-center px-4 gap-2">
+          <div className={`w-64 h-64 rounded-3xl shadow-2xl flex items-center justify-center overflow-hidden border-8 ${isDarkMode ? 'bg-teal-600 border-[#334155]' : 'bg-[#4fd1c5] border-white/20'}`}>
+            <div className={`w-40 h-10 rounded-full flex items-center px-4 gap-2 ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}>
               <div className="w-6 h-6 bg-pink-300 rounded-md"></div>
-              <div className="w-20 h-2 bg-slate-300 rounded"></div>
+              <div className={`w-20 h-2 rounded ${isDarkMode ? 'bg-slate-600' : 'bg-slate-300'}`}></div>
             </div>
           </div>
         </div>
@@ -153,10 +145,8 @@ const RegisterPage = () => {
 
       </div>
 
-      {/* RIGHT SIDE: REGISTRATION FORM */}
       <div className="flex-1 flex flex-col p-8 lg:p-16 overflow-y-auto">
 
-        {/* Top Link */}
         <div className="text-right mb-8">
           <p className="text-sm text-slate-500">
             Already a member? <Link to="/login" className="text-[#db2777] font-bold hover:underline">Log In</Link>
@@ -171,14 +161,12 @@ const RegisterPage = () => {
 
           <form className="space-y-10" onSubmit={handleSubmit}>
 
-            {/* Display Backend Error if exists */}
             {backendError && (
               <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold">
                 {backendError}
               </div>
             )}
 
-            {/* SECTION 1: Personal Details */}
             <section>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-pink-50 rounded-lg text-[#db2777]">
@@ -197,7 +185,7 @@ const RegisterPage = () => {
                     onChange={handleInputChange}
                     placeholder="e.g. Alex Johnson" 
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-teal-500 outline-none transition-all" 
                   />
                 </div>
                 <div>
@@ -209,7 +197,7 @@ const RegisterPage = () => {
                     onChange={handleInputChange}
                     placeholder="alex@example.com" 
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-teal-500 outline-none transition-all" 
                   />
                 </div>
                 <div>
@@ -221,13 +209,12 @@ const RegisterPage = () => {
                     onChange={handleInputChange}
                     placeholder="••••••••" 
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-pink-500 outline-none transition-all" 
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50/50 focus:border-teal-500 outline-none transition-all" 
                   />
                 </div>
               </div>
             </section>
 
-            {/* SECTION 2: Fitness Metrics */}
             <section>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-pink-50 rounded-lg text-[#db2777]">
@@ -237,21 +224,19 @@ const RegisterPage = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-6">
-              {/* AGE INPUT VALIDATION CHECK */}
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Age</label>
                   <input
                     type="number"
-                    name="age" // Add name attribute
+                    name="age"
                     value={formData.age}
                     onChange={handleInputChange}
-                    placeholder="25"
-                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.age ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
+                    placeholder="Age in Years"
+                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.age ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-teal-500"
                       }`}
                   />
                   {errors.age && <p className="text-[10px] text-red-500 mt-1 font-bold">{errors.age}</p>}
                 </div>
-                {/* WEIGHT INPUT VALIDATION CHECK */}
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Weight (KG)</label>
                   <input
@@ -259,13 +244,12 @@ const RegisterPage = () => {
                     name="weight"
                     value={formData.weight}
                     onChange={handleInputChange}
-                    placeholder="70"
-                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.weight ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
+                    placeholder="Weight in KG"
+                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.weight ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-teal-500"
                       }`}
                   />
                   {errors.weight && <p className="text-[9px] text-red-500 mt-1 font-bold">{errors.weight}</p>}
                 </div>
-                {/* HEIGHT INPUT VALIDATION CHECK */}
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Height (CM)</label>
                   <input
@@ -273,8 +257,8 @@ const RegisterPage = () => {
                     name="height"
                     value={formData.height}
                     onChange={handleInputChange}
-                    placeholder="175"
-                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.height ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-pink-500"
+                    placeholder="Height in CM"
+                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all ${errors.height ? "border-red-500 bg-red-50 text-red-900" : "border-slate-200 focus:border-teal-500"
                       }`}
                   />
                   {errors.height && <p className="text-[9px] text-red-500 mt-1 font-bold">{errors.height}</p>}
@@ -289,7 +273,7 @@ const RegisterPage = () => {
                     value={formData.gender}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
                   >
                     <option value="" disabled>Select</option>
                     <option value="Male">Male</option>
@@ -303,9 +287,8 @@ const RegisterPage = () => {
                     name="fitnessGoal"
                     value={formData.fitnessGoal}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
                   >
-                    {/* FIXED: MATCHES MONGOOSE SCHEMA */}
                     <option value="fat loss">Fat Loss</option>
                     <option value="muscle gain">Muscle Gain</option>
                     <option value="maintenance">Maintenance</option>
@@ -323,10 +306,15 @@ const RegisterPage = () => {
                       key={level}
                       type="button"
                       onClick={() => setExperience(level)}
-                      className={`py-3 px-2 rounded-xl border-2 font-bold text-sm transition-all duration-200 ${experience === level
-                        ? "border-[#db2777] bg-[#db2777] text-white shadow-md shadow-pink-100"
-                        : "border-slate-100 text-slate-700 hover:border-slate-200 bg-transparent"
-                        }`}
+                      className={`py-3 px-2 rounded-xl border-2 font-bold text-sm transition-all duration-200 ${
+                        experience === level
+                          ? "!bg-teal-500 !border-teal-500 !text-white shadow-md shadow-teal-500/20"
+                          : `!bg-transparent ${
+                              isDarkMode 
+                                ? "!border-slate-600 !text-slate-300 hover:!border-teal-400 hover:!text-teal-400" 
+                                : "!border-slate-200 !text-slate-600 hover:!border-teal-500 hover:!text-teal-500"
+                            }`
+                      }`}
                     >
                       {level}
                     </button>
@@ -335,7 +323,6 @@ const RegisterPage = () => {
               </div>
             </section>
 
-            {/* SECTION 3: Nutrition & Lifestyle (New) */}
             <section>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-pink-50 rounded-lg text-[#db2777]">
@@ -352,9 +339,8 @@ const RegisterPage = () => {
                     value={formData.dietType}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
                   >
-                    {/* FIXED: MATCHES MONGOOSE SCHEMA */}
                     <option value="" disabled>Select Diet</option>
                     <option value="non-vegetarian">Non-Vegetarian (Omnivore)</option>
                     <option value="vegetarian">Vegetarian</option>
@@ -366,7 +352,7 @@ const RegisterPage = () => {
                     name="activityLevel"
                     value={formData.activityLevel}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-pink-500 appearance-none text-slate-700"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
                   >
                     <option value="sedentary">Sedentary (Office Job)</option>
                     <option value="light">Lightly Active</option>
@@ -384,10 +370,15 @@ const RegisterPage = () => {
                       key={item}
                       type="button"
                       onClick={() => toggleExclusion(item)}
-                      className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${exclusions.includes(item)
-                        ? "bg-pink-100 text-[#db2777] border-[#db2777]"
-                        : "bg-white text-slate-500 border-slate-200 hover:border-pink-300"
-                        }`}
+                      className={`px-4 py-2 rounded-full text-xs font-bold border-2 transition-all duration-200 ${
+                        exclusions.includes(item)
+                          ? "!bg-teal-500 !border-teal-500 !text-white shadow-md shadow-teal-500/20"
+                          : `!bg-transparent ${
+                              isDarkMode
+                                ? "!border-slate-600 !text-slate-300 hover:!border-teal-400 hover:!text-teal-400"
+                                : "!border-slate-200 !text-slate-500 hover:!border-teal-500 hover:!text-teal-500"
+                            }`
+                      }`}
                     >
                       {item}
                     </button>
@@ -403,20 +394,18 @@ const RegisterPage = () => {
                   value={formData.injuryStatus}
                   onChange={handleInputChange}
                   placeholder="e.g. Lower Back Pain, Asthma..." 
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-pink-500" 
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-teal-500" 
                 />
               </div>
             </section>
 
-            {/* Submit Button */}
             <div className="pt-2">
-            {/* UPDATE SUBMIT BUTTON AS VALIDATION CHECK */}
               <button
                 type="submit"
                 disabled={Object.values(errors).some(err => err !== "") || !formData.age || loading}
                 className={`w-full font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 ${Object.values(errors).some(err => err !== "") || !formData.age || loading
                     ? "bg-slate-300 cursor-not-allowed text-slate-500"
-                    : "bg-[#db2777] hover:bg-[#be185d] text-white shadow-pink-100"
+                    : "bg-[#00c4b4] hover:bg-[#00a89f] text-white shadow-teal-100"
                   }`}
               >
                 {loading ? 'Creating Profile...' : 'Complete Registration'}

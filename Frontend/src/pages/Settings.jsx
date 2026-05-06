@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom'; // 1. Import Hook
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Layout from "../componenets/layout/Layout";
 import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
+import { DarkModeContext } from '../context/DarkModeContext';
 
 import { 
   User, 
@@ -10,6 +11,7 @@ import {
   Shield, 
   Smartphone, 
   Moon, 
+  Sun,
   Globe, 
   ChevronRight, 
   LogOut, 
@@ -19,19 +21,20 @@ import {
   Lock
 } from 'lucide-react';
 
-const Settings = () => {
-  const navigate = useNavigate();
-  const { user, logout } = useContext(AuthContext);
+const Settings = () => { // Renamed from Settings to Settings
+  const navigate = useNavigate(); // Assuming this is used for navigation
+  const { user, logout, setUser } = useContext(AuthContext); // Destructure setUser here
+  const { isDarkMode, setDarkMode } = useContext(DarkModeContext);
   const [activeTab, setActiveTab] = useState('account');
   const [isLoading, setIsLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   
-  // 2. Search Params Logic
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
 
-  // --- State for Dynamic Settings ---
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -41,14 +44,13 @@ const Settings = () => {
     confirmPassword: '',
     units: 'Metric (kg/cm)',
     language: 'English (US)',
-    theme: 'Light',
+    theme: isDarkMode ? 'Dark' : 'Light',
     emailNotifs: true,
     pushNotifs: true,
     marketingEmails: false,
     twoFactor: true,
   });
 
-  // Fetch user data on mount
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -70,35 +72,47 @@ const Settings = () => {
     fetchUserData();
   }, []);
 
-  // --- Handlers ---
   const handleToggle = (key) => {
     setFormData(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    if (name === 'theme') {
+      const isDark = value === 'Dark';
+      setDarkMode(isDark);
+    }
   };
 
-  const handleSaveSettings = async () => {
+  // Function to handle saving account information (name, email)
+  const handleSaveAccountInfo = async () => {
+    // Combine first and last name for the backend
+    const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+
     setIsLoading(true);
     setSaveStatus('Saving...');
     try {
-      await api.put('/users/update-settings', {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        units: formData.units,
-        language: formData.language,
-        theme: formData.theme,
-        emailNotifs: formData.emailNotifs,
-        pushNotifs: formData.pushNotifs,
-        marketingEmails: formData.marketingEmails,
-        twoFactor: formData.twoFactor
+      const response = await api.put('/users/profile', {
+        name: fullName,
+        email: formData.email, // Email is disabled, so it won't change, but we send it for consistency
       });
-      setSaveStatus('Settings updated successfully!');
+      const updatedUser = response.data;
+
+      // Update AuthContext to reflect the new name and email across the app
+      if (user && setUser) {
+        setUser(prevUser => ({
+          ...prevUser,
+          name: updatedUser.name,
+          email: updatedUser.email,
+        }));
+      }
+
+      setSaveStatus('Account information updated successfully!');
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (error) {
-      setSaveStatus('Error saving settings: ' + (error.response?.data?.message || 'Unknown error'));
+      setSaveStatus('Error updating account information: ' + (error.response?.data?.message || 'Unknown error'));
     } finally {
       setIsLoading(false);
     }
@@ -136,76 +150,70 @@ const Settings = () => {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!window.confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+  const handleDeleteAccount = () => {
+    setIsDeleteModalOpen(true);
+    setSaveStatus('');
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!deletePassword) {
+      setSaveStatus('Error: Password is required to delete your account.');
       return;
     }
-
-    const password = prompt('Please enter your password to confirm account deletion:');
-    if (!password) return;
-
+  
     setIsLoading(true);
     setSaveStatus('Deleting account...');
     try {
       await api.delete('/users/delete-account', {
-        data: { password }
+        data: { password: deletePassword }
       });
+      setIsDeleteModalOpen(false);
       logout();
       navigate('/');
-      setSaveStatus('Account deleted successfully');
     } catch (error) {
       setSaveStatus('Error: ' + (error.response?.data?.message || 'Failed to delete account'));
     } finally {
       setIsLoading(false);
+      setDeletePassword('');
     }
   };
 
-  // --- 3. SMART NAVIGATION CONFIGURATION ---
-  // Define keywords for each tab. If a search matches a keyword, we switch to that tab.
   const tabs = [
     { 
       id: 'account', 
       label: 'Account', 
       icon: User, 
-      // Keywords that should trigger the 'Account' tab
       keywords: ['name', 'first name', 'last name', 'email', 'profile', 'google', 'connect', 'disconnect', 'personal information'] 
     },
     { 
       id: 'preferences', 
       label: 'Preferences', 
       icon: Smartphone, 
-      // Keywords that should trigger the 'Preferences' tab
       keywords: ['theme', 'dark mode', 'light mode', 'language', 'english', 'spanish', 'units', 'metric', 'imperial', 'appearance', 'region'] 
     },
     { 
       id: 'notifications', 
       label: 'Notifications', 
       icon: Bell, 
-      // Keywords that should trigger the 'Notifications' tab
       keywords: ['email notifications', 'push', 'alert', 'marketing', 'promotions', 'updates', 'messages'] 
     },
     { 
       id: 'security', 
       label: 'Security', 
       icon: Shield, 
-      // Keywords that should trigger the 'Security' tab
       keywords: ['password', 'change password', '2fa', 'two-factor', 'two factor', 'authentication', 'delete account', 'danger zone', 'login'] 
     },
   ];
 
-  // --- 4. AUTO-SWITCH LOGIC ---
-  // This effect runs every time the search query changes
   useEffect(() => {
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       
-      // Find the tab where the Label OR any Keyword matches the search query
       const match = tabs.find(tab => 
         tab.label.toLowerCase().includes(lowerQuery) || 
         tab.keywords.some(keyword => keyword.includes(lowerQuery))
       );
 
-      // If a matching tab is found and it's not the current one, switch to it
       if (match && match.id !== activeTab) {
         setActiveTab(match.id);
       }
@@ -214,33 +222,29 @@ const Settings = () => {
 
   return (
     <Layout>
-      {/* Inject Fonts locally */}
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           body { font-family: 'Plus Jakarta Sans', sans-serif; }
           
-          /* Custom Toggle Switch */
           .toggle-checkbox:checked {
             right: 0;
-            border-color: #df20af;
+            border-color: #00c4b4;
           }
           .toggle-checkbox:checked + .toggle-label {
-            background-color: #df20af;
+            background-color: #00c4b4;
           }
         `}
       </style>
 
       <div className="font-sans text-slate-900 max-w-5xl mx-auto">
         
-        {/* --- Header --- */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
           <p className="text-slate-500 text-sm mt-1">Manage your account preferences and app settings.</p>
           
-          {/* Smart Search Feedback Message */}
           {searchQuery && (
-             <p className="text-sm font-bold text-[#df20af] mt-2 animate-pulse transition-all">
+             <p className="text-sm font-bold text-[#00c4b4] mt-2 animate-pulse transition-all">
                Searching for "{searchQuery}"... <span className="text-slate-400 font-normal">Found in {tabs.find(t => t.id === activeTab)?.label}</span>
              </p>
           )}
@@ -248,7 +252,6 @@ const Settings = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* --- Sidebar Navigation --- */}
           <div className="w-full lg:w-64 flex-shrink-0">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden sticky top-24">
               <nav className="flex flex-col p-2">
@@ -258,7 +261,7 @@ const Settings = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                       activeTab === tab.id 
-                        ? 'bg-[#df20af]/10 text-[#df20af]' 
+                        ? 'bg-[#00c4b4]/10 text-[#00c4b4]' 
                         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                     }`}
                   >
@@ -276,10 +279,8 @@ const Settings = () => {
             </div>
           </div>
 
-          {/* --- Main Content Area --- */}
           <div className="flex-1 space-y-6">
             
-            {/* Account Settings */}
             {activeTab === 'account' && (
               <div className="space-y-6 animate-fade-in">
                 <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
@@ -287,7 +288,7 @@ const Settings = () => {
                     <h2 className="text-lg font-bold">Personal Information</h2>
                     <button
                       onClick={() => setIsEditMode(!isEditMode)}
-                      className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                      className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 py-2 rounded-xl text-sm font-bold transition-all"
                     >
                       {isEditMode ? 'Close' : 'Edit'}
                     </button>
@@ -301,7 +302,7 @@ const Settings = () => {
                           name="firstName"
                           value={formData.firstName}
                           onChange={handleChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                         />
                       </div>
                       <div className="space-y-2">
@@ -310,7 +311,7 @@ const Settings = () => {
                           name="lastName"
                           value={formData.lastName}
                           onChange={handleChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">
@@ -321,7 +322,9 @@ const Settings = () => {
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                            disabled
+                            title="Email address cannot be changed"
+                            className="w-full pl-11 bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-500 cursor-not-allowed outline-none transition-all"
                           />
                         </div>
                       </div>
@@ -340,9 +343,9 @@ const Settings = () => {
                           Cancel
                         </button>
                         <button 
-                          onClick={handleSaveSettings}
+                          onClick={handleSaveAccountInfo} // Use the specific function for account info
                           disabled={isLoading}
-                          className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70 text-sm"
+                          className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70 text-sm"
                         >
                           {isLoading ? '...' : <><Save size={16} /> Save Changes</>}
                         </button>
@@ -377,7 +380,6 @@ const Settings = () => {
               </div>
             )}
 
-            {/* Preferences */}
             {activeTab === 'preferences' && (
               <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 animate-fade-in space-y-8">
                 
@@ -405,7 +407,7 @@ const Settings = () => {
 
                 <div className="flex items-center justify-between pb-6 border-b border-slate-100">
                   <div className="flex gap-4">
-                    <div className="w-10 h-10 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-pink-50 text-teal-500 rounded-full flex items-center justify-center">
                       <Moon size={20} />
                     </div>
                     <div>
@@ -449,11 +451,9 @@ const Settings = () => {
               </div>
             )}
 
-            {/* Notifications */}
             {activeTab === 'notifications' && (
               <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 animate-fade-in space-y-8">
                 
-                {/* Toggle Item */}
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm">Email Notifications</h3>
@@ -467,16 +467,15 @@ const Settings = () => {
                       checked={formData.emailNotifs}
                       onChange={() => handleToggle('emailNotifs')}
                       className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 ease-in-out"
-                      style={formData.emailNotifs ? { right: 0, borderColor: '#df20af' } : { right: '50%', borderColor: '#e2e8f0' }}
+                      style={formData.emailNotifs ? { right: 0, borderColor: '#00c4b4' } : { right: '50%', borderColor: '#e2e8f0' }}
                     />
                     <label 
                       htmlFor="emailNotifs" 
-                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.emailNotifs ? 'bg-[#df20af]' : 'bg-slate-200'}`}
+                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.emailNotifs ? 'bg-[#00c4b4]' : 'bg-slate-200'}`}
                     ></label>
                   </div>
                 </div>
 
-                {/* Toggle Item */}
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm">Push Notifications</h3>
@@ -490,16 +489,15 @@ const Settings = () => {
                       checked={formData.pushNotifs}
                       onChange={() => handleToggle('pushNotifs')}
                       className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 ease-in-out"
-                      style={formData.pushNotifs ? { right: 0, borderColor: '#df20af' } : { right: '50%', borderColor: '#e2e8f0' }}
+                      style={formData.pushNotifs ? { right: 0, borderColor: '#00c4b4' } : { right: '50%', borderColor: '#e2e8f0' }}
                     />
                     <label 
                       htmlFor="pushNotifs" 
-                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.pushNotifs ? 'bg-[#df20af]' : 'bg-slate-200'}`}
+                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.pushNotifs ? 'bg-[#00c4b4]' : 'bg-slate-200'}`}
                     ></label>
                   </div>
                 </div>
 
-                 {/* Toggle Item */}
                  <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-slate-900 text-sm">Marketing Emails</h3>
@@ -513,11 +511,11 @@ const Settings = () => {
                       checked={formData.marketingEmails}
                       onChange={() => handleToggle('marketingEmails')}
                       className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 ease-in-out"
-                      style={formData.marketingEmails ? { right: 0, borderColor: '#df20af' } : { right: '50%', borderColor: '#e2e8f0' }}
+                      style={formData.marketingEmails ? { right: 0, borderColor: '#00c4b4' } : { right: '50%', borderColor: '#e2e8f0' }}
                     />
                     <label 
                       htmlFor="marketingEmails" 
-                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.marketingEmails ? 'bg-[#df20af]' : 'bg-slate-200'}`}
+                      className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.marketingEmails ? 'bg-[#00c4b4]' : 'bg-slate-200'}`}
                     ></label>
                   </div>
                 </div>
@@ -525,7 +523,6 @@ const Settings = () => {
               </div>
             )}
 
-            {/* Security */}
             {activeTab === 'security' && (
               <div className="space-y-6 animate-fade-in">
                 <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
@@ -533,7 +530,12 @@ const Settings = () => {
                   
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Current Password</label>
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Current Password</label>
+                        <Link to="/forgot-password" className="text-xs font-bold text-[#00c4b4] hover:underline">
+                          Forgot Password?
+                        </Link>
+                      </div>
                       <div className="relative">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input 
@@ -541,7 +543,7 @@ const Settings = () => {
                           name="currentPassword"
                           value={formData.currentPassword}
                           onChange={handleChange}
-                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -554,7 +556,7 @@ const Settings = () => {
                           name="newPassword"
                           value={formData.newPassword}
                           onChange={handleChange}
-                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -567,7 +569,7 @@ const Settings = () => {
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleChange}
-                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#df20af]/20 focus:border-[#df20af] outline-none transition-all"
+                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -583,7 +585,7 @@ const Settings = () => {
                     <button 
                       onClick={handleChangePassword}
                       disabled={isLoading}
-                      className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70"
+                      className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70"
                     >
                       {isLoading ? '...' : 'Update Password'}
                     </button>
@@ -606,26 +608,44 @@ const Settings = () => {
               </div>
             )}
 
-            {/* Save Button (Global for Preferences/Notifications) */}
-            {(activeTab === 'preferences' || activeTab === 'notifications') && (
-              <div className="flex justify-end pt-4">
-                <button 
-                  onClick={handleSaveSettings}
-                  disabled={isLoading}
-                  className="flex items-center gap-2 bg-[#df20af] hover:bg-[#c91d9d] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-[#df20af]/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-wait"
-                >
-                  {isLoading ? (
-                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                  ) : (
-                    <Save size={18} />
-                  )}
-                  {isLoading ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            )}
-
           </div>
         </div>
+
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+            <div className="bg-white p-8 rounded-2xl shadow-lg max-w-sm w-full">
+              <h2 className="text-lg font-bold text-red-600">Confirm Account Deletion</h2>
+              <p className="text-sm text-slate-500 mt-2 mb-4">
+                This action is irreversible. To confirm, please enter your password.
+              </p>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all"
+              />
+              {saveStatus.includes('Error') && (
+                <p className="text-red-500 text-xs mt-2 font-bold">{saveStatus}</p>
+              )}
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteAccount}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70 text-sm"
+                >
+                  {isLoading ? 'Deleting...' : 'Delete Account'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

@@ -43,20 +43,26 @@ const WeightTrendChart = () => {
   }, []);
 
   return (
-    <div className="h-48">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <XAxis dataKey="day" />
-          <YAxis hide />
-          <Tooltip />
-          <Line
-            type="monotone"
-            dataKey="actual"
-            stroke="#FF00FF"
-            strokeWidth={3}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+    <div className="h-48 w-full">
+      {data && data.length > 0 ? (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data}>
+            <XAxis dataKey="day" />
+            <YAxis hide />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="actual"
+              stroke="#FF00FF"
+              strokeWidth={3}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-slate-400">
+          <p>Loading weight data...</p>
+        </div>
+      )}
     </div>
   );
 };
