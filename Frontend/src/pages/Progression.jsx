@@ -403,7 +403,7 @@ const Progression = () => {
                         const weekStartDate = new Date(firstValidDay.date);
                         const month = weekStartDate.toLocaleDateString('en-US', { month: 'short' });
                         const date = weekStartDate.getDate();
-                        weekLabel = `${month} ${date}`;
+                        weekLabel = `${month}`;
                       }
 
                       return (
