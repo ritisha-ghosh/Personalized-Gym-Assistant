@@ -1,8 +1,11 @@
 import { Apple, Dumbbell, LayoutDashboard, LineChartIcon, LogOut, MessageSquare, Settings, BookOpen, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useContext } from "react";
+import { DarkModeContext } from "../../context/DarkModeContext";
 
 const Sidebar = ({ onClose }) => {
   const location = useLocation();
+  const { isDarkMode } = useContext(DarkModeContext);
 
   const handleLinkClick = () => {
     if (onClose) onClose();
@@ -13,7 +16,7 @@ const Sidebar = ({ onClose }) => {
       block px-4 py-3 rounded-xl cursor-pointer flex gap-3 items-center
       font-medium transition-all text-sm sm:text-base
       ${location.pathname === path
-      ? "bg-white text-pink-500 font-bold shadow-sm"
+      ? "bg-white text-teal-500 font-bold shadow-sm"
       : "text-slate-900 hover:bg-white/60"
     }
     `;
@@ -23,7 +26,7 @@ const Sidebar = ({ onClose }) => {
 
       {/* Logo */}
       <div className="p-4 sm:p-6 flex items-center gap-3 flex-shrink-0">
-        <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#df20af] rounded-xl flex items-center justify-center text-white shadow-lg shadow-[#df20af]/20 flex-shrink-0">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 bg-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-500/20 flex-shrink-0">
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
             viewBox="0 0 24 24" 
@@ -37,7 +40,7 @@ const Sidebar = ({ onClose }) => {
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
           </svg>
         </div>
-        <span className="text-lg sm:text-xl font-bold tracking-tight text-[#0f172a] truncate">
+        <span className={`text-lg sm:text-xl font-bold tracking-tight truncate ${isDarkMode ? 'text-white' : 'text-[#0f172a]'}`}>
           PulseAI
         </span>
       </div>

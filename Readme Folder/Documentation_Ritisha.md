@@ -1,4 +1,3 @@
-
 # PersonalizedGymAssistant - Complete Technical Documentation & Architecture Book
 
 > A comprehensive guide to building, understanding, and deploying a full-stack MERN application with ML integration
@@ -184,20 +183,20 @@ To empower fitness enthusiasts with:
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                        CLIENT LAYER                                      │
-│  ┌──────────────────────────────────────────────────────────────────┐   │
-│  │                    Web Browser (React App)                       │   │
-│  │  ┌──────────────┬──────────────┬──────────────┬──────────────┐  │   │
-│  │  │ Login Page   │  Dashboard   │  Workouts    │  Nutrition   │  │   │
-│  │  │ Register     │  Profile     │  Chat        │  Progress    │  │   │
-│  │  └──────────────┴──────────────┴──────────────┴──────────────┘  │   │
-│  │                          ▲                                       │   │
-│  │                          │ HTTP/JSON                            │   │
-│  │                    ┌─────▼──────┐                               │   │
-│  │                    │ Axios API   │                              │   │
-│  │                    │ Client      │                              │   │
-│  │                    └─────▲──────┘                               │   │
-│  └──────────────────────────┼────────────────────────────────────┘   │
-└───────────────────────────────┼───────────────────────────────────────┘
+│  ┌──────────────────────────────────────────────────────────────────┐    │
+│  │                    Web Browser (React App)                       │    │
+│  │  ┌──────────────┬──────────────┬──────────────┬──────────────┐   │    │
+│  │  │ Login Page   │  Dashboard   │  Workouts    │  Nutrition   │   │    │
+│  │  │ Register     │  Profile     │  Chat        │  Progress    │   │    │
+│  │  └──────────────┴──────────────┴──────────────┴──────────────┘   │    │
+│  │                          ▲                                       │    │
+│  │                          │ HTTP/JSON                             │    │
+│  │                    ┌─────▼──────┐                                │    │
+│  │                    │ Axios API  │                                │    │
+│  │                    │ Client     │                                │    │
+│  │                    └─────▲──────┘                                │    │
+│  └──────────────────────────┼───────────────────────────────────────┘    │ 
+└───────────────────────────────┼──────────────────────────────────────────┘
                                 │
                     ┌───────────▼───────────┐
                     │  Internet / Network   │
@@ -205,35 +204,35 @@ To empower fitness enthusiasts with:
                                 │
 ┌───────────────────────────────▼───────────────────────────────────────┐
 │                    API SERVER LAYER (Backend)                         │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │           Express.js Server (Node.js Runtime)               │   │
-│  │                   Port: 5000                                 │   │
-│  │                                                              │   │
-│  │  ┌────────────┬────────────┬────────────┬─────────────────┐ │   │
-│  │  │ Auth Route │ Workout    │ Nutrition  │ Chat Route      │ │   │
-│  │  │ Handler    │ Route      │ Route      │ Handler         │ │   │
-│  │  └────────────┴────────────┴────────────┴─────────────────┘ │   │
-│  │                          ▲                                   │   │
-│  │                ┌─────────┴─────────┐                         │   │
-│  │                │                   │                         │   │
-│  │  ┌─────────────▼──────┐  ┌────────▼─────────┐              │   │
-│  │  │  Business Logic    │  │  ML Service      │              │   │
-│  │  │  Controllers       │  │  Client (calls   │              │   │
-│  │  │  Middleware        │  │  Python ML)      │              │   │
-│  │  └─────────────┬──────┘  └────────┬─────────┘              │   │
-│  │                │                   │                         │   │
-│  │                └─────────┬─────────┘                         │   │
-│  │                          │                                   │   │
-│  │  ┌───────────────────────▼────────────────────────────────┐ │   │
-│  │  │         MongoDB Database Connection Pool               │ │   │
-│  │  └───────────────────────────────────────────────────────┘ │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-└──────────────────────────┬───────────────────────────────────────────┘
+│  ┌──────────────────────────────────────────────────────────────┐     │
+│  │           Express.js Server (Node.js Runtime)                │     │
+│  │                   Port: 5000                                 │     │
+│  │                                                              │     │
+│  │  ┌────────────┬────────────┬────────────┬─────────────────┐  │     │
+│  │  │ Auth Route │ Workout    │ Nutrition  │ Chat Route      │  │     │
+│  │  │ Handler    │ Route      │ Route      │ Handler         │  │     │
+│  │  └────────────┴────────────┴────────────┴─────────────────┘  │     │
+│  │                          ▲                                   │     │
+│  │                ┌─────────┴─────────┐                         │     │
+│  │                │                   │                         │     │
+│  │  ┌─────────────▼──────┐  ┌────────▼─────────┐                │     │
+│  │  │  Business Logic    │  │  ML Service      │                │     │
+│  │  │  Controllers       │  │  Client (calls   │                │     │
+│  │  │  Middleware        │  │  Python ML)      │                │     │
+│  │  └─────────────┬──────┘  └─────────┬────────┘                │     │
+│  │                │                   │                         │     │
+│  │                └─────────┬─────────┘                         │     │
+│  │                          │                                   │     │
+│  │  ┌───────────────────────▼───────────────────────────────┐   │     │
+│  │  │         MongoDB Database Connection Pool              │   │     │
+│  │  └───────────────────────────────────────────────────────┘   │     │
+│  └──────────────────────────────────────────────────────────────┘     │
+└──────────────────────────┬────────────────────────────────────────────┘
                           │
                           │ HTTP Requests
                           │
-         ┌────────────────▼────────────────┐
-         │    ML Microservice Layer        │
+         ┌────────────────▼───────────────┐
+         │    ML Microservice Layer       │
          │  ┌──────────────────────────┐  │
          │  │  Flask HTTP Server       │  │
          │  │  Port: 5001              │  │
@@ -243,7 +242,7 @@ To empower fitness enthusiasts with:
          │  │  /diet-recommendation    │  │
          │  │  /scale-difficulty       │  │
          │  └──────────────────────────┘  │
-         │              ▲                  │
+         │              ▲                 │
          │  ┌───────────┴──────────────┐  │
          │  │  ML Models & Libraries   │  │
          │  │  - scikit-learn          │  │
@@ -253,8 +252,8 @@ To empower fitness enthusiasts with:
          │  └──────────────────────────┘  │
          └────────────────────────────────┘
 
-┌────────────────────────────────────────────────────────────────────────┐
-│                   DATA STORAGE LAYER                                   │
+┌───────────────────────────────────────────────────────────────────────┐
+│                   DATA STORAGE LAYER                                  │
 │  ┌─────────────────────────────────────────────────────────────────┐  │
 │  │              MongoDB Atlas Cloud Database                       │  │
 │  │  Collections:                                                   │  │
@@ -266,7 +265,7 @@ To empower fitness enthusiasts with:
 │  │  - chats (conversation history)                                 │  │
 │  │  - feedback (user feedback)                                     │  │
 │  └─────────────────────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -283,14 +282,14 @@ The PersonalizedGymAssistant follows the **Seven-Layer Architecture** pattern, w
 └──────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────┐
-│ Layer 7: PRESENTATION LAYER (User Interface)                │
+│ Layer 7: PRESENTATION LAYER (User Interface)                 │
 │                                                              │
 │  Components: React Components, UI Elements, Pages            │
 │  Technology: React, Tailwind CSS, Recharts                   │
 │  Responsibility:                                             │
 │  - Display data to user                                      │
 │  - Capture user input                                        │
-│  - Format output for display                                │
+│  - Format output for display                                 │
 │  - Client-side validation                                    │
 │                                                              │
 │  Files:                                                      │
@@ -304,10 +303,10 @@ The PersonalizedGymAssistant follows the **Seven-Layer Architecture** pattern, w
 ┌──────────────────────────────────────────────────────────────┐
 │ Layer 6: APPLICATION LAYER (Business Logic - Frontend)       │
 │                                                              │
-│  Components: Hooks, Context, State Management               │
+│  Components: Hooks, Context, State Management                │
 │  Technology: React Hooks, Context API                        │
 │  Responsibility:                                             │
-│  - Client-side business logic                               │
+│  - Client-side business logic                                │
 │  - State management                                          │
 │  - Data transformation                                       │
 │  - Orchestrate component interactions                        │
@@ -321,7 +320,7 @@ The PersonalizedGymAssistant follows the **Seven-Layer Architecture** pattern, w
                               │ REST API Calls
                               ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ Layer 5: API/GATEWAY LAYER (Communication)                  │
+│ Layer 5: API/GATEWAY LAYER (Communication)                   │
 │                                                              │
 │  Components: API Client, Request/Response Handlers           │
 │  Technology: Axios, HTTP/REST                                │
@@ -339,7 +338,7 @@ The PersonalizedGymAssistant follows the **Seven-Layer Architecture** pattern, w
                               │ HTTP/JSON
                               ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ Layer 4: BUSINESS LOGIC LAYER (Server-Side Processing)      │
+│ Layer 4: BUSINESS LOGIC LAYER (Server-Side Processing)       │
 │                                                              │
 │  Components: Controllers, Services, Business Rules           │
 │  Technology: Express.js, Node.js                             │
@@ -361,7 +360,7 @@ The PersonalizedGymAssistant follows the **Seven-Layer Architecture** pattern, w
                               │ Queries & Updates
                               ▼
 ┌──────────────────────────────────────────────────────────────┐
-│ Layer 3: INTELLIGENT LAYER (ML & AI Processing)             │
+│ Layer 3: INTELLIGENT LAYER (ML & AI Processing)              │
 │                                                              │
 │  Components: ML Models, Python Flask Service                 │
 │  Technology: Python, scikit-learn, Flask                     │
@@ -764,7 +763,7 @@ OUTPUTS TO APP
    Step 2: Adjustment Amount
            Improvement rate = 0.15 (15% improvement)
            New difficulty = 7 + (0.15 × 2) = 7.3 → 7
-         
+       
            Adjustments:
            ├─ Increase reps: 8 → 10
            ├─ Reduce rest time: 60s → 45s
@@ -1036,8 +1035,8 @@ Recommendation: "Try Tofu Stir Fry (850 cal, 35g protein)"
 ║                    PERSONALIZED GYM ASSISTANT STACK                    ║
 ╚════════════════════════════════════════════════════════════════════════╝
 
-┌────────────────────────────────────────────────────────────────────────┐
-│ FRONTEND (React + JavaScript)                                          │
+┌───────────────────────────────────────────────────────────────────────┐
+│ FRONTEND (React + JavaScript)                                         │
 │ ├─ Framework: React 19.2.5                                            │
 │ ├─ Build Tool: Vite 8.0.10                                            │
 │ ├─ Styling: Tailwind CSS 3.4.19                                       │
@@ -1047,10 +1046,10 @@ Recommendation: "Try Tofu Stir Fry (850 cal, 35g protein)"
 │ ├─ Icons: Lucide React 1.14.0                                         │
 │ ├─ State Management: React Hooks (useState, useContext, useEffect)    │
 │ └─ Bundling: Vite with code splitting                                 │
-└────────────────────────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────────────────────┘
 
-┌────────────────────────────────────────────────────────────────────────┐
-│ BACKEND (Node.js + Express)                                           │
+┌──────────────────────────────────────────────────────────────────────┐
+│ BACKEND (Node.js + Express)                                          │
 │ ├─ Runtime: Node.js 18+                                              │
 │ ├─ Framework: Express.js 5.2.1                                       │
 │ ├─ Database ORM: Mongoose 6.x (MongoDB ODM)                          │
@@ -1060,59 +1059,59 @@ Recommendation: "Try Tofu Stir Fry (850 cal, 35g protein)"
 │ ├─ Environment: dotenv 17.4.2                                        │
 │ ├─ API Design: RESTful architecture                                  │
 │ └─ Error Handling: Custom middleware & try-catch                     │
-└────────────────────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────────────┘
 
-┌────────────────────────────────────────────────────────────────────────┐
-│ ML LAYER (Python + Flask)                                             │
+┌──────────────────────────────────────────────────────────────────────┐
+│ ML LAYER (Python + Flask)                                            │
 │ ├─ Framework: Flask (lightweight HTTP server)                        │
 │ ├─ ML Libraries:                                                     │
 │ │  ├─ scikit-learn (classification models)                           │
 │ │  ├─ pandas (data manipulation & analysis)                          │
 │ │  ├─ numpy (numerical operations)                                   │
 │ │  └─ joblib (ML model serialization)                                │
-│ ├─ Text Processing: TFIDF Vectorizer                                │
-│ ├─ Algorithms: KNN, Naive Bayes, SVM                                │
+│ ├─ Text Processing: TFIDF Vectorizer                                 │
+│ ├─ Algorithms: KNN, Naive Bayes, SVM                                 │
 │ ├─ Features:                                                         │
 │ │  ├─ Intent classification                                          │
 │ │  ├─ Recommendation system                                          │
 │ │  ├─ Difficulty scaling                                             │
 │ │  └─ Personalized suggestions                                       │
 │ └─ Data: Training datasets (CSV)                                     │
-└────────────────────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────────────┘
 
-┌────────────────────────────────────────────────────────────────────────┐
-│ DATABASE (MongoDB Atlas)                                              │
+┌─────────────────────────────────────────────────────────────────────┐
+│ DATABASE (MongoDB Atlas)                                            │
 │ ├─ Service: MongoDB Cloud                                           │
 │ ├─ Database: gym_assistant                                          │
 │ ├─ Collections: 7 main collections                                  │
 │ ├─ Replication: Multi-region failover                               │
 │ ├─ Backup: Automated daily backups                                  │
-│ ├─ Security:                                                         │
+│ ├─ Security:                                                        │
 │ │  ├─ Authentication: Credentials                                   │
 │ │  ├─ Encryption: In-transit (TLS) & at-rest                        │
 │ │  └─ Access Control: IP whitelisting                               │
 │ └─ Indexing: Optimized for query performance                        │
-└────────────────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────────┘
 
-┌────────────────────────────────────────────────────────────────────────┐
-│ INFRASTRUCTURE & PROTOCOLS                                            │
-│ ├─ Network:                                                          │
+┌─────────────────────────────────────────────────────────────────────┐
+│ INFRASTRUCTURE & PROTOCOLS                                          │
+│ ├─ Network:                                                         │
 │ │  ├─ HTTP/HTTPS (REST API communication)                           │
 │ │  ├─ JSON (data format)                                            │
 │ │  └─ CORS (cross-origin requests)                                  │
-│ ├─ Authentication:                                                   │
+│ ├─ Authentication:                                                  │
 │ │  ├─ JWT tokens (stateless)                                        │
 │ │  ├─ Bearer token (HTTP headers)                                   │
 │ │  └─ Refresh token (token rotation)                                │
-│ ├─ Deployment:                                                       │
+│ ├─ Deployment:                                                      │
 │ │  ├─ Frontend: Vercel (static hosting)                             │
 │ │  ├─ Backend: Docker containers / VPS                              │
 │ │  └─ ML: Microservice (same server or separate)                    │
-│ └─ Monitoring:                                                       │
+│ └─ Monitoring:                                                      │
 │    ├─ Error logging                                                 │
 │    ├─ Performance metrics                                           │
 │    └─ User analytics                                                │
-└────────────────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -6,8 +6,10 @@ import {
   XAxis,
   Tooltip
 } from "recharts";
+import { DarkModeContext } from "../../context/DarkModeContext";
 
 const GoalComparisonCard = () => {
+  const { isDarkMode } = useContext(DarkModeContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,25 +77,37 @@ const GoalComparisonCard = () => {
 
   if (loading) {
     return (
-      <div className="bg-white p-5 rounded-2xl shadow-sm">
-        Loading AI Goal Comparison...
+      <div className={`p-5 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`}>
+        <p className={isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-900'}>
+          Loading AI Goal Comparison...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-5 rounded-2xl shadow-sm">
-      <h2 className="text-lg font-bold mb-4">
+    <div className={`p-5 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`}>
+      <h2 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
         AI Goal Comparison
       </h2>
 
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
-            <XAxis dataKey="name" />
-            <Tooltip />
-            <Bar dataKey="Current" fill="#df20af" />
-            <Bar dataKey="Target" fill="#14b8a6" />
+            <XAxis 
+              dataKey="name" 
+              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 12 }}
+            />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: isDarkMode ? '#334155' : '#ffffff',
+                border: isDarkMode ? '1px solid #475569' : '1px solid #e2e8f0',
+                borderRadius: '8px',
+                color: isDarkMode ? '#f1f5f9' : '#000000'
+              }}
+            />
+            <Bar dataKey="Current" fill="#00c4b4" />
+            <Bar dataKey="Target" fill={isDarkMode ? '#00a89f' : '#14b8a6'} />
           </BarChart>
         </ResponsiveContainer>
       </div>

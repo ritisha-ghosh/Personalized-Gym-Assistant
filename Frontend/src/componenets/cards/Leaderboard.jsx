@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
+import { DarkModeContext } from "../../context/DarkModeContext";
 
 const Leaderboard = ({ users }) => {
+  const { isDarkMode } = useContext(DarkModeContext);
+
   const data = users || [
     { name: "Sarah Miller", xp: 2450, initials: "SM", active: false },
     { name: "Alex Johnson", xp: 2210, initials: "AJ", active: true },
@@ -8,8 +11,8 @@ const Leaderboard = ({ users }) => {
   ];
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-      <h3 className="font-bold text-lg mb-4 text-slate-900">
+    <div className={`rounded-2xl p-6 shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`}>
+      <h3 className={`font-bold text-lg mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
         Leaderboard
       </h3>
 
@@ -23,8 +26,8 @@ const Leaderboard = ({ users }) => {
               transition-colors
               ${
                 user.active
-                  ? "bg-teal-50"
-                  : "hover:bg-slate-50"
+                  ? isDarkMode ? 'bg-teal-500/20' : 'bg-teal-50/60'
+                  : isDarkMode ? 'hover:bg-[#334155]/40' : 'hover:bg-slate-50/60'
               }
             `}
           >

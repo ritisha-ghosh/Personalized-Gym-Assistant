@@ -2,12 +2,19 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css'; 
 import './index.css';
+import './dark-mode.css';
+
+// --- Context Providers ---
+import { DarkModeProvider } from "./context/DarkModeContext";
 
 // --- Auth & Landing Pages ---
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import UserProfile from "./pages/UserProfile";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage"; // Import new page
+import ResetPasswordPage from "./pages/ResetPasswordPage"; // Import new page
+import OtpPage from "./pages/OtpPage"; // Import the OtpPage component
 
 // --- Main Feature Pages ---
 import Dashboard from './pages/Dashboard';
@@ -20,24 +27,29 @@ import Tutorial from "./pages/Tutorial";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        
-        {/* Protected / App Routes */}
-        <Route path='/dashboard' element={<Dashboard/>}/>
-        <Route path="/profile" element={<UserProfile />} />
-        <Route path='/workouts' element={<Workout/>}/>
-        <Route path='/tutorial' element={<Tutorial/>}/>
-        <Route path='/nutrition' element={<Nutrition/>}/>
-        <Route path='/settings' element={<Settings/>}/>
-        <Route path='/progress' element={<Progression/>}/>
-        <Route path='/chat' element={<ChatBot/>}/>
-      </Routes>
-    </Router>
+    <DarkModeProvider>
+      <Router>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* New route */}
+          <Route path="/reset-password" element={<ResetPasswordPage />} /> {/* New route */}
+          <Route path="/register" element={<RegisterPage />} /> 
+          <Route path="/verify-otp" element={<OtpPage />} /> {/* Add the route for OTP verification */}
+          
+          {/* Protected / App Routes */}
+          <Route path='/dashboard' element={<Dashboard/>}/>
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path='/workouts' element={<Workout/>}/>
+          <Route path='/tutorial' element={<Tutorial/>}/>
+          <Route path='/nutrition' element={<Nutrition/>}/>
+          <Route path='/settings' element={<Settings/>}/>
+          <Route path='/progress' element={<Progression/>}/>
+          <Route path='/chat' element={<ChatBot/>}/>
+        </Routes>
+      </Router>
+    </DarkModeProvider>
   );
 }
 

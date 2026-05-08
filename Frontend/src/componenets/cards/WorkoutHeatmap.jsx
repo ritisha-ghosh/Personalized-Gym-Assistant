@@ -54,8 +54,8 @@ const WorkoutHeatmap = () => {
   const streak = currentStreak === -1 ? days.length : currentStreak;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-5 border border-slate-100">
-      <h2 className="text-lg font-bold text-slate-800 mb-3">
+    <div className={`rounded-2xl shadow-sm p-5 border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`}>
+      <h2 className={`text-lg font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
         Workout Heatmap
       </h2>
 
@@ -66,7 +66,7 @@ const WorkoutHeatmap = () => {
             title={day.date}
             className={`h-7 rounded-md ${
               day.active
-                ? "bg-[#df20af]"
+                ? "bg-[#00c4b4]"
                 : "bg-slate-200"
             }`}
           />
@@ -75,7 +75,7 @@ const WorkoutHeatmap = () => {
 
       <p className="mt-4 text-sm text-slate-500">
         Current Streak:
-        <span className="font-bold text-[#df20af] ml-1">
+        <span className="font-bold text-[#00c4b4] ml-1">
           {streak} days
         </span>
       </p>

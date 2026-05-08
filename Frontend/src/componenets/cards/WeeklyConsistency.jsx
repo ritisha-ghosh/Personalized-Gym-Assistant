@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useContext } from "react";
+import { DarkModeContext } from "../../context/DarkModeContext";
 
 const days = [
   { label: "M", completed: true },
@@ -11,19 +12,22 @@ const days = [
 ];
 
 const WeeklyConsistency = ({ completedCount = 3, target = 5 }) => {
+  const { isDarkMode } = useContext(DarkModeContext);
+
   return (
     <div
-      className="
-        bg-white
+      className={`
         rounded-2xl
         p-6
         shadow-sm
-        border border-slate-100
+        border
         text-center
-      "
+        backdrop-blur-md
+        ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}
+      `}
     >
       {/* Title */}
-      <h3 className="mb-6 text-left text-lg font-bold text-slate-900">
+      <h3 className={`mb-6 text-left text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
         Weekly Consistency
       </h3>
 
