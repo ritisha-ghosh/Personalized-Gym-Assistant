@@ -118,6 +118,24 @@ const Settings = () => { // Renamed from Settings to Settings
     }
   };
 
+  const handleSaveSettings = () => {
+    setIsLoading(true);
+    setSaveStatus('Saving preferences...');
+    // In a real app, you would call an API here to save settings.
+    // For now, we'll simulate a save operation.
+    console.log("Saving settings:", {
+      units: formData.units,
+      language: formData.language,
+      theme: formData.theme,
+    });
+    setTimeout(() => {
+      setIsLoading(false);
+      setSaveStatus('Preferences updated successfully!');
+      // Clear the message after 3 seconds
+      setTimeout(() => setSaveStatus(''), 3000);
+    }, 1000);
+  };
+
   const handleChangePassword = async () => {
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
       setSaveStatus('Please fill in all password fields');
@@ -191,12 +209,12 @@ const Settings = () => { // Renamed from Settings to Settings
       icon: Smartphone, 
       keywords: ['theme', 'dark mode', 'light mode', 'language', 'english', 'spanish', 'units', 'metric', 'imperial', 'appearance', 'region'] 
     },
-    { 
+    /* { 
       id: 'notifications', 
       label: 'Notifications', 
       icon: Bell, 
       keywords: ['email notifications', 'push', 'alert', 'marketing', 'promotions', 'updates', 'messages'] 
-    },
+    }, */
     { 
       id: 'security', 
       label: 'Security', 
@@ -369,14 +387,14 @@ const Settings = () => { // Renamed from Settings to Settings
                   )}
                 </div>
 
-                {!isEditMode && (
+                {/* {!isEditMode && (
                   <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
                     <div className="flex items-center justify-between mb-6">
                       <h2 className="text-lg font-bold">Connected Accounts</h2>
                     </div>
                     <p className="text-slate-500 text-sm">No connected accounts. Social login has been removed for security purposes.</p>
                   </div>
-                )}
+                )} */}
               </div>
             )}
 
@@ -400,8 +418,8 @@ const Settings = () => { // Renamed from Settings to Settings
                     className="bg-slate-50 border-none text-sm font-bold rounded-lg py-2 pl-3 pr-8 focus:ring-0 cursor-pointer"
                   >
                     <option>English (US)</option>
-                    <option>Spanish (ES)</option>
-                    <option>French (FR)</option>
+                    {/* <option>Spanish (ES)</option> */}
+                    {/* <option>French (FR)</option> */}
                   </select>
                 </div>
 
@@ -427,7 +445,7 @@ const Settings = () => { // Renamed from Settings to Settings
                   </select>
                 </div>
 
-                <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                   <div className="flex gap-4">
                     <div className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center">
                       <ChevronRight size={20} />
@@ -446,12 +464,12 @@ const Settings = () => { // Renamed from Settings to Settings
                     <option>Metric (kg/cm)</option>
                     <option>Imperial (lbs/in)</option>
                   </select>
-                </div>
+                </div> */}
 
               </div>
             )}
 
-            {activeTab === 'notifications' && (
+            {/* {activeTab === 'notifications' && (
               <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 animate-fade-in space-y-8">
                 
                 <div className="flex items-center justify-between">
@@ -521,7 +539,7 @@ const Settings = () => { // Renamed from Settings to Settings
                 </div>
 
               </div>
-            )}
+            )} */}
 
             {activeTab === 'security' && (
               <div className="space-y-6 animate-fade-in">
@@ -605,6 +623,23 @@ const Settings = () => { // Renamed from Settings to Settings
                     Delete Account
                   </button>
                 </div>
+              </div>
+            )}
+
+            {(activeTab === 'preferences' /* || activeTab === 'notifications' */) && (
+              <div className="flex justify-end pt-4">
+                <button 
+                  onClick={handleSaveSettings}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-[#00c4b4]/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-wait"
+                >
+                  {isLoading ? (
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  ) : (
+                    <Save size={18} />
+                  )}
+                  {isLoading ? 'Saving...' : 'Save Changes'}
+                </button>
               </div>
             )}
 

@@ -1,9 +1,11 @@
 import React, { useContext } from "react";
+import { useNavigate } from "react-router-dom"; // Added for navigation
 import ProgressRing from "../common/ProgressRing";
 import { DarkModeContext } from "../../context/DarkModeContext";
 
 const WorkoutCard = () => {
   const { isDarkMode } = useContext(DarkModeContext);
+  const navigate = useNavigate(); // Initialize navigation
 
   return (
     <div
@@ -50,6 +52,7 @@ const WorkoutCard = () => {
         {/* Actions */}
         <div className="flex flex-wrap gap-4">
           <button
+            onClick={() => navigate('/workouts')} // Connects to workouts page
             className={`
               flex items-center gap-2
               rounded-xl
@@ -65,6 +68,7 @@ const WorkoutCard = () => {
             Start Session
           </button>
 
+          {/* VIEW ROUTINE BUTTON COMMENTED OUT
           <button
             className={`
               rounded-xl
@@ -80,6 +84,7 @@ const WorkoutCard = () => {
           >
             View Routine
           </button>
+          */}
         </div>
       </div>
 

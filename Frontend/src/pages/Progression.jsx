@@ -25,39 +25,42 @@ const Progression = () => {
   const [timeRange, setTimeRange] = useState('6 Months');
   const [weightData, setWeightData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState(null);
   const [loginHeatmapData, setLoginHeatmapData] = useState([]);
   const [loginCount, setLoginCount] = useState(0);
 
   // Fetch user progress data from backend
   useEffect(() => {
-    const loadProgressionData = () => {
+    const loadProgressionData = async () => {
       // If the user object from context isn't loaded yet, wait.
-      if (!user) {
+      if (!user?.id) {
         setLoading(true);
         return;
       }
 
       try {
         setLoading(true);
-        // The user object from AuthContext is the single source of truth.
-        // No need to fetch the profile again here.
+        // Fetch the complete user profile from the backend
+        const profileResponse = await api.get('/users/profile');
+        const profileData = profileResponse.data.user;
+        setUserProfile(profileData);
 
         const progression = getProgression(user.id);
-        // Use user.weight from context to generate mock chart data if needed.
+        // Use fetched profile weight to generate mock chart data if needed.
         setWeightData(progression.weightData || [
-          { month: 'JAN', weight: user.weight ? user.weight - 5 : 85.0 },
-          { month: 'FEB', weight: user.weight ? user.weight - 4.2 : 84.2 },
-          { month: 'MAR', weight: user.weight ? user.weight - 3.5 : 83.5 },
-          { month: 'APR', weight: user.weight ? user.weight - 1.8 : 81.8 },
-          { month: 'MAY', weight: user.weight ? user.weight + 0.5 : 79.5 },
-          { month: 'JUN', weight: user.weight || 78.4 },
+          { month: 'JAN', weight: profileData.weight ? profileData.weight - 5 : 85.0 },
+          { month: 'FEB', weight: profileData.weight ? profileData.weight - 4.2 : 84.2 },
+          { month: 'MAR', weight: profileData.weight ? profileData.weight - 3.5 : 83.5 },
+          { month: 'APR', weight: profileData.weight ? profileData.weight - 1.8 : 81.8 },
+          { month: 'MAY', weight: profileData.weight ? profileData.weight + 0.5 : 79.5 },
+          { month: 'JUN', weight: profileData.weight || 78.4 },
         ]);
-        
+
         const heatmap = getLoginHeatmapData(user.id);
         const logins = getLoginDates(user.id);
         setLoginHeatmapData(heatmap);
         setLoginCount(logins.length);
-        
+
         console.log(`📥 Loaded progression data for user ${user.id}`);
       } catch (error) {
         console.error("Failed to fetch progression data", error);
@@ -67,7 +70,7 @@ const Progression = () => {
     };
 
     loadProgressionData();
-  }, [user]); // Re-run when the user object from context changes (e.g., after name update).
+  }, [user?.id]); // Re-run when the user object from context changes (e.g., after name update).
 
   // --- Lift Stats Data ---
   const liftStats = [
@@ -166,7 +169,7 @@ const Progression = () => {
     );
   }
 
-  const currentWeight = user?.weight || (weightData[weightData.length - 1]?.weight || 78.4);
+  const currentWeight = userProfile?.weight || (weightData[weightData.length - 1]?.weight || 78.4);
   const initialWeight = weightData[0]?.weight || 85.0;
   const weightChange = (initialWeight - currentWeight).toFixed(1);
 
@@ -217,7 +220,7 @@ const Progression = () => {
             <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200">
               <div className="text-right">
                 <p className="text-sm font-bold leading-none">{user?.name || 'User'}</p>
-                <p className="text-[10px] font-bold text-emerald-500 uppercase mt-1">Goal: {user?.goal ? user.goal.charAt(0).toUpperCase() + user.goal.slice(1) : 'N/A'}</p>
+                <p className="text-[10px] font-bold text-emerald-500 uppercase mt-1">Goal: {userProfile?.goal ? userProfile.goal.charAt(0).toUpperCase() + userProfile.goal.slice(1) : 'N/A'}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-200 to-yellow-500 border-2 border-white shadow-sm"></div>
             </div>
@@ -290,8 +293,8 @@ const Progression = () => {
           </div>
         )}
 
-        {/* --- Lift Stats Cards (Filtered) --- */}
-        {filteredLiftStats.length > 0 && (
+        {/* --- Lift Stats Cards (Filtered) COMMENTED OUT --- */}
+        {/* {filteredLiftStats.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
             {filteredLiftStats.map((lift, index) => (
               <div key={index} className={`p-6 rounded-[2rem] border shadow-sm flex flex-col justify-between h-48 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
@@ -300,7 +303,6 @@ const Progression = () => {
                   <span className={`text-xs font-bold px-2 py-1 rounded-lg ${isDarkMode ? 'text-emerald-400 bg-emerald-500/20' : 'text-emerald-500 bg-emerald-50'}`}>{lift.growth}</span>
                 </div>
                 
-                {/* Custom CSS Bar Chart */}
                 <div className="flex items-end justify-between gap-2 h-16 mt-4">
                   {lift.bars.map((height, i) => (
                     <div 
@@ -319,6 +321,7 @@ const Progression = () => {
             ))}
           </div>
         )}
+        */}
 
         {/* --- Consistency Heatmap (GitHub Style with Years) --- */}
         {showHeatmap && (
