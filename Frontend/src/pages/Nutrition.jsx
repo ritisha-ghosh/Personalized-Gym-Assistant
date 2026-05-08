@@ -428,12 +428,12 @@ const Neutrations = () => {
                 <p className="text-teal-100 text-sm leading-relaxed mb-6">
                   Drinking <span className="font-bold text-white">500ml of water</span> before your next meal can boost metabolic rate by 24%.
                 </p>
-                <button 
+            {/*    <button 
                   onClick={handleLogHydration}
                   className="w-full py-3 bg-white text-[#14b8a6] font-bold rounded-xl hover:bg-teal-50 transition-colors shadow-sm"
                 >
                   Log 500ml Now
-                </button>
+                </button>   */} 
               </div>
             </div>
 

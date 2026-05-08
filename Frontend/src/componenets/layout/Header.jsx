@@ -49,7 +49,8 @@ const Header = () => {
     <header className={`flex items-center justify-between px-4 sm:px-6 md:px-8 py-3 sm:py-4 backdrop-blur-md border-b sticky top-0 z-30 gap-4 ${isDarkMode ? 'bg-[#0f172a]/80 border-[#334155]' : 'bg-white/80 border-slate-200'}`}>
       {/* --- Search Bar - Hidden on mobile, shown on md+ --- */}
       <div className="relative hidden md:block w-full max-w-md">
-        <div className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${isDarkMode ? 'text-[#94a3b8] hover:text-[#00c4b4]' : 'text-slate-400 hover:text-teal-500'}`}>
+        {/* Added z-10 and adjusted text color for dark mode visibility */}
+        <div className={`absolute left-3 top-1/2 -translate-y-1/2 z-10 transition-colors ${isDarkMode ? 'text-[#cbd5e1] hover:text-[#00c4b4]' : 'text-slate-400 hover:text-teal-500'}`}>
           <Search size={18} />
         </div>
         
@@ -64,7 +65,7 @@ const Header = () => {
         {searchQuery && (
           <button
             onClick={clearSearch}
-            className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 transition-all ${isDarkMode ? 'text-[#94a3b8] hover:text-[#cbd5e1]' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`absolute right-3 top-1/2 -translate-y-1/2 z-10 p-1 transition-all ${isDarkMode ? 'text-[#cbd5e1] hover:text-white' : 'text-slate-400 hover:text-slate-600'}`}
           >
             <X size={14} />
           </button>
@@ -104,9 +105,9 @@ const Header = () => {
 
       {/* Mobile Search Input */}
       {showSearch && (
-        <div className="absolute top-16 left-4 right-4 md:hidden">
+        <div className="absolute top-16 left-4 right-4 md:hidden z-20">
           <div className="relative w-full shadow-lg rounded-xl">
-             <div className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-400'}`}>
+             <div className={`absolute left-3 top-1/2 -translate-y-1/2 z-10 ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-400'}`}>
                 <Search size={18} />
              </div>
             <input
@@ -118,7 +119,7 @@ const Header = () => {
               className={`w-full pl-10 pr-10 py-3 rounded-xl text-sm border focus:outline-none focus:ring-2 ${isDarkMode ? 'bg-[#1e293b] border-[#334155] text-[#f1f5f9] placeholder:text-[#94a3b8] focus:ring-[#00c4b4]/20' : 'bg-white border-slate-200 placeholder:text-slate-400 focus:ring-teal-500/20'}`}
             />
             {searchQuery && (
-              <button onClick={clearSearch} className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 ${isDarkMode ? 'text-[#94a3b8] hover:text-[#cbd5e1]' : 'text-slate-400 hover:text-slate-600'}`}>
+              <button onClick={clearSearch} className={`absolute right-3 top-1/2 -translate-y-1/2 z-10 p-1 ${isDarkMode ? 'text-[#cbd5e1] hover:text-white' : 'text-slate-400 hover:text-slate-600'}`}>
                 <X size={14} />
               </button>
             )}
