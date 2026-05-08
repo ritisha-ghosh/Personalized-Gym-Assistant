@@ -5,17 +5,23 @@ import { Droplet, CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
 import { getNutrition, addNutrition, deleteNutrition } from "../utils/storageUtils";
 import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
+import { DarkModeContext } from '../context/DarkModeContext'; // Added DarkModeContext
 
 const Neutrations = () => {
   // 2. Search Params Logic
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
   const { user } = useContext(AuthContext);
+  const { isDarkMode } = useContext(DarkModeContext); // Extract isDarkMode
 
   const [nutrition, setNutrition] = useState([]);
   const [userDietData, setUserDietData] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // State for the Hydration Popup
+  const [showHydrationPopup, setShowHydrationPopup] = useState(false);
+
   const [formData, setFormData] = useState({
     meal: '',
     calories: '',
@@ -76,6 +82,15 @@ const Neutrations = () => {
     }
   };
 
+  // Handler for logging water
+  const handleLogHydration = () => {
+    setShowHydrationPopup(true);
+    // Auto hide popup after 2.5 seconds
+    setTimeout(() => {
+      setShowHydrationPopup(false);
+    }, 2500);
+  };
+
   // --- 3. FILTER LOGIC ---
   
   // A. Filter User Added Meals
@@ -124,18 +139,27 @@ const Neutrations = () => {
         {`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           body { font-family: 'Plus Jakarta Sans', sans-serif; }
+          
+          .animate-fade-in-up {
+            animation: fadeInUp 0.3s ease-out forwards;
+          }
+          
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
         `}
       </style>
 
-      <div className="space-y-6 sm:space-y-8 font-sans text-slate-900">
+      <div className={`space-y-6 sm:space-y-8 font-sans ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
         
         {/* Page Title with Add Button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-             <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Nutrition Dashboard</h1>
+             <h1 className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Nutrition Dashboard</h1>
              {userDietData && (
-               <p className="text-sm text-slate-500">
-                 Diet Type: <span className="font-bold text-slate-700">{userDietData.dietType}</span> 
+               <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                 Diet Type: <span className={`font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{userDietData.dietType}</span> 
                  {userDietData.noOnion && ' • No Onion'} 
                  {userDietData.noGarlic && ' • No Garlic'}
                </p>
@@ -154,13 +178,13 @@ const Neutrations = () => {
 
         {/* Add Meal Form - Responsive */}
         {showAddForm && (
-          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-[#00c4b4]/20 space-y-4">
+          <div className={`p-4 sm:p-6 rounded-2xl border space-y-4 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-[#00c4b4]/20'}`}>
             <input
               type="text"
               placeholder="Meal Name"
               value={formData.meal}
               onChange={(e) => setFormData({...formData, meal: e.target.value})}
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
+              className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
             />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               <input
@@ -168,28 +192,28 @@ const Neutrations = () => {
                 placeholder="Calories"
                 value={formData.calories}
                 onChange={(e) => setFormData({...formData, calories: e.target.value})}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
+                className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
               />
               <input
                 type="number"
                 placeholder="Protein (g)"
                 value={formData.protein}
                 onChange={(e) => setFormData({...formData, protein: e.target.value})}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
+                className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
               />
               <input
                 type="number"
                 placeholder="Carbs (g)"
                 value={formData.carbs}
                 onChange={(e) => setFormData({...formData, carbs: e.target.value})}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
+                className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
               />
               <input
                 type="number"
                 placeholder="Fats (g)"
                 value={formData.fats}
                 onChange={(e) => setFormData({...formData, fats: e.target.value})}
-                className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00c4b4]"
+                className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
               />
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -201,7 +225,7 @@ const Neutrations = () => {
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
-                className="flex-1 bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold hover:bg-slate-300 transition text-sm"
+                className={`flex-1 px-4 py-2 rounded-lg font-bold transition text-sm ${isDarkMode ? 'bg-[#334155] text-white hover:bg-[#475569]' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
               >
                 Cancel
               </button>
@@ -241,10 +265,10 @@ const Neutrations = () => {
         {/* --- Macros Cards --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Protein */}
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6">
+          <div className={`p-6 rounded-[2rem] border shadow-sm flex items-center gap-6 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
             <div className="relative w-20 h-20 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
-                <circle cx="40" cy="40" r="32" stroke="#f1f5f9" strokeWidth="8" fill="transparent" />
+                <circle cx="40" cy="40" r="32" stroke={isDarkMode ? "#334155" : "#f1f5f9"} strokeWidth="8" fill="transparent" />
                 <circle cx="40" cy="40" r="32" stroke="#0ea5e9" strokeWidth="8" fill="transparent" strokeDasharray="200" strokeDashoffset="60" strokeLinecap="round" />
               </svg>
               <span className="absolute text-sm font-bold text-[#0ea5e9]">{totalProtein > 0 ? '65' : '0'}%</span>
@@ -252,20 +276,20 @@ const Neutrations = () => {
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Protein</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold text-slate-900">{totalProtein}</span>
+                <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{totalProtein}</span>
                 <span className="text-sm text-slate-400 font-medium">/ 185g</span>
               </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+              <div className={`w-full h-1.5 rounded-full mt-3 overflow-hidden ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-100'}`}>
                 <div className="h-full bg-[#0ea5e9] w-[65%] rounded-full"></div>
               </div>
             </div>
           </div>
 
           {/* Carbs */}
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6">
+          <div className={`p-6 rounded-[2rem] border shadow-sm flex items-center gap-6 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
             <div className="relative w-20 h-20 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
-                <circle cx="40" cy="40" r="32" stroke="#f1f5f9" strokeWidth="8" fill="transparent" />
+                <circle cx="40" cy="40" r="32" stroke={isDarkMode ? "#334155" : "#f1f5f9"} strokeWidth="8" fill="transparent" />
                 <circle cx="40" cy="40" r="32" stroke="#00c4b4" strokeWidth="8" fill="transparent" strokeDasharray="200" strokeDashoffset="110" strokeLinecap="round" />
               </svg>
               <span className="absolute text-sm font-bold text-[#00c4b4]">45%</span>
@@ -273,20 +297,20 @@ const Neutrations = () => {
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Carbs</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold text-slate-900">110</span>
+                <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>110</span>
                 <span className="text-sm text-slate-400 font-medium">/ 245g</span>
               </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+              <div className={`w-full h-1.5 rounded-full mt-3 overflow-hidden ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-100'}`}>
                 <div className="h-full bg-[#00c4b4] w-[45%] rounded-full"></div>
               </div>
             </div>
           </div>
 
           {/* Fats */}
-          <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6">
+          <div className={`p-6 rounded-[2rem] border shadow-sm flex items-center gap-6 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
             <div className="relative w-20 h-20 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
-                <circle cx="40" cy="40" r="32" stroke="#f1f5f9" strokeWidth="8" fill="transparent" />
+                <circle cx="40" cy="40" r="32" stroke={isDarkMode ? "#334155" : "#f1f5f9"} strokeWidth="8" fill="transparent" />
                 <circle cx="40" cy="40" r="32" stroke="#eab308" strokeWidth="8" fill="transparent" strokeDasharray="200" strokeDashoffset="140" strokeLinecap="round" />
               </svg>
               <span className="absolute text-sm font-bold text-[#eab308]">30%</span>
@@ -294,10 +318,10 @@ const Neutrations = () => {
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Fats</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold text-slate-900">24</span>
+                <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>24</span>
                 <span className="text-sm text-slate-400 font-medium">/ 82g</span>
               </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+              <div className={`w-full h-1.5 rounded-full mt-3 overflow-hidden ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-100'}`}>
                 <div className="h-full bg-[#eab308] w-[30%] rounded-full"></div>
               </div>
             </div>
@@ -306,14 +330,14 @@ const Neutrations = () => {
 
         {/* --- Today's Meals (Filtered) --- */}
         {nutrition.length > 0 && filteredUserMeals.length > 0 && (
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 space-y-4">
-            <h3 className="text-lg font-bold text-slate-900">Added Meals ({filteredUserMeals.length})</h3>
+          <div className={`p-6 rounded-2xl border space-y-4 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
+            <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Added Meals ({filteredUserMeals.length})</h3>
             <div className="space-y-3">
               {filteredUserMeals.map((meal) => (
-                <div key={meal.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition">
+                <div key={meal.id} className={`flex items-center justify-between p-4 rounded-lg transition ${isDarkMode ? 'bg-[#0f172a] hover:bg-[#334155]' : 'bg-slate-50 hover:bg-slate-100'}`}>
                   <div className="flex-1">
-                    <p className="font-bold text-slate-900">{meal.meal}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{meal.meal}</p>
+                    <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                       {meal.calories} kcal | Protein: {meal.protein}g | Carbs: {meal.carbs}g | Fats: {meal.fats}g
                     </p>
                     <p className="text-xs text-slate-400 mt-1">
@@ -337,10 +361,10 @@ const Neutrations = () => {
           
           {/* Left: Meal Plan List (Filtered) */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+            <div className={`p-6 rounded-[2rem] border shadow-sm ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-slate-900">Today's Meal Plan</h3>
-                <div className="bg-slate-50 px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200">
+                <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Today's Meal Plan</h3>
+                <div className={`px-4 py-2 rounded-xl text-sm font-semibold border ${isDarkMode ? 'bg-[#0f172a] text-slate-300 border-[#334155]' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
                   May 17, 2024
                 </div>
               </div>
@@ -358,27 +382,27 @@ const Neutrations = () => {
               <div className="space-y-4">
                 {filteredMealPlan.length > 0 ? (
                   filteredMealPlan.map((meal, idx) => (
-                    <div key={idx} className="grid grid-cols-12 items-center p-4 hover:bg-slate-50 rounded-2xl transition-colors border border-slate-50">
+                    <div key={idx} className={`grid grid-cols-12 items-center p-4 rounded-2xl transition-colors border ${isDarkMode ? 'hover:bg-[#0f172a] border-transparent' : 'hover:bg-slate-50 border-slate-50'}`}>
                       <div className="col-span-3">
-                        <p className="font-bold text-slate-900">{meal.type}</p>
+                        <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{meal.type}</p>
                         <p className="text-xs text-slate-400 mt-1">{meal.time}</p>
                       </div>
                       <div className="col-span-4 pr-4">
-                        <p className="text-sm font-medium text-slate-700 leading-snug">{meal.food}</p>
+                        <p className={`text-sm font-medium leading-snug ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{meal.food}</p>
                       </div>
                       <div className="col-span-2">
-                        <p className="font-bold text-slate-900">{meal.cal}</p>
+                        <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{meal.cal}</p>
                       </div>
-                      <div className="col-span-2 flex gap-1.5">
-                        <span className="px-1.5 py-0.5 rounded bg-blue-100 text-[#0ea5e9] text-[10px] font-bold">{meal.p}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-pink-100 text-[#00c4b4] text-[10px] font-bold">{meal.c}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-yellow-100 text-[#ca8a04] text-[10px] font-bold">{meal.f}</span>
+                      <div className="col-span-2 flex flex-wrap gap-1.5">
+                        <span className="px-1.5 py-0.5 rounded bg-blue-100/10 text-[#0ea5e9] text-[10px] font-bold">{meal.p}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-pink-100/10 text-[#00c4b4] text-[10px] font-bold">{meal.c}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-yellow-100/10 text-[#ca8a04] text-[10px] font-bold">{meal.f}</span>
                       </div>
                       <div className="col-span-1 flex justify-end">
                         {meal.status === 'done' ? (
-                          <CheckCircle2 className="text-teal-500 fill-teal-50" size={24} />
+                          <CheckCircle2 className="text-teal-500 fill-teal-500/20" size={24} />
                         ) : (
-                          <Circle className="text-slate-300" size={24} />
+                          <Circle className="text-slate-400" size={24} />
                         )}
                       </div>
                     </div>
@@ -404,14 +428,17 @@ const Neutrations = () => {
                 <p className="text-teal-100 text-sm leading-relaxed mb-6">
                   Drinking <span className="font-bold text-white">500ml of water</span> before your next meal can boost metabolic rate by 24%.
                 </p>
-                <button className="w-full py-3 bg-white text-[#14b8a6] font-bold rounded-xl hover:bg-teal-50 transition-colors shadow-sm">
+                <button 
+                  onClick={handleLogHydration}
+                  className="w-full py-3 bg-white text-[#14b8a6] font-bold rounded-xl hover:bg-teal-50 transition-colors shadow-sm"
+                >
                   Log 500ml Now
                 </button>
               </div>
             </div>
 
-            {/* Micronutrients Widget (Filtered) */}
-            <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+            {/* Micronutrients Widget (Filtered) COMMENTED OUT */}
+            {/* <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
               <h3 className="text-lg font-bold text-slate-900 mb-6">Micronutrients</h3>
               <div className="space-y-6">
                 {filteredMicros.length > 0 ? (
@@ -430,10 +457,24 @@ const Neutrations = () => {
                    <div className="text-center text-slate-400 text-xs">No micronutrients found.</div>
                 )}
               </div>
-            </div>
+            </div> 
+            */}
 
           </div>
         </div>
+
+        {/* --- Hydration Popup Modal --- */}
+        {showHydrationPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
+            <div className={`flex flex-col items-center p-8 rounded-3xl shadow-2xl animate-fade-in-up ${isDarkMode ? 'bg-[#1e293b] border border-[#334155]' : 'bg-white'}`}>
+              <div className="w-16 h-16 bg-teal-500 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-teal-500/40">
+                <CheckCircle2 size={32} className="text-white" />
+              </div>
+              <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Done!</h3>
+              <p className={`mt-2 font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>500ml logged successfully.</p>
+            </div>
+          </div>
+        )}
 
       </div>
     </Layout>

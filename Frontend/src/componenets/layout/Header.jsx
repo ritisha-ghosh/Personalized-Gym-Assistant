@@ -87,7 +87,7 @@ const Header = () => {
           </span>
         </button>
 
-        <button className={`relative p-2 sm:p-2.5 rounded-xl border transition-all group flex-shrink-0 ${isDarkMode ? 'bg-[#1e293b] hover:bg-[#334155] border-transparent hover:border-[#00c4b4]/20' : 'bg-slate-50 hover:bg-teal-50 border-transparent hover:border-teal-500/20'}`}>
+        {/* <button className={`relative p-2 sm:p-2.5 rounded-xl border transition-all group flex-shrink-0 ${isDarkMode ? 'bg-[#1e293b] hover:bg-[#334155] border-transparent hover:border-[#00c4b4]/20' : 'bg-slate-50 hover:bg-teal-50 border-transparent hover:border-teal-500/20'}`}>
           <span className={isDarkMode ? 'text-[#cbd5e1] group-hover:text-[#00c4b4]' : 'text-slate-600 group-hover:text-teal-500'}>
             <Bell size={18} />
           </span>
@@ -99,6 +99,7 @@ const Header = () => {
             <Info size={18} />
           </span>
         </button>
+        */}
       </div>
 
       {/* Mobile Search Input */}
