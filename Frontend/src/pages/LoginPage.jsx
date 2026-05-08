@@ -60,7 +60,7 @@ const LoginPage = () => {
           <div className="w-8 h-8 bg-teal-500 rounded-md flex items-center justify-center rotate-45">
             <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
           </div>
-          <span className="text-xl font-bold text-slate-800 tracking-tight">Gym & Fitness Assistant</span>
+          <span className="text-xl font-bold text-slate-800 tracking-tight">PulseAI</span>
         </Link>
 
         <div className="flex items-center gap-4">
