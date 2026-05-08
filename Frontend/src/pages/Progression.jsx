@@ -438,7 +438,7 @@ const Progression = () => {
                                 <div 
                                   key={dayIdx} 
                                   className={`w-3 h-3 rounded-sm ${intensity} hover:ring-1 hover:ring-offset-1 ${isDarkMode ? 'hover:ring-[#00c4b4]' : 'hover:ring-teal-400'} transition-all cursor-pointer ${isTodayOrRecent() ? `ring-1 ring-offset-1 ${isDarkMode ? 'ring-[#00c4b4]' : 'ring-teal-400'}` : ''}`}
-                                  title={day ? `${day.date} (${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dayIdx]}): ${day.hasLogin ? `✓ Logged in` : 'No login'}` : 'No data'}
+                                  title={day ? `${day.date} (${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dayIdx]}) : ${day.hasLogin ? `✓ Logged in` : 'No login'}` : 'No data'}
                                 ></div>
                               );
                             })}
