@@ -4,30 +4,48 @@ const WorkoutHeatmap = () => {
   const [days, setDays] = useState([]);
 
   useEffect(() => {
-    const logs = JSON.parse(localStorage.getItem("userLogs")) || [];
+  const fetchLogs = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-    const today = new Date();
-    const temp = [];
-
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(today.getDate() - i);
-
-      const dateStr = d.toISOString().split("T")[0];
-
-      const didWorkout = logs.some((log) => {
-        const logDate = new Date(log.date).toISOString().split("T")[0];
-        return logDate === dateStr;
+      const res = await fetch("http://localhost:5000/api/logs", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      temp.push({
-        date: dateStr,
-        active: didWorkout,
-      });
+      const logs = await res.json();
+
+      const today = new Date();
+      const temp = [];
+
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(today.getDate() - i);
+
+        const dateStr = d.toISOString().split("T")[0];
+
+        const didWorkout = logs.some((log) => {
+          const logDate = new Date(log.date)
+            .toISOString()
+            .split("T")[0];
+          return logDate === dateStr;
+        });
+
+        temp.push({
+          date: dateStr,
+          active: didWorkout,
+        });
+      }
+
+      setDays(temp);
+    } catch (err) {
+      console.error("Heatmap fetch error:", err);
     }
+  };
 
-    setDays(temp);
-  }, []);
+  fetchLogs();
+}, []);
 
   const currentStreak = [...days]
     .reverse()
