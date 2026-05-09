@@ -51,13 +51,12 @@ const LoginPage = () => {
       {/* --- NAVBAR START --- */}
       <header className="w-full flex items-center justify-between px-8 py-5 z-10">
         {/* LOGO AS PICTURE */}
-        <Link to="/" className="block hover:opacity-80 transition-opacity w-fit bg-transparent">
-          <img 
-            src={isDarkMode ? "/logo-dark.png" : "/logo-light.png"} 
-            alt="PulseAI Logo" 
-            className="h-10 w-auto bg-transparent object-contain" 
-          />
-        </Link>
+        <Link to="/" className="flex items-center gap-2 mb-16 hover:opacity-80 transition-opacity w-fit">
+                    <div className="w-8 h-8 bg-[#00c4b4] rounded-md flex items-center justify-center rotate-45">
+                      <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
+                    </div>
+                    <span className="text-xl font-bold text-slate-800 tracking-tight">PulseAI</span>
+                  </Link>
 
         <div className="flex items-center gap-4">
           <span className={`hidden sm:block text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>New to here?</span>

@@ -18,6 +18,8 @@
     "express": "^5.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
     "mongodb": "^7.1.0",
     "mongoose": "^9.1.4",
     "multer": "^2.1.1",
