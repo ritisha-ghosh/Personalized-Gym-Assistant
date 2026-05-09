@@ -34,28 +34,11 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // Try to fetch user profile from backend
-        try {
-          const profileResponse = await api.get('/users/profile');
-          const profileData = profileResponse.data.user;
-          
-          setUserProfile({
-            name: profileData.name,
-            weight: profileData.weight,
-            height: profileData.height,
-            age: profileData.age,
-            goal: profileData.goal,
-            experience: profileData.experience,
-            gender: profileData.gender
-          });
-        } catch (apiError) {
-          console.log('API Error - using localStorage:', apiError?.message);
-          // Fallback to local storage if API fails
-          if (user?.id) {
-            const profile = getUserProfile(user.id);
-            setUserProfile(profile);
-          }
-        }
+        // Fetch user profile from the backend as the single source of truth.
+        const profileResponse = await api.get('/users/profile');
+        const profileData = profileResponse.data.user;
+        
+        setUserProfile(profileData);
 
         // Get local workouts - USER-SPECIFIC
         if (user?.id) {
@@ -65,16 +48,8 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error("Dashboard error:", error);
-        // Set default profile on complete failure
-        setUserProfile({
-          name: user?.name || 'User',
-          weight: 0,
-          height: 0,
-          age: 0,
-          goal: 'fitness',
-          experience: 'beginner',
-          gender: 'other'
-        });
+        // On failure, set profile to null so the UI can show a loading/error state.
+        setUserProfile(null);
       } finally {
         setLoading(false);
       }
@@ -225,8 +200,8 @@ const Dashboard = () => {
             <div className="text-center py-20 bg-slate-50 rounded-xl border border-dashed border-slate-300">
             <p className="text-slate-500">No results found for "{searchQuery}".</p>
             <button 
-                onClick={() => window.history.back()} 
-                className="mt-2 text-[#df20af] font-bold hover:underline"
+                onClick={() => window.history.back()}
+                className="mt-2 text-[#df20af] font-bold hover:underline transition-transform active:scale-95 inline-block"
             >
                 Clear Search
             </button>

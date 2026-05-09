@@ -2,10 +2,12 @@ import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext'; // Access global login function
 import api from '../services/api'; // Corrected import path for consistency
+import { DarkModeContext } from '../context/DarkModeContext'; // Imported context
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext); // Access global login function
+  const { isDarkMode } = useContext(DarkModeContext); // Use context for dark mode
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,19 +25,13 @@ const LoginPage = () => {
         password
       });
 
-      // 2. Save the Token and User Info
-      // Assuming backend sends { token: "...", refreshToken: "...", user: { name: "..." } }
-      // localStorage.setItem('token', response.data.token);
-      // localStorage.setItem('refreshToken', response.data.refreshToken); // Save refresh token if available
-      // localStorage.setItem('userProfile', JSON.stringify(response.data.user));
-      
       // Pass the user object and the tokens as defined in backend
       login(response.data.user, { 
         accessToken: response.data.accessToken, 
         refreshToken: response.data.refreshToken 
       });
 
-      // 3. Redirect to Dashboard
+      // Redirect to Dashboard
       navigate('/dashboard'); 
       
     } catch (err) {
@@ -47,24 +43,23 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
+    <div className={`relative min-h-screen flex flex-col font-sans overflow-hidden ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-slate-50'}`}>
 
       {/* Background Decorative Glow (Top Left) */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-100/50 rounded-full blur-[120px] pointer-events-none"></div>
 
       {/* --- NAVBAR START --- */}
       <header className="w-full flex items-center justify-between px-8 py-5 z-10">
-        {/* Linked Logo to Home */}
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          {/* Logo Icon */}
-          <div className="w-8 h-8 bg-teal-500 rounded-md flex items-center justify-center rotate-45">
-            <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
-          </div>
-          <span className="text-xl font-bold text-slate-800 tracking-tight">PulseAI</span>
-        </Link>
+        {/* LOGO AS PICTURE */}
+        <Link to="/" className="flex items-center gap-2 mb-16 hover:opacity-80 transition-opacity w-fit">
+                    <div className="w-8 h-8 bg-[#00c4b4] rounded-md flex items-center justify-center rotate-45">
+                      <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
+                    </div>
+                    <span className="text-xl font-bold text-slate-800 tracking-tight">PulseAI</span>
+                  </Link>
 
         <div className="flex items-center gap-4">
-          <span className="hidden sm:block text-sm text-slate-500">New to here?</span>
+          <span className={`hidden sm:block text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>New to here?</span>
           {/* Linked Sign Up Button */}
           <Link to="/register" className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md shadow-teal-100">
             Sign Up
@@ -75,11 +70,11 @@ const LoginPage = () => {
 
       {/* --- LOGIN FORM SECTION --- */}
       <main className="flex-1 flex items-center justify-center p-4 z-10">
-        <div className="w-full max-w-[440px] bg-white rounded-[24px] shadow-2xl shadow-slate-200/50 p-10 border border-slate-50">
+        <div className={`w-full max-w-[440px] rounded-[24px] shadow-2xl p-10 border ${isDarkMode ? 'bg-[#1e293b] border-[#334155] shadow-slate-900/50' : 'bg-white border-slate-50 shadow-slate-200/50'}`}>
 
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Welcome Back</h1>
-            <p className="text-slate-400 text-sm">Access your personalized fitness insights.</p>
+            <h1 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Welcome Back</h1>
+            <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>Access your personalized fitness insights.</p>
           </div>
 
           {/* Error Message Display */}
@@ -92,9 +87,10 @@ const LoginPage = () => {
           <form onSubmit={handleLogin} className="space-y-6">
             {/* Email Field */}
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+              <label className={`block text-sm font-bold mb-2 ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>Email Address</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-4 flex items-center text-slate-400">
+                {/* Added z-10 and adjusted text color for dark mode visibility */}
+                <span className={`absolute inset-y-0 left-4 flex items-center z-10 transition-colors ${isDarkMode ? 'text-slate-300' : 'text-slate-400'}`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 </span>
                 <input 
@@ -103,7 +99,7 @@ const LoginPage = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com" 
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none transition-all placeholder:text-slate-300"
+                  className={`w-full pl-12 pr-4 py-3.5 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none transition-all placeholder:text-slate-400 ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white' : 'bg-slate-50/50 border-slate-200 text-slate-900'}`}
                 />
               </div>
             </div>
@@ -111,13 +107,14 @@ const LoginPage = () => {
             {/* Password Field */}
             <div>
               <div className="flex justify-between mb-2">
-                <label className="text-sm font-bold text-slate-700">Password</label>
+                <label className={`text-sm font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>Password</label>
                 <Link to="/forgot-password" className="text-xs font-bold text-pink-500 hover:text-pink-600">
                   Forgot Password?
                 </Link>
               </div>
               <div className="relative">
-                <span className="absolute inset-y-0 left-4 flex items-center text-slate-400">
+                {/* Added z-10 and adjusted text color for dark mode visibility */}
+                <span className={`absolute inset-y-0 left-4 flex items-center z-10 transition-colors ${isDarkMode ? 'text-slate-300' : 'text-slate-400'}`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 </span>
                 <input 
@@ -126,28 +123,26 @@ const LoginPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password" 
                   required
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none transition-all placeholder:text-slate-300"
+                  className={`w-full pl-12 pr-4 py-3.5 rounded-xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none transition-all placeholder:text-slate-400 ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white' : 'bg-slate-50/50 border-slate-200 text-slate-900'}`}
                 />
               </div>
             </div>
 
             <div className="flex items-center">
               <input type="checkbox" id="remember" className="w-4 h-4 accent-pink-500 border-slate-300 rounded focus:ring-pink-500" />
-              <label htmlFor="remember" className="ml-2 text-sm text-slate-500 font-medium">Keep me logged in</label>
+              <label htmlFor="remember" className={`ml-2 text-sm font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Keep me logged in</label>
             </div>
 
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-teal-200 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+              className={`w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed ${isDarkMode ? 'shadow-teal-900/20' : 'shadow-teal-200'}`}
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
-
-
-          <p className="text-center mt-10 text-sm text-slate-400">
+          <p className={`text-center mt-10 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
             Don't have an account? <Link to="/register" className="text-pink-500 font-bold hover:underline ml-1">Sign up now</Link>
           </p>
         </div>

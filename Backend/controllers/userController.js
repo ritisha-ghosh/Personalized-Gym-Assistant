@@ -1,20 +1,14 @@
+const bcrypt = require('bcryptjs');
 const User = require("../models/User");
 
-/**
- * @desc    Get current user profile (protected route)
- * @route   GET /api/users/profile
- * @access  Private
- */
 exports.getUserProfile = async (req, res) => {
   try {
-    // req.user is set by authMiddleware
     const user = req.user;
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Fetch the full user object from DB to ensure all fields are current
     const fullUser = await User.findById(user.id);
 
     if (!fullUser) {
@@ -31,7 +25,7 @@ exports.getUserProfile = async (req, res) => {
         height: fullUser.height,
         weight: fullUser.weight,
         goal: fullUser.goal,
-        profileImage: fullUser.profileImage,
+        profileImage: fullUser.profileImage, // This will now send the Base64 string directly
         bio: fullUser.bio,
         injury: fullUser.injury,
         experience: fullUser.experience,
@@ -47,66 +41,131 @@ exports.getUserProfile = async (req, res) => {
   }
 };
 
-/**
- * @desc    Update user profile details like name, email, and optionally profile image.
- * @route   PUT /api/users/profile (for name/email)
- * @route   PUT /api/users/update-profile (for image + other fields)
- * @access  Private
- */
+
 exports.updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
 
-    if (user) {
-      // Update name if provided
-      if (req.body.name !== undefined) {
-        user.name = req.body.name;
+    // Update text fields
+    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'goal', 'dietType', 'bio', 'injury'];
+    fieldsToUpdate.forEach(field => {
+      if (req.body[field] !== undefined) {
+        user[field] = req.body[field];
       }
-      // Email is currently not editable from the frontend settings, but if it were,
-      // proper re-verification logic would be needed.
-      // For now, we'll allow updating if provided, but frontend disables it.
-      if (req.body.email !== undefined) {
-        user.email = req.body.email;
-      }
+    });
 
-      // Handle profile image upload if present (from /update-profile route)
-      if (req.file) {
-        user.profileImage = `/uploads/${req.file.filename}`; // Store path to image
-      }
+    // --- DIRECT MONGODB IMAGE SAVING ---
+    // If a file was uploaded, convert it from memory buffer to Base64 String
+    if (req.file) {
+      const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+      user.profileImage = base64Image; // Save the raw text string directly to the DB!
+    }
 
-      // Add other fields that might be updated from a profile page (e.g., UserProfile.jsx)
-      // Example:
-      // if (req.body.age !== undefined) user.age = req.body.age;
-      // if (req.body.gender !== undefined) user.gender = req.body.gender;
-      // ... etc.
+    const updatedUser = await user.save();
 
-      const updatedUser = await user.save();
-
-      res.json({
+    res.json({
+      message: "Profile updated successfully",
+      user: {
         id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
-        profileImage: updatedUser.profileImage, // Include profile image in response
-        // Include other relevant fields that might have been updated
-      });
-    } else {
-      res.status(404).json({ message: "User not found" });
-    }
+        profileImage: updatedUser.profileImage, // Sends back the Base64 string
+        height: updatedUser.height,
+        weight: updatedUser.weight,
+        age: updatedUser.age,
+        gender: updatedUser.gender,
+        experience: updatedUser.experience,
+        goal: updatedUser.goal,
+        dietType: updatedUser.dietType,
+        bio: updatedUser.bio,
+        injury: updatedUser.injury,
+      }
+    });
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      console.error("Validation Error on profile update:", error.errors);
+      const messages = Object.values(error.errors).map(val => val.message).join(', ');
+      return res.status(400).json({ message: `Invalid data: ${messages}` });
+    }
     console.error("Update user profile error:", error);
     res.status(500).json({ message: "Server error while updating profile." });
   }
 };
 
-// Placeholder for other user-related functions if needed
+
+exports.deleteProfileImage = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Simply clear the string in the database. No files to delete!
+    user.profileImage = "";
+    await user.save();
+
+    res.json({ message: "Profile image deleted successfully" });
+  } catch (error) {
+    console.error("Delete profile image error:", error);
+    res.status(500).json({ message: "Server error while deleting image." });
+  }
+};
+
+
 exports.updateUserSettings = async (req, res) => {
   res.status(501).json({ message: "Not Implemented: updateUserSettings" });
 };
 
 exports.updatePassword = async (req, res) => {
-  res.status(501).json({ message: "Not Implemented: updatePassword" });
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid current password" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    res.json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Update password error:", error);
+    res.status(500).json({ message: "Server error while updating password" });
+  }
 };
 
 exports.deleteAccount = async (req, res) => {
-  res.status(501).json({ message: "Not Implemented: deleteAccount" });
+  try {
+    const { password } = req.body; 
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect password provided." });
+    }
+
+    await User.findByIdAndDelete(req.user.id);
+
+    res.json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("Delete account error:", error);
+    res.status(500).json({ message: "Server error while deleting account" });
+  }
 };

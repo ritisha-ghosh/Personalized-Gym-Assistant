@@ -22,15 +22,54 @@ const Workout = () => {
     exercise: '', sets: '', reps: '', duration: '', notes: '',
   });
   const [completedExerciseIds, setcompletedExerciseIds] = useState([]);
+  const [isWorkoutDoneToday, setIsWorkoutDoneToday] = useState(false);
+
+  const mondayRoutine = useMemo(() => ({
+    day: 'Monday',
+    title: 'Chest & Triceps',
+    exercises: [
+      { id: '01', name: 'Bench Press (Barbell)', sets: '4 Sets', reps: '8-10 Reps', weight: '85 kg' },
+      { id: '02', name: 'Incline DB Press', sets: '3 Sets', reps: '12 Reps', weight: '28 kg' },
+      { id: '03', name: 'Cable Flyes', sets: '3 Sets', reps: '15 Reps', weight: '15 kg' },
+      { id: '04', name: 'Skullcrushers', sets: '4 Sets', reps: '10 Reps', weight: '30 kg' },
+    ]
+  }), []);
 
   useEffect(() => {
-    const fetchWorkoutPlans = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/workouts');
-        setUserWorkoutPlans(response.data || []);
+        // Fetch Plans
+        const plansResponse = await api.get('/workouts');
+        setUserWorkoutPlans(plansResponse.data || []);
+
+        // Fetch Logs to check if today's workout is done
+        const logsResponse = await api.get('/logs');
+        const logs = logsResponse.data.logs || logsResponse.data || [];
+        
+        // Get Today's Date String (YYYY-MM-DD)
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        const todayFormatted = `${y}-${m}-${d}`;
+
+        const doneToday = logs.some(log => {
+          const logDate = new Date(log.date || log.createdAt);
+          const ly = logDate.getFullYear();
+          const lm = String(logDate.getMonth() + 1).padStart(2, '0');
+          const ld = String(logDate.getDate()).padStart(2, '0');
+          return `${ly}-${lm}-${ld}` === todayFormatted;
+        });
+
+        setIsWorkoutDoneToday(doneToday);
+        
+        if (doneToday) {
+          // Auto-check all exercises if today is already completed
+          setcompletedExerciseIds(mondayRoutine.exercises.map(ex => ex.id));
+        }
       } catch (error) {
-        console.error("Failed to fetch workout plans", error);
+        console.error("Failed to fetch data", error);
       }
       
       if (user?.id) {
@@ -39,8 +78,9 @@ const Workout = () => {
       }
       setLoading(false);
     };
-    fetchWorkoutPlans();
-  }, [user?.id]);
+
+    fetchData();
+  }, [user?.id, mondayRoutine]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -73,17 +113,6 @@ const Workout = () => {
     (w.reps && w.reps.toString().includes(searchQuery))
   );
 
-  const mondayRoutine = {
-    day: 'Monday',
-    title: 'Chest & Triceps',
-    exercises: [
-      { id: '01', name: 'Bench Press (Barbell)', sets: '4 Sets', reps: '8-10 Reps', weight: '85 kg' },
-      { id: '02', name: 'Incline DB Press', sets: '3 Sets', reps: '12 Reps', weight: '28 kg' },
-      { id: '03', name: 'Cable Flyes', sets: '3 Sets', reps: '15 Reps', weight: '15 kg' },
-      { id: '04', name: 'Skullcrushers', sets: '4 Sets', reps: '10 Reps', weight: '30 kg' },
-    ]
-  };
-
   const otherDaysRoutine = [
     { day: 'Tuesday', title: 'Back & Biceps', exercises: [{ name: 'Pull-ups', detail: '4 x MAX' }, { name: 'Barbell Row', detail: '3 x 10' }, { name: 'Hammer Curls', detail: '3 x 12' }] },
     { day: 'Wednesday', title: 'Active Recovery', type: 'recovery', desc: '30 min Yoga or Light Walk recommended by AI Coach.' },
@@ -99,9 +128,10 @@ const Workout = () => {
       completedExerciseIds.includes(ex.id)
     ).length;
     return Math.round((completed / total) * 100);
-  }, [completedExerciseIds]);
+  }, [completedExerciseIds, mondayRoutine.exercises.length]);
 
   const toggleExercise = (id) => {
+    if (isWorkoutDoneToday) return; // Prevent unchecking if workout is already done for today
     setcompletedExerciseIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
@@ -150,7 +180,7 @@ const Workout = () => {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap ${activeTab === tab
+                  className={`px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap active:scale-95 ${activeTab === tab
                     ? (isDarkMode ? 'bg-[#334155] text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm')
                     : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')
                     }`}
@@ -162,7 +192,7 @@ const Workout = () => {
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0"
           >
             <Plus size={18} />
             <span className="hidden sm:inline">Add Workout</span>
@@ -206,13 +236,13 @@ const Workout = () => {
             <div className="flex gap-4">
               <button
                 onClick={handleAddWorkout}
-                className="flex-1 bg-[#00c4b4] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#00a89f] transition"
+                className="flex-1 bg-[#00c4b4] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#00a89f] transition shadow-md shadow-[#00c4b4]/20 hover:-translate-y-0.5 active:translate-y-0"
               >
                 Save Workout
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
-                className={`flex-1 px-4 py-2 rounded-lg font-bold transition ${isDarkMode ? 'bg-[#334155] text-white hover:bg-[#475569]' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
+                className={`flex-1 px-4 py-2 rounded-lg font-bold transition active:scale-95 ${isDarkMode ? 'bg-[#334155] text-white hover:bg-[#475569]' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
               >
                 Cancel
               </button>
@@ -238,7 +268,7 @@ const Workout = () => {
                   </div>
                   <button
                     onClick={() => handleDeleteWorkout(workout.id)}
-                    className="text-red-500 hover:text-red-700 transition"
+                    className="text-red-500 hover:text-red-700 transition active:scale-90"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -287,13 +317,13 @@ const Workout = () => {
           {/* Active Card (Monday) - Only show if it matches search */}
           {showMondayCard && (
             <div className="lg:col-span-1 xl:col-span-1 row-span-2">
-              <div className={`p-6 rounded-[2rem] border-2 border-[#00c4b4] shadow-xl shadow-[#00c4b4]/10 h-full flex flex-col ${isDarkMode ? 'bg-[#1e293b]' : 'bg-white'}`}>
+              <div className={`p-6 rounded-[2rem] border-2 shadow-xl h-full flex flex-col ${isWorkoutDoneToday ? 'border-green-500 shadow-green-500/10' : 'border-[#00c4b4] shadow-[#00c4b4]/10'} ${isDarkMode ? 'bg-[#1e293b]' : 'bg-white'}`}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <span className="text-xs font-bold text-[#00c4b4] uppercase tracking-wider">{mondayRoutine.day}</span>
+                    <span className={`text-xs font-bold uppercase tracking-wider ${isWorkoutDoneToday ? 'text-green-500' : 'text-[#00c4b4]'}`}>{mondayRoutine.day}</span>
                     <h3 className={`text-2xl font-bold mt-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{mondayRoutine.title}</h3>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-[#00c4b4] text-white flex items-center justify-center">
+                  <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center ${isWorkoutDoneToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}>
                     <CheckCircle2 size={16} />
                   </div>
                 </div>
@@ -301,11 +331,11 @@ const Workout = () => {
                 <div className="space-y-2 mb-6">
                   <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
                     <span>Workout Progress</span>
-                    <span className="text-[#00c4b4]">{progressPercentage}%</span>
+                    <span className={isWorkoutDoneToday ? 'text-green-500' : 'text-[#00c4b4]'}>{progressPercentage}%</span>
                   </div>
                   <div className={`w-full h-2 rounded-full overflow-hidden border ${isDarkMode ? 'bg-[#334155] border-[#334155]' : 'bg-slate-100 border-slate-100'}`}>
                     <div
-                      className="h-full bg-[#00c4b4] transition-all duration-500"
+                      className={`h-full transition-all duration-500 ${isWorkoutDoneToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}
                       style={{ width: `${progressPercentage}%` }}
                     ></div>
                   </div>
@@ -338,7 +368,7 @@ const Workout = () => {
                             <span>{exercise.reps} Reps</span>
                           </div>
                         </div>
-                        <span className="text-xs font-bold text-[#00c4b4] bg-[#00c4b4]/10 px-2 py-1 rounded-lg">
+                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${isDone ? 'text-green-600 bg-green-500/10' : 'text-[#00c4b4] bg-[#00c4b4]/10'}`}>
                           {exercise.weight}
                         </span>
                       </div>
@@ -347,48 +377,50 @@ const Workout = () => {
                 </div>
 
                 <button
-  disabled={completedExerciseIds.length !== mondayRoutine.exercises.length}
-  onClick={async () => {
-    try {
-      const logData = {
-        status: "active",
-        difficultyRating: 7,
-        weight: user?.weight || 70,
-      };
+                  disabled={isWorkoutDoneToday || completedExerciseIds.length !== mondayRoutine.exercises.length}
+                  onClick={async () => {
+                    if (isWorkoutDoneToday) return;
 
-      await api.post("/logs", logData);
+                    try {
+                      const logData = {
+                        status: "active",
+                        difficultyRating: 7,
+                        weight: user?.weight || 70,
+                      };
 
-      alert("Workout Logged Successfully!");
+                      await api.post("/logs", logData);
+                      alert("Workout Logged Successfully!");
+                      
+                      // Immediately update UI to show as done for today
+                      setIsWorkoutDoneToday(true);
+                      setcompletedExerciseIds(mondayRoutine.exercises.map(ex => ex.id));
+                      
+                    } catch (error) {
+                      console.error("Workout log error:", error);
+                      alert(
+                        error?.response?.data?.message ||
+                        "Failed to log workout"
+                      );
+                    }
+                  }}
+                  className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md flex justify-center items-center gap-2 ${
+                    isWorkoutDoneToday
+                      ? 'bg-green-500 text-white cursor-default shadow-none'
+                      : completedExerciseIds.length === mondayRoutine.exercises.length
+                        ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
+                        : (isDarkMode ? 'bg-[#334155] text-slate-400 cursor-not-allowed shadow-none' : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none')
+                  }`}
+                >
+                  {isWorkoutDoneToday
+                    ? <><CheckCircle2 size={20} /> Done for Today</>
+                    : completedExerciseIds.length === mondayRoutine.exercises.length
+                      ? "Complete Workout"
+                      : `Finish ${mondayRoutine.exercises.length - completedExerciseIds.length} more to Complete`}
+                </button>
+              </div>
+            </div>
+          )}
 
-      setcompletedExerciseIds([]);
-
-      window.location.reload();
-    } catch (error) {
-      console.error("Workout log error:", error);
-
-      alert(
-        error?.response?.data?.message ||
-        "Failed to log workout"
-      );
-    }
-  }}
-  className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md ${
-    completedExerciseIds.length === mondayRoutine.exercises.length
-      ? "bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer"
-      : isDarkMode
-        ? "bg-[#334155] text-slate-400 cursor-not-allowed shadow-none"
-        : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
-  }`}
->
-  {completedExerciseIds.length === mondayRoutine.exercises.length
-    ? "Complete Workout"
-    : `Finish ${
-        mondayRoutine.exercises.length - completedExerciseIds.length
-      } more to Complete`}
-</button>
-</div>
-</div>
-)}
           {/* Routine Cards (Filtered) */}
           {filteredRoutineCards.map((card, idx) => (
             <div key={idx} className={`p-6 rounded-[2rem] border shadow-sm hover:shadow-md transition-shadow flex flex-col ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
@@ -413,7 +445,7 @@ const Workout = () => {
                 </div>
               )}
 
-              <button className={`w-full mt-6 py-3 font-bold rounded-xl transition-colors text-sm ${isDarkMode ? 'bg-[#00c4b4]/10 text-[#00c4b4] hover:bg-[#00c4b4]/20' : 'bg-[#00c4b4]/5 text-[#00c4b4] hover:bg-[#00c4b4]/10'}`}>
+              <button className={`w-full mt-6 py-3 font-bold rounded-xl transition-all text-sm active:scale-95 ${isDarkMode ? 'bg-[#00c4b4]/10 text-[#00c4b4] hover:bg-[#00c4b4]/20' : 'bg-[#00c4b4]/5 text-[#00c4b4] hover:bg-[#00c4b4]/10'}`}>
                 {card.type === 'recovery' ? 'View Details' : 'View Routine'}
               </button>
             </div>

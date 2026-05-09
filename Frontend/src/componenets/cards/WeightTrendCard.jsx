@@ -24,7 +24,7 @@ const WeightTrendCard = () => {
         </h3>
 
         {/* Legend */}
-        <div className="flex items-center gap-4 text-xs font-bold">
+   {/*  <div className="flex items-center gap-4 text-xs font-bold">
           <span className="flex items-center gap-1 text-charcoal/50">
             <span className="h-2 w-2 rounded-full bg-primary-magenta" />
             Actual
@@ -33,7 +33,7 @@ const WeightTrendCard = () => {
             <span className="h-2 w-2 rounded-full bg-charcoal/20" />
             Predicted
           </span>
-        </div>
+        </div> */}  
       </div>
 
       {/* Chart */}

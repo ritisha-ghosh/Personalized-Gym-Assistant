@@ -94,18 +94,19 @@ const Settings = () => { // Renamed from Settings to Settings
     setIsLoading(true);
     setSaveStatus('Saving...');
     try {
-      const response = await api.put('/users/profile', {
-        name: fullName,
-        email: formData.email, // Email is disabled, so it won't change, but we send it for consistency
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', fullName);
+
+      const response = await api.put('/users/profile', formDataToSend, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
-      const updatedUser = response.data;
+      const updatedUser = response.data.user;
 
       // Update AuthContext to reflect the new name and email across the app
       if (user && setUser) {
         setUser(prevUser => ({
           ...prevUser,
-          name: updatedUser.name,
-          email: updatedUser.email,
+          name: updatedUser.name
         }));
       }
 
@@ -280,7 +281,7 @@ const Settings = () => { // Renamed from Settings to Settings
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                       activeTab === tab.id 
                         ? 'bg-[#00c4b4]/10 text-[#00c4b4]' 
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 active:scale-95'
                     }`}
                   >
                     <tab.icon size={18} />
@@ -289,7 +290,7 @@ const Settings = () => { // Renamed from Settings to Settings
                 ))}
               </nav>
               <div className="border-t border-slate-100 p-2 mt-2">
-                <Link to="/" className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-colors">
+                <Link to="/" className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all active:scale-95">
                   <LogOut size={18} />
                   Sign Out
                 </Link>
@@ -306,7 +307,7 @@ const Settings = () => { // Renamed from Settings to Settings
                     <h2 className="text-lg font-bold">Personal Information</h2>
                     <button
                       onClick={() => setIsEditMode(!isEditMode)}
-                      className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                      className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-lg shadow-[#00c4b4]/20 hover:-translate-y-0.5 active:translate-y-0"
                     >
                       {isEditMode ? 'Close' : 'Edit'}
                     </button>
@@ -356,14 +357,14 @@ const Settings = () => { // Renamed from Settings to Settings
                       <div className="md:col-span-2 flex justify-end gap-3 pt-4">
                         <button 
                           onClick={() => setIsEditMode(false)}
-                          className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-sm"
+                          className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all text-sm active:scale-95"
                         >
                           Cancel
                         </button>
                         <button 
                           onClick={handleSaveAccountInfo} // Use the specific function for account info
                           disabled={isLoading}
-                          className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70 text-sm"
+                          className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-[#00c4b4]/20 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 text-sm"
                         >
                           {isLoading ? '...' : <><Save size={16} /> Save Changes</>}
                         </button>
@@ -603,7 +604,7 @@ const Settings = () => { // Renamed from Settings to Settings
                     <button 
                       onClick={handleChangePassword}
                       disabled={isLoading}
-                      className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70"
+                      className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-[#00c4b4]/20 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70"
                     >
                       {isLoading ? '...' : 'Update Password'}
                     </button>
@@ -617,7 +618,7 @@ const Settings = () => { // Renamed from Settings to Settings
                   <button 
                     onClick={handleDeleteAccount}
                     disabled={isLoading}
-                    className="flex items-center gap-2 bg-white border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-6 py-3 rounded-xl font-bold transition-all shadow-sm disabled:opacity-70"
+                    className="flex items-center gap-2 bg-white border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-6 py-3 rounded-xl font-bold transition-all shadow-sm hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70"
                   >
                     <Trash2 size={18} />
                     Delete Account
@@ -631,7 +632,7 @@ const Settings = () => { // Renamed from Settings to Settings
                 <button 
                   onClick={handleSaveSettings}
                   disabled={isLoading}
-                  className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-[#00c4b4]/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-wait"
+                  className="flex items-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-[#00c4b4]/20 transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-wait"
                 >
                   {isLoading ? (
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
@@ -666,14 +667,14 @@ const Settings = () => { // Renamed from Settings to Settings
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => setIsDeleteModalOpen(false)}
-                  className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-sm"
+                  className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all text-sm active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDeleteAccount}
                   disabled={isLoading}
-                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-70 text-sm"
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-red-600/20 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 text-sm"
                 >
                   {isLoading ? 'Deleting...' : 'Delete Account'}
                 </button>
