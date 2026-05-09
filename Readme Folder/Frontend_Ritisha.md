@@ -7,6 +7,16 @@
 
 ---
 
+**Basic changes : -**
+
+1. Removed notification and info button from header
+2. Removed file upload option from ai chat bot
+3. **Settings :** removed 2 extra language, mesurement and notification and account connected box from settings
+4. **progression :** make progression bar goal dynamic,/ remove benchpress box
+5. **nutrition :** removed water tip button, micronutrient box
+6. **Dashboard :** removes view routng button , leader board and , weighttrend chart / connect start session button with workout
+7. 
+
 ---
 
 # pull full project

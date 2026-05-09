@@ -15,6 +15,9 @@ import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
 import { DarkModeContext } from '../context/DarkModeContext';
 
+// Import the extracted WeightTrendCard
+import WeightTrendCard from "../componenets/cards/WeightTrendCard";
+
 const Progression = () => {
   // 2. Search Params Logic
   const [searchParams] = useSearchParams();
@@ -189,7 +192,7 @@ const Progression = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Progress Analytics</h1>
-            <div className="bg-slate-100 p-1 rounded-xl flex text-xs sm:text-sm font-semibold overflow-x-auto">
+     {/*       <div className="bg-slate-100 p-1 rounded-xl flex text-xs sm:text-sm font-semibold overflow-x-auto">
               {['30 Days', '6 Months', 'Yearly'].map((range) => (
                 <button
                   key={range}
@@ -203,7 +206,7 @@ const Progression = () => {
                   {range}
                 </button>
               ))}
-            </div>
+            </div>   */}
           </div>
           
           <div className="flex items-center gap-4">
@@ -235,6 +238,7 @@ const Progression = () => {
         )}
 
         {/* --- Main Chart: Body Weight Trend --- */}
+        {/* OLD INLINE CHART COMMENTED OUT 
         {showChart && (
           <div className={`p-8 rounded-[2rem] border shadow-sm animate-fade-in ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -292,6 +296,10 @@ const Progression = () => {
             </div>
           </div>
         )}
+        */}
+
+        {/* --- IMPORTED WEIGHT TREND CARD --- */}
+        {showChart && <WeightTrendCard />}
 
         {/* --- Lift Stats Cards (Filtered) COMMENTED OUT --- */}
         {/* {filteredLiftStats.length > 0 && (
@@ -328,16 +336,16 @@ const Progression = () => {
           <div className={`p-8 rounded-[2rem] border shadow-sm overflow-x-auto animate-fade-in ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
             <div className="flex justify-between items-end mb-8 min-w-[600px]">
               <div>
-                <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Login Activity Heatmap</h2>
+                <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Workout Heatmap</h2>
                 <p className={`text-sm mt-1 ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-400'}`}>
-                  You have logged in <span className='text-[#00c4b4] font-bold'>{loginCount} days</span> in the last year.
+                  You have workedout <span className='text-[#00c4b4] font-bold'>{loginCount} days</span> in the last year.
                   <span className={`ml-2 font-bold ${isDarkMode ? 'text-[#00c4b4]' : 'text-teal-600'}`}>(Updated Today ✓)</span>
                 </p>
               </div>
             </div>
 
             {/* Legend - Bottom Right */}
-            <div className={`flex items-center justify-end gap-2 text-[10px] font-bold uppercase mb-4 pb-2 border-b ${isDarkMode ? 'text-[#94a3b8] border-[#334155]' : 'text-slate-400 border-slate-200'}`}>
+           {/*  <div className={`flex items-center justify-end gap-2 text-[10px] font-bold uppercase mb-4 pb-2 border-b ${isDarkMode ? 'text-[#94a3b8] border-[#334155]' : 'text-slate-400 border-slate-200'}`}>
               <span>Less</span>
               <div className="flex gap-1">
                 <div className={`w-3 h-3 rounded-sm ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-100'}`}></div>
@@ -346,7 +354,7 @@ const Progression = () => {
                 <div className={`w-3 h-3 rounded-sm ${isDarkMode ? 'bg-[#00c4b4]' : 'bg-teal-600'}`}></div>
               </div>
               <span>More</span>
-            </div>
+            </div>  */}
 
             <div className="overflow-x-auto -mx-2 px-2">
               <div className="flex gap-1 items-start pb-4 min-w-min">
@@ -441,7 +449,7 @@ const Progression = () => {
                                 <div 
                                   key={dayIdx} 
                                   className={`w-3 h-3 rounded-sm ${intensity} hover:ring-1 hover:ring-offset-1 ${isDarkMode ? 'hover:ring-[#00c4b4]' : 'hover:ring-teal-400'} transition-all cursor-pointer ${isTodayOrRecent() ? `ring-1 ring-offset-1 ${isDarkMode ? 'ring-[#00c4b4]' : 'ring-teal-400'}` : ''}`}
-                                  title={day ? `${day.date} (${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dayIdx]}) : ${day.hasLogin ? `✓ Logged in` : 'No login'}` : 'No data'}
+                                  title={day ? `${day.date} (${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dayIdx]}) : ${day.hasLogin ? `✓ Done` : 'No login'}` : 'No data'}
                                 ></div>
                               );
                             })}
