@@ -1,19 +1,20 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
+import { useSearchParams } from 'react-router-dom';
 import Layout from "../componenets/layout/Layout";
 import { Send, PlusCircle, Bot, Search, Mic, MicOff, User, Sparkles } from 'lucide-react';
 import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
+import { DarkModeContext } from '../context/DarkModeContext'; // Added DarkModeContext
 
 const ChatBot = () => {
-  // 2. Get search query from URL
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
   const { user } = useContext(AuthContext);
+  const { isDarkMode } = useContext(DarkModeContext); // Extracted isDarkMode
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isListening, setIsListening] = useState(false); // ADD Voice State
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef(null);
   const [isSending, setIsSending] = useState(false);
 
@@ -38,13 +39,13 @@ const ChatBot = () => {
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
-    recognition.continuous = false; // Stops automatically when you finish speaking
+    recognition.continuous = false;
 
     recognition.onstart = () => setIsListening(true);
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
-      setInputValue(transcript); // Puts the spoken words into your existing input state
+      setInputValue(transcript);
     };
 
     recognition.onerror = (event) => {
@@ -57,7 +58,7 @@ const ChatBot = () => {
     recognition.start();
   };
 
-  // --- 3. Filter Messages based on Search ---
+  // --- Filter Messages based on Search ---
   const filteredMessages = messages.filter(msg =>
     msg.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -121,7 +122,6 @@ const ChatBot = () => {
 
   return (
     <Layout>
-      {/* Inject Fonts locally */}
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -134,12 +134,12 @@ const ChatBot = () => {
         `}
       </style>
 
-      <div className="flex flex-col h-[calc(100vh-140px)] font-sans">
+      <div className={`flex flex-col h-[calc(100vh-140px)] font-sans ${isDarkMode ? 'dark-mode' : ''}`}>
 
         {/* --- Chat Header --- */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">AI Coach</h1>
-          <p className="text-slate-500 text-sm">Always active • Personalized fitness guidance</p>
+          <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>AI Coach</h1>
+          <p className={`text-sm ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>Always active • Personalized fitness guidance</p>
 
           {/* Search Feedback */}
           {searchQuery && (
@@ -160,16 +160,14 @@ const ChatBot = () => {
                 className={`flex gap-4 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
               >
                 {/* Avatar */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm ${msg.sender === 'ai' ? 'bg-teal-500 text-white' : 'bg-teal-500'
-                  }`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm ${msg.sender === 'ai' ? 'bg-teal-500 text-white' : ''}`}>
                   {msg.sender === 'ai' ? (
                     <Bot size={20} />
                   ) : (
-                    <img
-                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2000&auto=format&fit=crop"
-                      alt="User"
-                      className="w-full h-full rounded-full object-cover border-2 border-white"
-                    />
+                    /* User DP removed and replaced with dynamic theme gradient */
+                    <div className={`w-full h-full rounded-full border-2 flex items-center justify-center ${isDarkMode ? 'border-[#334155] bg-gradient-to-br from-indigo-600 to-purple-600' : 'border-white bg-gradient-to-br from-[#db2777] to-orange-400'}`}>
+                      <User size={20} className="text-white" />
+                    </div>
                   )}
                 </div>
 
@@ -177,7 +175,7 @@ const ChatBot = () => {
                 <div className={`flex flex-col max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                   <div
                     className={`p-5 rounded-2xl shadow-sm text-sm leading-relaxed whitespace-pre-wrap ${msg.sender === 'ai'
-                        ? 'bg-[#e0f7f6] text-slate-800 rounded-tl-none'
+                        ? (isDarkMode ? 'bg-[#1e293b] text-[#f1f5f9] rounded-tl-none border border-[#334155]' : 'bg-[#e0f7f6] text-slate-800 rounded-tl-none')
                         : 'bg-[#00c4b4] text-white rounded-tr-none'
                       }`}
                   >
@@ -214,7 +212,7 @@ const ChatBot = () => {
               <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center shrink-0">
                 <Bot size={20} className="text-white" />
               </div>
-              <div className="bg-[#e0f7f6] p-4 rounded-2xl rounded-tl-none flex items-center gap-1">
+              <div className={`p-4 rounded-2xl rounded-tl-none flex items-center gap-1 ${isDarkMode ? 'bg-[#1e293b] border border-[#334155]' : 'bg-[#e0f7f6]'}`}>
                 <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce delay-100"></div>
                 <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce delay-200"></div>
@@ -225,7 +223,7 @@ const ChatBot = () => {
         </div>
 
         {/* --- Input Area --- */}
-        <div className="mt-4 bg-white pt-4 border-t border-slate-100">
+        <div className={`mt-4 bg-transparent pt-4 border-t ${isDarkMode ? 'border-[#334155]' : 'border-slate-100'}`}>
 
           {/* Quick Actions (Hide when searching to reduce clutter) */}
           {!searchQuery && (
@@ -234,7 +232,11 @@ const ChatBot = () => {
                 <button
                   key={action}
                   onClick={() => handleSend(action)}
-                  className="whitespace-nowrap px-4 py-2 bg-slate-50 hover:bg-[#e0f7f6] hover:text-teal-700 border border-slate-200 rounded-full text-xs font-bold text-slate-600 transition-colors"
+                  className={`whitespace-nowrap px-4 py-2 border rounded-full text-xs font-bold transition-colors ${
+                    isDarkMode 
+                    ? 'bg-[#1e293b] border-[#334155] text-slate-300 hover:bg-[#334155] hover:text-white' 
+                    : 'bg-slate-50 hover:bg-[#e0f7f6] hover:text-teal-700 border-slate-200 text-slate-600'
+                  }`}
                 >
                   {action}
                 </button>
@@ -244,9 +246,11 @@ const ChatBot = () => {
 
           {/* Input Box */}
           <div className="relative flex items-center gap-2">
-            <div className="absolute left-2 flex items-center justify-center w-10 h-10 text-slate-400 hover:text-[#00c4b4] cursor-pointer transition-colors">
+            
+            {/* File Upload Plus Sign Commented Out */}
+            {/* <div className="absolute left-2 flex items-center justify-center w-10 h-10 text-slate-400 hover:text-[#00c4b4] cursor-pointer transition-colors">
               <PlusCircle size={24} />
-            </div>
+            </div> */}
 
             <input
               type="text"
@@ -254,7 +258,11 @@ const ChatBot = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Message your AI Coach..."
-              className="w-full pl-12 pr-14 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-[#00c4b4]/20 text-slate-700 font-medium placeholder:text-slate-400 shadow-inner"
+              className={`w-full pl-6 pr-14 py-4 border-none rounded-2xl focus:ring-2 focus:ring-[#00c4b4]/20 font-medium shadow-inner ${
+                isDarkMode 
+                ? 'bg-[#1e293b] text-white placeholder:text-slate-400' 
+                : 'bg-slate-50 text-slate-700 placeholder:text-slate-400'
+              }`}
             />
 
             {/* Voice Toggle Button */}

@@ -187,8 +187,17 @@ const Dashboard = () => {
           {/* Left Column */}
           <div className="space-y-6 lg:col-span-8">
             {/* Conditionally render based on search keywords */}
-            {shouldShow(["workout", "training", "exercise", "plan"]) && <WorkoutCard />}
-            {shouldShow(["weight", "trend", "chart", "progress", "graph"]) && <WeightTrendCard />}
+            {shouldShow(["workout", "training", "exercise", "plan"]) && (
+              <WorkoutCard 
+                /* Connected Start Session to Workout page */
+                onStartSession={() => navigate('/workouts')}
+                /* Passed prop to comment out/hide View Routine button inside WorkoutCard */
+                hideViewRoutine={true}
+              />
+            )}
+            
+            {/* WEIGHT TREND CHART - COMMENTED OUT */}
+            {/* {shouldShow(["weight", "trend", "chart", "progress", "graph"]) && <WeightTrendCard />} */}
             
             {/* If search is active but nothing matches in this column, show a polite message (optional) */}
             {searchQuery && 
@@ -202,7 +211,9 @@ const Dashboard = () => {
             {shouldShow(["consistency", "week", "streak", "calendar"]) && <WeeklyConsistency />}
             {shouldShow(["goal", "comparison", "bmi", "weight target"]) && <GoalComparisonCard />}
             {shouldShow(["trainer", "insight", "ai", "tip", "advice"]) && <TrainerInsight />}
-            {shouldShow(["leaderboard", "rank", "social", "community", "top"]) && <Leaderboard />}
+            
+            {/* LEADERBOARD - COMMENTED OUT */}
+            {/* {shouldShow(["leaderboard", "rank", "social", "community", "top"]) && <Leaderboard />} */}
           </div>
 
         </div>
