@@ -377,23 +377,52 @@ const Workout = () => {
 
                 {/* UPDATED COMPLETE WORKOUT BUTTON , IT WILL SHOW HOW MANY EXERCISE LEFT TO COMPLETE */}
                 <button
-                  // Disable the button unless every exercise ID is in the completed state
-                  disabled={completedExerciseIds.length !== mondayRoutine.exercises.length}
+  disabled={completedExerciseIds.length !== mondayRoutine.exercises.length}
 
-                  onClick={() => {
-                    alert("Workout Logged Successfully!");
-                    // You can also add logic here to clear the state or save to DB
-                  }}
+  onClick={async () => {
+    try {
 
-                  className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md ${completedExerciseIds.length === mondayRoutine.exercises.length
-                      ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer' // Active state
-                      : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none' // Locked state
-                    }`}
-                >
-                  {completedExerciseIds.length === mondayRoutine.exercises.length
-                    ? "Complete Workout"
-                    : `Finish ${mondayRoutine.exercises.length - completedExerciseIds.length} more to Complete`}
-                </button>
+      const logData = {
+        status: "active",
+
+        // temporary static value
+        difficultyRating: 7,
+
+        // logged-in user weight
+        weight: user?.weight || 70,
+      };
+
+      // Save to backend
+      await api.post("/logs", logData);
+
+      alert("Workout Logged Successfully!");
+      window.location.reload();
+      // Reset completed exercises
+      setcompletedExerciseIds([]);
+
+    } catch (error) {
+
+      console.error("Workout log error:", error);
+
+      alert(
+        error?.response?.data?.message ||
+        "Failed to log workout"
+      );
+    }
+  }}
+
+  className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md ${
+    completedExerciseIds.length === mondayRoutine.exercises.length
+      ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer'
+      : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
+  }`}
+>
+  {completedExerciseIds.length === mondayRoutine.exercises.length
+    ? "Complete Workout"
+    : `Finish ${
+        mondayRoutine.exercises.length - completedExerciseIds.length
+      } more to Complete`}
+</button>
               </div>
             </div>
           )}
