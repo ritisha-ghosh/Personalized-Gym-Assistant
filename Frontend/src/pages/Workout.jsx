@@ -180,7 +180,7 @@ const Workout = () => {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap ${activeTab === tab
+                  className={`px-3 sm:px-4 py-2 rounded-lg transition-all whitespace-nowrap active:scale-95 ${activeTab === tab
                     ? (isDarkMode ? 'bg-[#334155] text-white shadow-sm' : 'bg-white text-slate-900 shadow-sm')
                     : (isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700')
                     }`}
@@ -192,7 +192,7 @@ const Workout = () => {
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0"
           >
             <Plus size={18} />
             <span className="hidden sm:inline">Add Workout</span>
@@ -236,13 +236,13 @@ const Workout = () => {
             <div className="flex gap-4">
               <button
                 onClick={handleAddWorkout}
-                className="flex-1 bg-[#00c4b4] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#00a89f] transition"
+                className="flex-1 bg-[#00c4b4] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#00a89f] transition shadow-md shadow-[#00c4b4]/20 hover:-translate-y-0.5 active:translate-y-0"
               >
                 Save Workout
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
-                className={`flex-1 px-4 py-2 rounded-lg font-bold transition ${isDarkMode ? 'bg-[#334155] text-white hover:bg-[#475569]' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
+                className={`flex-1 px-4 py-2 rounded-lg font-bold transition active:scale-95 ${isDarkMode ? 'bg-[#334155] text-white hover:bg-[#475569]' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
               >
                 Cancel
               </button>
@@ -268,7 +268,7 @@ const Workout = () => {
                   </div>
                   <button
                     onClick={() => handleDeleteWorkout(workout.id)}
-                    className="text-red-500 hover:text-red-700 transition"
+                    className="text-red-500 hover:text-red-700 transition active:scale-90"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -407,7 +407,7 @@ const Workout = () => {
                     isWorkoutDoneToday
                       ? 'bg-green-500 text-white cursor-default shadow-none'
                       : completedExerciseIds.length === mondayRoutine.exercises.length
-                        ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer'
+                        ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
                         : (isDarkMode ? 'bg-[#334155] text-slate-400 cursor-not-allowed shadow-none' : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none')
                   }`}
                 >
@@ -445,7 +445,7 @@ const Workout = () => {
                 </div>
               )}
 
-              <button className={`w-full mt-6 py-3 font-bold rounded-xl transition-colors text-sm ${isDarkMode ? 'bg-[#00c4b4]/10 text-[#00c4b4] hover:bg-[#00c4b4]/20' : 'bg-[#00c4b4]/5 text-[#00c4b4] hover:bg-[#00c4b4]/10'}`}>
+              <button className={`w-full mt-6 py-3 font-bold rounded-xl transition-all text-sm active:scale-95 ${isDarkMode ? 'bg-[#00c4b4]/10 text-[#00c4b4] hover:bg-[#00c4b4]/20' : 'bg-[#00c4b4]/5 text-[#00c4b4] hover:bg-[#00c4b4]/10'}`}>
                 {card.type === 'recovery' ? 'View Details' : 'View Routine'}
               </button>
             </div>

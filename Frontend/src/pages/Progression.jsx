@@ -53,16 +53,16 @@ const Progression = () => {
         const profileData = profileResponse.data.user;
         setUserProfile(profileData);
 
-        // 2. Load Weight Data
+        // 2. Load real Weight Data from Local Storage or use current weight from profile
         const progression = getProgression(user.id);
-        setWeightData(progression.weightData || [
-          { month: 'JAN', weight: profileData.weight ? profileData.weight - 5 : 85.0 },
-          { month: 'FEB', weight: profileData.weight ? profileData.weight - 4.2 : 84.2 },
-          { month: 'MAR', weight: profileData.weight ? profileData.weight - 3.5 : 83.5 },
-          { month: 'APR', weight: profileData.weight ? profileData.weight - 1.8 : 81.8 },
-          { month: 'MAY', weight: profileData.weight ? profileData.weight + 0.5 : 79.5 },
-          { month: 'JUN', weight: profileData.weight || 78.4 },
-        ]);
+        let historicalWeight = progression.weightData || [];
+
+        // If no historical data exists, create a single entry with the current weight from the backend profile.
+        if (historicalWeight.length === 0 && profileData.weight) {
+            const currentMonth = new Date().toLocaleString('default', { month: 'short' }).toUpperCase();
+            historicalWeight = [{ month: currentMonth, weight: profileData.weight }];
+        }
+        setWeightData(historicalWeight);
 
         // 3. Fetch Dynamic Workout Logs from Backend
         const logsResponse = await api.get('/logs');
@@ -295,7 +295,7 @@ const Progression = () => {
             <div className="flex gap-2">
               <button 
                 onClick={handleExportReport}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 active:scale-95 shadow-sm ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 hover:-translate-y-px active:scale-95 shadow-sm ${
                   isDarkMode 
                     ? 'bg-[#1e293b] border border-[#334155] text-slate-200 hover:bg-[#00c4b4]/20 hover:border-[#00c4b4]/50 hover:text-[#00c4b4]' 
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-[#00c4b4]/10 hover:border-[#00c4b4]/40 hover:text-[#00c4b4]'
@@ -305,12 +305,19 @@ const Progression = () => {
                 Export
               </button>
             </div>
-            <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-200">
+            <div className={`hidden md:flex items-center gap-3 pl-4 border-l ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
               <div className="text-right">
                 <p className="text-sm font-bold leading-none">{user?.name || 'User'}</p>
-                <p className="text-[10px] font-bold text-emerald-500 uppercase mt-1">Goal: {userProfile?.goal ? userProfile.goal.charAt(0).toUpperCase() + userProfile.goal.slice(1) : 'N/A'}</p>
+                <p className="text-[10px] font-bold text-emerald-500 uppercase mt-1">Goal : {userProfile?.goal ? userProfile.goal.charAt(0).toUpperCase() + userProfile.goal.slice(1) : 'N/A'}</p>
               </div>
-              <div className={`w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-200 to-yellow-500 border-2 shadow-sm ${isDarkMode ? 'border-[#0f172a]' : 'border-white'}`}></div>
+              {/* Added border-2 for thicker border */}
+              <div
+                className={`w-10 h-10 rounded-full bg-cover bg-center border-2 shadow-sm ${isDarkMode ? 'border-slate-500' : 'border-slate-300'}`}
+                style={{
+                  backgroundImage: userProfile?.profileImage ? `url(${userProfile.profileImage})` : 'linear-gradient(to top right, #fde047, #f59e0b)',
+                  backgroundColor: !userProfile?.profileImage ? '#facc15' : 'transparent'
+                }}
+              ></div>
             </div>
           </div>
         </div>
@@ -322,7 +329,11 @@ const Progression = () => {
         )}
 
         {/* --- IMPORTED WEIGHT TREND CARD --- */}
-        {showChart && <WeightTrendCard />}
+        {showChart && (
+          <div className="h-96">{/* Wrapper with explicit height to fix chart rendering */}
+            <WeightTrendCard />
+          </div>
+        )}
 
         {/* --- Workout Consistency Heatmap (Dynamic from Backend) --- */}
         {showHeatmap && (
@@ -407,11 +418,20 @@ const Progression = () => {
                                 return day.date === todayStr;
                               };
 
+                              // Generate formatted date for Tooltip DD-MonthName-YYYY
+                              let tooltipDate = 'No data';
+                              if (day) {
+                                const [y, m, d] = day.date.split('-');
+                                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                                const formattedDate = `${d}-${monthNames[parseInt(m, 10) - 1]}-${y}`;
+                                tooltipDate = `${formattedDate} (${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dayIdx]}) : ${day.hasWorkout ? '✓ Done' : 'No workout'}`;
+                              }
+
                               return (
                                 <div 
                                   key={dayIdx} 
                                   className={`w-3 h-3 rounded-sm ${intensity} hover:ring-1 hover:ring-offset-1 ${isDarkMode ? 'hover:ring-[#00c4b4]' : 'hover:ring-teal-400'} transition-all cursor-pointer ${isTodayOrRecent() ? `ring-1 ring-offset-1 ${isDarkMode ? 'ring-[#00c4b4]' : 'ring-teal-400'}` : ''}`}
-                                  title={day ? `${day.date} (${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dayIdx]}) : ${day.hasWorkout ? `✓ Done` : 'No workout'}` : 'No data'}
+                                  title={tooltipDate}
                                 ></div>
                               );
                             })}

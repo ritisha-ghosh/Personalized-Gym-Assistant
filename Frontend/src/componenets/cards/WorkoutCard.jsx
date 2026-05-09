@@ -60,8 +60,8 @@ const WorkoutCard = () => {
               font-bold
               text-white
               shadow-lg
-              transition-transform
-              active:scale-95
+              transition-all
+              hover:-translate-y-0.5 active:translate-y-0
               ${isDarkMode ? 'bg-teal-500 shadow-teal-500/30' : 'bg-pink-500 shadow-pink-500/30'}
             `}
           >

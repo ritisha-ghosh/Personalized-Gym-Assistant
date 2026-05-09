@@ -4,13 +4,13 @@ import Layout from "../componenets/layout/Layout";
 import { Send, PlusCircle, Bot, Search, Mic, MicOff, User, Sparkles } from 'lucide-react';
 import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
-import { DarkModeContext } from '../context/DarkModeContext'; // Added DarkModeContext
+import { DarkModeContext } from '../context/DarkModeContext';
 
 const ChatBot = () => {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
   const { user } = useContext(AuthContext);
-  const { isDarkMode } = useContext(DarkModeContext); // Extracted isDarkMode
+  const { isDarkMode } = useContext(DarkModeContext);
 
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -164,10 +164,18 @@ const ChatBot = () => {
                   {msg.sender === 'ai' ? (
                     <Bot size={20} />
                   ) : (
-                    /* User DP removed and replaced with dynamic theme gradient */
-                    <div className={`w-full h-full rounded-full border-2 flex items-center justify-center ${isDarkMode ? 'border-[#334155] bg-gradient-to-br from-indigo-600 to-purple-600' : 'border-white bg-gradient-to-br from-[#db2777] to-orange-400'}`}>
-                      <User size={20} className="text-white" />
-                    </div>
+                    /* Display Real Profile Image or Gradient Fallback with a thicker border */
+                    user?.profileImage ? (
+                      <img 
+                        src={user.profileImage} 
+                        alt="User" 
+                        className={`w-full h-full rounded-full object-cover border-2 ${isDarkMode ? 'border-slate-500' : 'border-slate-300'}`}
+                      />
+                    ) : (
+                      <div className={`w-full h-full rounded-full border-2 flex items-center justify-center ${isDarkMode ? 'border-slate-500 bg-gradient-to-br from-indigo-600 to-purple-600' : 'border-slate-300 bg-gradient-to-br from-[#db2777] to-orange-400'}`}>
+                        <User size={20} className="text-white" />
+                      </div>
+                    )
                   )}
                 </div>
 
@@ -247,11 +255,6 @@ const ChatBot = () => {
           {/* Input Box */}
           <div className="relative flex items-center gap-2">
             
-            {/* File Upload Plus Sign Commented Out */}
-            {/* <div className="absolute left-2 flex items-center justify-center w-10 h-10 text-slate-400 hover:text-[#00c4b4] cursor-pointer transition-colors">
-              <PlusCircle size={24} />
-            </div> */}
-
             <input
               type="text"
               value={inputValue}

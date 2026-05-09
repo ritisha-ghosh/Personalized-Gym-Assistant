@@ -65,7 +65,7 @@ const Header = () => {
         {searchQuery && (
           <button
             onClick={clearSearch}
-            className={`absolute right-3 top-1/2 -translate-y-1/2 z-10 p-1 transition-all ${isDarkMode ? 'text-[#cbd5e1] hover:text-white' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`absolute right-3 top-1/2 -translate-y-1/2 z-10 p-1 transition-all active:scale-90 ${isDarkMode ? 'text-[#cbd5e1] hover:text-white' : 'text-slate-400 hover:text-slate-600'}`}
           >
             <X size={14} />
           </button>
@@ -74,13 +74,13 @@ const Header = () => {
 
       {/* --- Right Side Actions --- */}
       <div className="flex items-center gap-2 sm:gap-4 ml-auto">
-        <button onClick={() => setShowSearch(!showSearch)} className={`md:hidden p-2 rounded-lg transition-all ${isDarkMode ? 'bg-[#1e293b] hover:bg-[#334155]' : 'bg-slate-50 hover:bg-slate-100'}`}>
+        <button onClick={() => setShowSearch(!showSearch)} className={`md:hidden p-2 rounded-lg transition-all active:scale-90 ${isDarkMode ? 'bg-[#1e293b] hover:bg-[#334155]' : 'bg-slate-50 hover:bg-slate-100'}`}>
           {showSearch ? <X size={20} /> : <Search size={20} />}
         </button>
 
         <button 
           onClick={toggleDarkMode}
-          className={`p-2 sm:p-2.5 rounded-xl border transition-all group flex-shrink-0 ${isDarkMode ? 'bg-[#1e293b] hover:bg-[#00c4b4]/10 border-transparent hover:border-[#00c4b4]/20' : 'bg-slate-50 hover:bg-teal-50 border-transparent hover:border-teal-500/20'}`}
+          className={`p-2 sm:p-2.5 rounded-xl border transition-all group flex-shrink-0 active:scale-90 ${isDarkMode ? 'bg-[#1e293b] hover:bg-[#00c4b4]/10 border-transparent hover:border-[#00c4b4]/20' : 'bg-slate-50 hover:bg-teal-50 border-transparent hover:border-teal-500/20'}`}
           title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
         >
           <span className={`${isDarkMode ? 'text-[#00c4b4] group-hover:text-[#00f5ff]' : 'text-slate-600 group-hover:text-teal-500'}`}>
@@ -119,7 +119,7 @@ const Header = () => {
               className={`w-full pl-10 pr-10 py-3 rounded-xl text-sm border focus:outline-none focus:ring-2 ${isDarkMode ? 'bg-[#1e293b] border-[#334155] text-[#f1f5f9] placeholder:text-[#94a3b8] focus:ring-[#00c4b4]/20' : 'bg-white border-slate-200 placeholder:text-slate-400 focus:ring-teal-500/20'}`}
             />
             {searchQuery && (
-              <button onClick={clearSearch} className={`absolute right-3 top-1/2 -translate-y-1/2 z-10 p-1 ${isDarkMode ? 'text-[#cbd5e1] hover:text-white' : 'text-slate-400 hover:text-slate-600'}`}>
+              <button onClick={clearSearch} className={`absolute right-3 top-1/2 -translate-y-1/2 z-10 p-1 active:scale-90 ${isDarkMode ? 'text-[#cbd5e1] hover:text-white' : 'text-slate-400 hover:text-slate-600'}`}>
                 <X size={14} />
               </button>
             )}

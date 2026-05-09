@@ -168,7 +168,7 @@ const Neutrations = () => {
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0"
           >
             <Plus size={18} />
             <span className="hidden sm:inline">Add Meal</span>
@@ -219,13 +219,13 @@ const Neutrations = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleAddMeal}
-                className="flex-1 bg-[#00c4b4] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#00a89f] transition text-sm"
+                className="flex-1 bg-[#00c4b4] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#00a89f] transition text-sm shadow-md shadow-[#00c4b4]/20 hover:-translate-y-0.5 active:translate-y-0"
               >
                 Save Meal
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
-                className={`flex-1 px-4 py-2 rounded-lg font-bold transition text-sm ${isDarkMode ? 'bg-[#334155] text-white hover:bg-[#475569]' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
+                className={`flex-1 px-4 py-2 rounded-lg font-bold transition text-sm active:scale-95 ${isDarkMode ? 'bg-[#334155] text-white hover:bg-[#475569]' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
               >
                 Cancel
               </button>
@@ -346,7 +346,7 @@ const Neutrations = () => {
                   </div>
                   <button
                     onClick={() => handleDeleteMeal(meal.id)}
-                    className="text-red-500 hover:text-red-700 transition"
+                    className="text-red-500 hover:text-red-700 transition active:scale-90"
                   >
                     <Trash2 size={18} />
                   </button>

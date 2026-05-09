@@ -4,6 +4,7 @@
 2. **Frontend dynamic data fetch from backend connectivity (Name, All register real data, Edit data send to backend, Password change).**
 3. **Backend Edit on 2 file AuthController and AuthRouter and create UserController and UserRouter for frontend connectivity purpose.**
 4. **OTP sending and validation nodemailer.**
+5. **Profile picture upload and dynamic with all pages**
 
 ---
 
