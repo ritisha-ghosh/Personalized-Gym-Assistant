@@ -554,3 +554,68 @@ Restructured backend endpoints into a professional versioned format:
 ## 📍 Notes
 
 This backend module is designed to integrate seamlessly with the frontend and ML layer, enabling intelligent fitness recommendations and recovery analysis.
+
+
+
+
+# Extras
+
+## Implemented a complete Workout Tracking and Consistency System for the Personalized Gym Assistant project.
+
+### Key Features Added:
+
+Workout Completion Tracking
+Users can now mark exercises as completed.
+Workout progress updates dynamically based on completed exercises.
+“Complete Workout” button only activates after all exercises are completed.
+Workout Logging System
+After completing a workout, logs are stored in MongoDB through backend APIs.
+Workout data now persists across sessions.
+Dynamic Weekly Consistency Tracker
+Converted Weekly Consistency from a static UI component into a backend-connected feature.
+Workout completion days are automatically highlighted based on real workout logs.
+Weekly completed workout count updates dynamically.
+Workout Heatmap Integration
+Connected Workout Heatmap with backend workout logs.
+Heatmap now reflects actual completed workout days.
+Added workout streak calculation logic.
+Authentication & API Fixes
+Fixed protected route authentication issues.
+Updated frontend token handling to use accessToken from localStorage.
+Fixed invalid token issues causing 401 Unauthorized errors.
+Error Handling Improvements
+Added safer API response handling.
+Prevented crashes caused by invalid or empty responses.
+Added fallback checks before using array methods like .some().
+User-Specific Workout Data
+Workout history and logs are now user-specific.
+Different users have separate workout records.
+
+Backend APIs Used:
+
+GET /api/logs
+POST /api/logs
+GET /api/workouts
+
+### Frontend Components Updated:
+
+Workout.jsx
+WeeklyConsistency.jsx
+WorkoutHeatmap.jsx
+Dashboard.jsx
+
+Current Workflow:
+
+User completes exercises.
+Workout progress updates dynamically.
+User clicks “Complete Workout”.
+Workout log gets stored in MongoDB.
+Weekly consistency updates automatically.
+Heatmap updates automatically.
+Workout streak updates automatically.
+
+Additional Notes:
+
+This was an extra enhancement work beyond the initial static UI.
+Multiple frontend components were converted into fully backend-connected dynamic features.
+Improved real-time workout tracking experience for users.

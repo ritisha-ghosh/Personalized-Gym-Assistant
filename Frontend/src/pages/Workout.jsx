@@ -347,21 +347,48 @@ const Workout = () => {
                 </div>
 
                 <button
-                  disabled={completedExerciseIds.length !== mondayRoutine.exercises.length}
-                  onClick={() => alert("Workout Logged Successfully!")}
-                  className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md ${completedExerciseIds.length === mondayRoutine.exercises.length
-                      ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer'
-                      : (isDarkMode ? 'bg-[#334155] text-slate-400 cursor-not-allowed shadow-none' : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none')
-                    }`}
-                >
-                  {completedExerciseIds.length === mondayRoutine.exercises.length
-                    ? "Complete Workout"
-                    : `Finish ${mondayRoutine.exercises.length - completedExerciseIds.length} more to Complete`}
-                </button>
-              </div>
-            </div>
-          )}
+  disabled={completedExerciseIds.length !== mondayRoutine.exercises.length}
+  onClick={async () => {
+    try {
+      const logData = {
+        status: "active",
+        difficultyRating: 7,
+        weight: user?.weight || 70,
+      };
 
+      await api.post("/logs", logData);
+
+      alert("Workout Logged Successfully!");
+
+      setcompletedExerciseIds([]);
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Workout log error:", error);
+
+      alert(
+        error?.response?.data?.message ||
+        "Failed to log workout"
+      );
+    }
+  }}
+  className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md ${
+    completedExerciseIds.length === mondayRoutine.exercises.length
+      ? "bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer"
+      : isDarkMode
+        ? "bg-[#334155] text-slate-400 cursor-not-allowed shadow-none"
+        : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
+  }`}
+>
+  {completedExerciseIds.length === mondayRoutine.exercises.length
+    ? "Complete Workout"
+    : `Finish ${
+        mondayRoutine.exercises.length - completedExerciseIds.length
+      } more to Complete`}
+</button>
+</div>
+</div>
+)}
           {/* Routine Cards (Filtered) */}
           {filteredRoutineCards.map((card, idx) => (
             <div key={idx} className={`p-6 rounded-[2rem] border shadow-sm hover:shadow-md transition-shadow flex flex-col ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>

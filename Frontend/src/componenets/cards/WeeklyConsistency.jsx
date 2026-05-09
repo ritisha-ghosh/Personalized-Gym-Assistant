@@ -1,18 +1,74 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { DarkModeContext } from "../../context/DarkModeContext";
 
-const days = [
-  { label: "M", completed: true },
-  { label: "T", completed: true },
-  { label: "W", completed: true },
-  { label: "T", completed: false },
-  { label: "F", completed: false },
-  { label: "S", completed: false },
-  { label: "S", completed: false },
-];
-
-const WeeklyConsistency = ({ completedCount = 3, target = 5 }) => {
+const WeeklyConsistency = () => {
   const { isDarkMode } = useContext(DarkModeContext);
+
+  const [days, setDays] = useState([]);
+  const [completedCount, setCompletedCount] = useState(0);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+
+       const res = await fetch("http://localhost:5000/api/logs", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        console.log("DATA:", data);
+
+        const logs = Array.isArray(data.logs)
+  ? data.logs
+  : Array.isArray(data)
+  ? data
+  : [];
+
+        const today = new Date();
+
+        const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
+
+        const formattedDays = [];
+
+        let totalCompleted = 0;
+
+        for (let i = 0; i < 7; i++) {
+          const current = new Date();
+
+          current.setDate(today.getDate() - today.getDay() + i);
+
+          const currentDate =
+            current.toLocaleDateString("en-CA");
+
+          const hasWorkout = logs.some((log) => {
+            const logDate =
+              new Date(log.date).toLocaleDateString("en-CA");
+
+            return logDate === currentDate;
+          });
+
+          if (hasWorkout) totalCompleted++;
+
+          formattedDays.push({
+            label: weekDays[i],
+            completed: hasWorkout,
+          });
+        }
+
+        setDays(formattedDays);
+        setCompletedCount(totalCompleted);
+
+      } catch (err) {
+        console.error("ERROR:", err);
+      }
+    };
+
+    fetchLogs();
+  }, []);
 
   return (
     <div
@@ -23,15 +79,21 @@ const WeeklyConsistency = ({ completedCount = 3, target = 5 }) => {
         border
         text-center
         backdrop-blur-md
-        ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}
+        ${
+          isDarkMode
+            ? "bg-[#1e293b]/60 border-[#334155]/60"
+            : "bg-white/60 border-slate-100/60"
+        }
       `}
     >
-      {/* Title */}
-      <h3 className={`mb-6 text-left text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+      <h3
+        className={`mb-6 text-left text-lg font-bold ${
+          isDarkMode ? "text-white" : "text-slate-900"
+        }`}
+      >
         Weekly Consistency
       </h3>
 
-      {/* Days */}
       <div className="grid grid-cols-4 gap-4 justify-items-center">
         {days.map((day, index) => (
           <div key={index} className="flex flex-col items-center">
@@ -54,9 +116,8 @@ const WeeklyConsistency = ({ completedCount = 3, target = 5 }) => {
         ))}
       </div>
 
-      {/* Footer */}
       <p className="mt-6 text-sm font-medium text-slate-500">
-        {completedCount} of {target} workouts completed this week.
+        {completedCount} workouts completed this week.
       </p>
     </div>
   );
