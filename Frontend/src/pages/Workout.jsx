@@ -375,11 +375,9 @@ const Workout = () => {
   className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md ${
     completedExerciseIds.length === mondayRoutine.exercises.length
       ? "bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer"
-      : (
-          isDarkMode
-            ? "bg-[#334155] text-slate-400 cursor-not-allowed shadow-none"
-            : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
-        )
+      : isDarkMode
+        ? "bg-[#334155] text-slate-400 cursor-not-allowed shadow-none"
+        : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
   }`}
 >
   {completedExerciseIds.length === mondayRoutine.exercises.length
@@ -388,6 +386,9 @@ const Workout = () => {
         mondayRoutine.exercises.length - completedExerciseIds.length
       } more to Complete`}
 </button>
+</div>
+</div>
+)}
           {/* Routine Cards (Filtered) */}
           {filteredRoutineCards.map((card, idx) => (
             <div key={idx} className={`p-6 rounded-[2rem] border shadow-sm hover:shadow-md transition-shadow flex flex-col ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
