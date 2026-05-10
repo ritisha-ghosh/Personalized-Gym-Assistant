@@ -17,6 +17,25 @@ const ChatBot = () => {
   const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef(null);
   const [isSending, setIsSending] = useState(false);
+  
+  // NEW: State to hold the full user profile directly from the backend
+  const [userProfile, setUserProfile] = useState(null);
+
+  // --- Fetch Real Profile Data on Load ---
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get('/users/profile');
+        setUserProfile(response.data.user);
+      } catch (error) {
+        console.error("Failed to load user profile in chat:", error);
+      }
+    };
+
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
 
   // --- Initial Chat History ---
   const [messages, setMessages] = useState([
@@ -126,11 +145,6 @@ const ChatBot = () => {
         {`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           body { font-family: 'Plus Jakarta Sans', sans-serif; }
-          
-          /* Custom Scrollbar for Chat Area */
-          .chat-scroll::-webkit-scrollbar { width: 6px; }
-          .chat-scroll::-webkit-scrollbar-track { background: transparent; }
-          .chat-scroll::-webkit-scrollbar-thumb { background-color: #e2e8f0; border-radius: 20px; }
         `}
       </style>
 
@@ -164,12 +178,16 @@ const ChatBot = () => {
                   {msg.sender === 'ai' ? (
                     <Bot size={20} />
                   ) : (
-                    /* Display Real Profile Image or Gradient Fallback with a thicker border */
-                    user?.profileImage ? (
+                    /* Display Real Profile Image directly from backend fetch (userProfile) */
+                    userProfile?.profileImage ? (
                       <img 
-                        src={user.profileImage} 
+                        src={userProfile.profileImage} 
                         alt="User" 
                         className={`w-full h-full rounded-full object-cover border-2 ${isDarkMode ? 'border-slate-500' : 'border-slate-300'}`}
+                        onError={(e) => {
+                          e.target.onerror = null; 
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile?.name || 'User')}&background=00c4b4&color=fff`;
+                        }}
                       />
                     ) : (
                       <div className={`w-full h-full rounded-full border-2 flex items-center justify-center ${isDarkMode ? 'border-slate-500 bg-gradient-to-br from-indigo-600 to-purple-600' : 'border-slate-300 bg-gradient-to-br from-[#db2777] to-orange-400'}`}>
@@ -235,7 +253,7 @@ const ChatBot = () => {
 
           {/* Quick Actions (Hide when searching to reduce clutter) */}
           {!searchQuery && (
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-3">
               {['What is my current goal?', 'Show me my next workout', 'Analyze my last run', 'Recipe for post-workout'].map((action) => (
                 <button
                   key={action}

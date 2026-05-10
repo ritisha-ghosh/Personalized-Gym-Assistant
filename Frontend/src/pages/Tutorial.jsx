@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '../componenets/layout/Layout'; 
 import { Play, Clock, BarChart2, Filter } from 'lucide-react';
+import { DarkModeContext } from '../context/DarkModeContext';
 
 const Tutorial = () => {
   const [activeTab, setActiveTab] = useState('All Tutorials');
+  const { isDarkMode } = useContext(DarkModeContext);
   
   // 1. Get search query from URL
   const [searchParams] = useSearchParams();
@@ -135,8 +137,6 @@ const Tutorial = () => {
         {`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           body { font-family: 'Plus Jakarta Sans', sans-serif; }
-          .hide-scrollbar::-webkit-scrollbar { display: none; }
-          .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         `}
       </style>
 
@@ -156,7 +156,7 @@ const Tutorial = () => {
         </div>
 
         {/* --- Filter Tabs (Scrollable) --- */}
-        <div className="flex gap-3 overflow-x-auto hide-scrollbar py-2">
+        <div className="flex gap-3 overflow-x-auto py-2 pb-4">
           {categories.map((cat) => (
             <button
               key={cat}

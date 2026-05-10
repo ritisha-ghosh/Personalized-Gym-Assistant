@@ -11,12 +11,13 @@ import { DarkModeProvider } from "./context/DarkModeContext";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import UserProfile from "./pages/UserProfile";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"; // Import new page
 import ResetPasswordPage from "./pages/ResetPasswordPage"; // Import new page
 import OtpPage from "./pages/OtpPage"; // Import the OtpPage component
+import OurStory from "./pages/OurStory"; // Import the new OurStory page
 
 // --- Main Feature Pages ---
+import UserProfile from "./pages/UserProfile";
 import Dashboard from './pages/Dashboard';
 import Workout from './pages/Workout';
 import Nutrition from './pages/Nutrition'; // Matches your file: Nutrition.jsx
@@ -24,6 +25,7 @@ import Settings from './pages/Settings';
 import Progression from './pages/Progression';
 import ChatBot from './pages/ChatBot';
 import Tutorial from "./pages/Tutorial";
+
 
 function App() {
   return (
@@ -37,7 +39,8 @@ function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} /> {/* New route */}
           <Route path="/register" element={<RegisterPage />} /> 
           <Route path="/verify-otp" element={<OtpPage />} /> {/* Add the route for OTP verification */}
-          
+          <Route path='/OurStory' element={<OurStory/>}/>
+
           {/* Protected / App Routes */}
           <Route path='/dashboard' element={<Dashboard/>}/>
           <Route path="/profile" element={<UserProfile />} />

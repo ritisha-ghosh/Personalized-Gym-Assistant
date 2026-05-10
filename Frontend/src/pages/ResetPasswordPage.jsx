@@ -64,6 +64,22 @@ const ResetPasswordPage = () => {
   return (
     // Updated container background for dark mode
     <div className={`flex min-h-screen items-center justify-center font-sans ${isDarkMode ? 'bg-[#0f172a]' : 'bg-gray-100'}`}>
+      <style>
+        {`
+          /* Global Scrollbar Styles */
+          ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          ::-webkit-scrollbar-track {
+            background: ${isDarkMode ? '#1e293b' : '#f1f5f9'};
+          }
+          ::-webkit-scrollbar-thumb {
+            background-color: ${isDarkMode ? '#334155' : '#94a3b8'};
+            border-radius: 20px;
+          }
+        `}
+      </style>
       {/* Updated card background for dark mode */}
       <div className={`w-full max-w-md p-8 space-y-6 rounded-2xl shadow-lg ${isDarkMode ? 'bg-[#1e293b] border border-[#334155]' : 'bg-white'}`}>
         <div className="text-center">

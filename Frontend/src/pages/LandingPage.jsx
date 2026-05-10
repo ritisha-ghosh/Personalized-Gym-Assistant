@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
 import { DarkModeContext } from '../context/DarkModeContext';
@@ -6,6 +6,13 @@ import { DarkModeContext } from '../context/DarkModeContext';
 const LandingPage = () => {
   const currentYear = new Date().getFullYear();
   const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
+
+  // State to handle the hover for "Our Story" manually since we are using inline styles
+  const [isStoryHovered, setIsStoryHovered] = useState(false);
+
+  // Define the exact grey color for Kolkata text to reuse
+  const locationGrey = isDarkMode ? '#94a3b8' : '#6b7280';
+  const hoverTeal = '#00c4b4';
 
   return (
     <div className={`min-h-screen font-sans ${isDarkMode ? 'dark-mode' : 'bg-white'} selection:bg-teal-500 selection:text-white`}>
@@ -30,6 +37,19 @@ const LandingPage = () => {
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
           }
+
+          /* Global Scrollbar Styles */
+          ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          ::-webkit-scrollbar-track {
+            background: ${isDarkMode ? '#1e293b' : '#f1f5f9'};
+          }
+          ::-webkit-scrollbar-thumb {
+            background-color: ${isDarkMode ? '#334155' : '#94a3b8'};
+            border-radius: 20px;
+          }
         `}
       </style>
 
@@ -43,7 +63,7 @@ const LandingPage = () => {
           </Link>
           
           <nav className={`hidden md:flex items-center gap-10 bg-transparent ${isDarkMode ? 'text-[#cbd5e1]' : 'text-[#142E5C]'}`}>
-            {['Features', 'How it Works',  'Pricing'].map((item) => (
+            {['Features',  'Pricing'].map((item) => (
               <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '-')}`} className={`text-sm font-bold transition-colors ${isDarkMode ? 'text-[#cbd5e1] hover:text-[#00c4b4] hover:bg-transparent' : 'text-[#142E5C] hover:text-[#00c4b4] hover:bg-transparent'}`}>
                 {item}
               </a>
@@ -58,11 +78,18 @@ const LandingPage = () => {
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <Link to="/login" className={`hidden sm:block text-sm font-bold px-4 py-2 rounded-lg transition-colors ${isDarkMode ? 'text-[#00c4b4] hover:text-[#00c4b4] hover:bg-[#1e293b]/40' : 'text-[#142E5C] hover:text-[#00c4b4] hover:bg-slate-100'}`}>
+            
+            {/* UPDATED: Login button with bordered look, no background hover, just smooth scale zoom */}
+            <Link to="/login" className={`hidden sm:flex items-center justify-center text-sm font-bold px-6 py-2.5 rounded-full border transition-transform duration-300 active:scale-95 hover:scale-105 ${
+              isDarkMode 
+                ? 'border-[#334155] text-[#00c4b4] hover:border-[#475569]' 
+                : 'border-gray-200 text-[#142E5C] hover:border-gray-300'
+            }`}>
               Log in
             </Link>
+
             <Link to="/register" className="px-6 py-3 rounded-full text-sm font-bold shadow-lg transition-transform hover:scale-105 bg-[#00c4b4] !text-white shadow-teal-500/30">
-              Start Free
+              Register
             </Link>
           </div>
         </div>
@@ -72,7 +99,6 @@ const LandingPage = () => {
         <section className={`relative overflow-hidden pt-12 pb-24 lg:pt-24 lg:pb-32 ${isDarkMode ? 'bg-[#0f172a]' : ''}`}>
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col lg:flex-row items-center gap-16">
-              
               <div className="flex-1 text-center lg:text-left">
                 <span className={`inline-block px-4 py-1.5 mb-6 text-xs font-bold tracking-widest uppercase rounded-full ${isDarkMode ? 'bg-[#00c4b4]/20 text-[#00f5ff]' : 'bg-teal-500/10 text-teal-600'}`}>
                   Personal Training Redefined
@@ -88,10 +114,6 @@ const LandingPage = () => {
                   <Link to="/register" className="bg-[#00c4b4] !text-white px-10 py-5 rounded-xl text-base font-bold shadow-xl shadow-teal-500/30 hover:-translate-y-1 transition-all flex items-center justify-center">
                     Get Started for Free
                   </Link>
-                  <button className={`border-2 px-10 py-5 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-colors ${isDarkMode ? 'border-[#00c4b4] text-[#00c4b4] hover:bg-[#1e293b] bg-transparent' : 'border-gray-100 text-[#142E5C] hover:bg-gray-50'}`}>
-                    <span className="text-lg">▶</span>
-                    See in Action
-                  </button>
                 </div>
               </div>
 
@@ -185,9 +207,6 @@ const LandingPage = () => {
                 <Link to="/register" className="bg-[#00c4b4] !text-white px-12 py-5 rounded-xl text-lg font-bold shadow-2xl shadow-teal-500/40 hover:-translate-y-1 transition-all">
                   Start Free Trial
                 </Link>
-                <button className={`px-12 py-5 rounded-xl text-lg font-bold transition-all ${isDarkMode ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f]' : 'bg-[#142E5C] text-white hover:bg-[#142E5C]/90'}`}>
-                  Contact Sales
-                </button>
               </div>
               <p className={`mt-8 text-[11px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-400'}`}>No credit card required • Cancel anytime</p>
             </div>
@@ -195,57 +214,80 @@ const LandingPage = () => {
         </section>
       </main>
 
-      <footer className={`border-t py-20 ${isDarkMode ? 'bg-[#0f172a] border-[#334155]' : 'bg-white border-gray-100'}`}>
-        <div className="max-w-7xl mx-auto px-6">
-          <div className={`grid grid-cols-1 md:grid-cols-4 gap-12 mb-16 ${isDarkMode ? 'text-[#cbd5e1]' : 'text-gray-900'}`}>
-            <div className="col-span-1">
+      {/* FOOTER RESTRUCTURED FOR FULL WIDTH RESPONSIVENESS AND CENTERED COPYRIGHT */}
+      <footer className={`pt-20 border-t flex flex-col items-center ${isDarkMode ? 'bg-[#0f172a] border-[#334155]' : 'bg-white border-gray-100'}`}>
+        
+        {/* Top Section: Grid layout evenly spaced */}
+        <div className="max-w-7xl mx-auto px-6 w-full mb-16">
+          <div className={`flex flex-col md:flex-row justify-between items-start gap-12 md:gap-8 ${isDarkMode ? 'text-[#cbd5e1]' : 'text-gray-900'}`}>
+            
+            {/* Left: PulseAI */}
+            <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center text-white">
                   ⚡
                 </div>
                 <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-[#00c4b4]' : 'text-[#142E5C]'}`}>PulseAI</h2>
               </div>
-              <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'}`}>The future of performance coaching. AI-driven, human-centered, results-oriented.</p>
+              <p className={`text-sm leading-relaxed max-w-sm ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'}`}>
+                The future of performance coaching. AI-driven, human-centered, results-oriented.
+              </p>
             </div>
             
-            <div>
-              <h4 className={`font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>Product</h4>
-              <ul className={`space-y-4 text-sm ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'}`}>
-                <li><a href="#" className="hover:text-teal-500">Vision tracking</a></li>
-                <li><a href="#" className="hover:text-teal-500">Workout Builder</a></li>
-                <li><a href="#" className="hover:text-teal-500">Wearable Sync</a></li>
-              </ul>
-            </div>
+            {/* Center: Location */}
+            <div className="flex-1 flex justify-start md:justify-center">
+              <div>
+                <h4 className={`font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>Location</h4>
+                <ul className={`space-y-4 text-sm`}>
+                   <li 
+                    className="leading-relaxed list-none" 
+                    style={{ color: locationGrey }}
+                   >
+                     Kolkata, WestBengal, India
+                   </li>
+                </ul>
+              </div>
+            </div>  
 
-            <div>
-              <h4 className={`font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>Company</h4>
-              <ul className={`space-y-4 text-sm ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'}`}>
-                <li><a href="#" className="hover:text-teal-500">Our Story</a></li>
-                <li><a href="#" className="hover:text-teal-500">Science</a></li>
-                <li><a href="#" className="hover:text-teal-500">Careers</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className={`font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>Newsletter</h4>
-              <div className="flex gap-2">
-                <input type="email" placeholder="Your email" className={`flex-1 px-4 py-2 rounded-lg border-none text-sm focus:ring-2 focus:ring-teal-500/20 ${isDarkMode ? 'bg-[#1e293b] text-white' : 'bg-gray-50'}`}/>
-                <button className="bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-bold">Join</button>
+            {/* Right: Company */}
+            <div className="flex-1 flex justify-start md:justify-end">
+              <div className="custom-footer-link-container">
+                <h4 className={`font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>Developers</h4>
+                <ul className={`space-y-4 text-sm`}>
+                  <li>
+                    <div className="inline-block">
+                      <Link 
+                        to="/OurStory" 
+                        onMouseEnter={() => setIsStoryHovered(true)}
+                        onMouseLeave={() => setIsStoryHovered(false)}
+                        className="transition-all duration-200 transform hover:scale-105 active:scale-95 py-0.5"
+                        style={{ 
+                          color: isStoryHovered ? hoverTeal : locationGrey, 
+                          textDecoration: 'none',
+                          borderBottom: `1px solid ${isStoryHovered ? hoverTeal : (isDarkMode ? 'rgba(148, 163, 184, 0.3)' : 'rgba(107, 114, 128, 0.3)')}`,
+                          display: 'inline-block'
+                        }}
+                      >
+                        Our Story
+                      </Link>
+                    </div>
+                  </li>
+                </ul>
               </div>
             </div>
-          </div>
 
-          <div className={`pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4 ${isDarkMode ? 'border-[#334155]' : 'border-gray-100'}`}>
-            <p className={`text-xs ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-400'}`}>© 2025-{currentYear} All rights reserved.</p>
-            <div className={`flex gap-6 ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-400'}`}>
-              {['share', 'public', 'thumb_up'].map(icon => (
-                <button key={icon} className="hover:text-teal-500 transition-colors bg-transparent border-none">
-                  {icon === 'share' ? '📤' : icon === 'public' ? '🌍' : '👍'}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
+
+        {/* Bottom Section: Full Width Line and Centered Copyright */}
+        <div className={`w-full border-t py-8 ${isDarkMode ? 'border-[#334155]' : 'border-gray-100'}`}>
+          <div className="w-full px-6 flex justify-center items-center">
+            <p className={`text-xs text-center ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-400'}`}>
+              © 2025-{currentYear} All rights reserved.
+            </p>
+          </div>
+        </div>
+        
       </footer>
     </div>
   );

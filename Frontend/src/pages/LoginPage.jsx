@@ -44,6 +44,22 @@ const LoginPage = () => {
 
   return (
     <div className={`relative min-h-screen flex flex-col font-sans overflow-hidden ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-slate-50'}`}>
+      <style>
+        {`
+          /* Global Scrollbar Styles */
+          ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          ::-webkit-scrollbar-track {
+            background: ${isDarkMode ? '#1e293b' : '#f1f5f9'};
+          }
+          ::-webkit-scrollbar-thumb {
+            background-color: ${isDarkMode ? '#334155' : '#94a3b8'};
+            border-radius: 20px;
+          }
+        `}
+      </style>
 
       {/* Background Decorative Glow (Top Left) */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-100/50 rounded-full blur-[120px] pointer-events-none"></div>

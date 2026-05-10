@@ -253,6 +253,7 @@ const Settings = () => { // Renamed from Settings to Settings
           .toggle-checkbox:checked + .toggle-label {
             background-color: #00c4b4;
           }
+
         `}
       </style>
 

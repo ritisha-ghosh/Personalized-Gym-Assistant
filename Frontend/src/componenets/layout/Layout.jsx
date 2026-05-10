@@ -10,6 +10,22 @@ const Layout = ({ children }) => {
 
   return (
     <div className={`min-h-screen text-slate-900 ${isDarkMode ? 'bg-[#0f172a]' : 'bg-slate-50'}`}>
+      <style>
+        {`
+          /* Global Scrollbar Styles */
+          ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          ::-webkit-scrollbar-track {
+            background: ${isDarkMode ? '#1e293b' : '#f1f5f9'};
+          }
+          ::-webkit-scrollbar-thumb {
+            background-color: ${isDarkMode ? '#334155' : '#94a3b8'};
+            border-radius: 20px;
+          }
+        `}
+      </style>
       
       {/* Mobile Menu Button */}
       <div className="fixed top-4 left-4 z-50 lg:hidden">
