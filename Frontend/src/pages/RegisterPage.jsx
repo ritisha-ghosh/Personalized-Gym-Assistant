@@ -109,6 +109,22 @@ const RegisterPage = () => {
 
   return (
     <div className={`flex min-h-screen font-sans ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-white'}`}>
+      <style>
+        {`
+          /* Global Scrollbar Styles */
+          ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          ::-webkit-scrollbar-track {
+            background: ${isDarkMode ? '#1e293b' : '#f1f5f9'};
+          }
+          ::-webkit-scrollbar-thumb {
+            background-color: ${isDarkMode ? '#334155' : '#94a3b8'};
+            border-radius: 20px;
+          }
+        `}
+      </style>
 
       <div className={`hidden lg:flex w-1/3 p-12 flex-col justify-between relative overflow-hidden ${isDarkMode ? 'bg-[#1e293b] border-r border-[#334155]' : 'bg-[#e0f7f1]'}`}>
         <div>
@@ -147,9 +163,19 @@ const RegisterPage = () => {
 
       <div className="flex-1 flex flex-col p-8 lg:p-16 overflow-y-auto">
 
-        <div className="text-right mb-8">
-          <p className="text-sm text-slate-500">
-            Already a member? <Link to="/login" className="text-[#db2777] font-bold hover:underline">Log In</Link>
+        {/* --- Responsive Header --- */}
+        <div className="flex items-center justify-between mb-8">
+          {/* Logo - Only visible on mobile */}
+          <div className="lg:hidden">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity w-fit">
+              <div className="w-8 h-8 bg-[#00c4b4] rounded-md flex items-center justify-center rotate-45">
+                <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
+              </div>
+              <span className="text-xl font-bold text-slate-800 tracking-tight">PulseAI</span>
+            </Link>
+          </div>
+          <p className="text-sm text-slate-500 lg:w-full lg:text-right">
+            Already a member? <Link to="/login" className="text-[#db2777] font-bold hover:underline ml-1">Log In</Link>
           </p>
         </div>
 
