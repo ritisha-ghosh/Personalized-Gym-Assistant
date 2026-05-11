@@ -7,6 +7,7 @@
 5. **Profile picture upload and dynamic with all pages.**
 6. **Make a Our Story page.**
 7. **Fixed all pages scroll bar design.**
+8. **Workout and Nutrition all done connected to ML real data**
 
 ---
 

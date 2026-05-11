@@ -44,7 +44,7 @@ const WorkoutHeatmap = () => {
               .toISOString()
               .split("T")[0];
 
-            return logDate === dateStr;
+            return logDate === dateStr && log.status === "active";
 
           });
 

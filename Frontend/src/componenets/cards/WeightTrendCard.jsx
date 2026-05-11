@@ -20,7 +20,7 @@ const WeightTrendCard = () => {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-          Weight Trend (7 Days)
+          Weight Trend Chart
         </h3>
 
         {/* Legend */}

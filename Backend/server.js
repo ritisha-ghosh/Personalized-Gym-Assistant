@@ -10,6 +10,7 @@ const userRoutes = require("./routes/userRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const dietRoutes = require("./routes/dietRouts");
 const dietPlanRoutes = require("./routes/dietPlanRoutes");
+const dietTrackingRoutes = require("./routes/dietTrackingRoutes");
 const logRoutes = require("./routes/logRoutes");
 const workoutRoutes = require("./routes/workoutRoutes");
 
@@ -45,6 +46,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/diet", dietRoutes);
 app.use("/api/diet-plan", dietPlanRoutes);
+app.use("/api/diet-tracking", dietTrackingRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/workouts", workoutRoutes);
 

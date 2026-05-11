@@ -49,8 +49,21 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // ⭐ NEW: Update user data in context and localStorage
+  // This is called whenever user profile is updated
+  const updateUser = (updatedUserData) => {
+    try {
+      const newUserData = { ...user, ...updatedUserData };
+      localStorage.setItem('user', JSON.stringify(newUserData));
+      setUser(newUserData);
+      console.log(`✅ User context updated:`, newUserData);
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

@@ -91,6 +91,11 @@ const userSchema = new mongoose.Schema({
     default: false
   },
 
+  glutenFree: {
+    type: Boolean,
+    default: false
+  },
+
   // -------------------------
   // 👤 PROFILE DATA
   // -------------------------

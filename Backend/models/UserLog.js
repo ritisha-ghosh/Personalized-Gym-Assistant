@@ -10,8 +10,12 @@ const userLogSchema = new mongoose.Schema(
 
   status: {
     type: String,
-    enum: ["active", "rest", "injured", "sick", "missed"],
+    enum: ["active", "rest", "injured", "sick", "missed", "note"],
     required: true
+  },
+
+  notes: {
+    type: String
   },
 
   difficultyRating: {
@@ -23,7 +27,7 @@ const userLogSchema = new mongoose.Schema(
 
   weight: {
     type: Number,
-    required: true,
+    required: function() { return this.status !== 'note'; },
     min: 20,
     max: 300
   },

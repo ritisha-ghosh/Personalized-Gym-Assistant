@@ -177,77 +177,77 @@ def scale_difficulty():
 
 # --- STATIC RECIPE DATA ---
 RECIPES = [
-    {
-        "name": "Paneer Stir Fry",
-        "vegetarian": True,
-        "ingredients": ["paneer", "capsicum", "tomato"],
-        "calories": 420
-    },
-    {
-        "name": "Veg Curry with Onion",
-        "vegetarian": True,
-        "ingredients": ["onion", "potato"],
-        "calories": 380
-    },
-    {
-        "name": "Dal Tadka",
-        "vegetarian": True,
-        "ingredients": ["lentils", "garlic"],
-        "calories": 350
-    },
-    {
-        "name": "Chicken Salad",
-        "vegetarian": False,
-        "ingredients": ["chicken"],
-        "calories": 450
-    }
+    { "name": "Paneer Stir Fry", "vegetarian": True, "ingredients": ["paneer", "capsicum", "tomato"], "calories": 420, "type": "Dinner" },
+    { "name": "Veg Curry with Onion", "vegetarian": True, "ingredients": ["onion", "potato"], "calories": 380, "type": "Lunch" },
+    { "name": "Dal Tadka", "vegetarian": True, "ingredients": ["lentils", "garlic"], "calories": 350, "type": "Lunch" },
+    { "name": "Chicken Salad", "vegetarian": False, "ingredients": ["chicken"], "calories": 450, "type": "Lunch" },
+    { "name": "Greek Yogurt with Berries", "vegetarian": True, "ingredients": ["yogurt", "berries"], "calories": 300, "type": "Breakfast" },
+    { "name": "Oatmeal with Almonds", "vegetarian": True, "ingredients": ["oats", "almonds", "milk"], "calories": 350, "type": "Breakfast" },
+    { "name": "Scrambled Eggs on Toast", "vegetarian": False, "ingredients": ["eggs", "bread"], "calories": 400, "type": "Breakfast", "contains_gluten": True },
+    { "name": "Grilled Salmon", "vegetarian": False, "ingredients": ["salmon", "broccoli"], "calories": 500, "type": "Dinner" },
+    { "name": "Quinoa Salad", "vegetarian": True, "ingredients": ["quinoa", "cucumber", "tomato"], "calories": 320, "type": "Dinner" },
+    { "name": "Apple with Peanut Butter", "vegetarian": True, "ingredients": ["apple", "peanut butter"], "calories": 200, "type": "Pre-Workout" },
+    { "name": "Protein Shake", "vegetarian": True, "ingredients": ["protein powder", "milk"], "calories": 250, "type": "Pre-Workout" },
+    { "name": "Banana and Walnuts", "vegetarian": True, "ingredients": ["banana", "walnuts"], "calories": 180, "type": "Pre-Workout" },
+    { "name": "Chicken Wrap", "vegetarian": False, "ingredients": ["chicken", "tortilla"], "calories": 450, "type": "Lunch", "contains_gluten": True },
+    { "name": "Tofu Stir Fry", "vegetarian": True, "ingredients": ["tofu", "capsicum", "soy sauce"], "calories": 380, "type": "Dinner", "contains_gluten": True },
 ]
 
 # --- DIET FILTER LOGIC ---
-def filter_diet_recipes(diet_type, no_onion=False, no_garlic=False):
+def filter_diet_recipes(diet_type, no_onion=False, no_garlic=False, gluten_free=False):
     filtered = []
-
     for recipe in RECIPES:
         if diet_type == "vegetarian" and not recipe["vegetarian"]:
             continue
-
         ingredients = [i.lower() for i in recipe["ingredients"]]
-
         if no_onion and "onion" in ingredients:
             continue
-
         if no_garlic and "garlic" in ingredients:
             continue
-
+        if gluten_free and recipe.get("contains_gluten", False):
+            continue
         filtered.append(recipe)
-
     return filtered
-
 
 # --- DIET RECOMMENDATION ENDPOINT ---
 @app.route('/diet-recommendation', methods=['POST'])
 def diet_recommendation():
     data = request.json
-
     valid_diets = ["vegetarian", "non-vegetarian"]
-    diet_type = data.get("dietType") 
-
-    if not diet_type:
-        raise APIError("Diet type is required.")
-    
+    diet_type = data.get("dietType", "vegetarian")
     if diet_type.lower() not in valid_diets:
         raise APIError(f"Invalid diet type. Please choose from {valid_diets}.")
-        
-    recipes = filter_diet_recipes(
-        diet_type=data["dietType"],
+
+    filtered_recipes = filter_diet_recipes(
+        diet_type=diet_type.lower(),
         no_onion=data.get("noOnion", False),
-        no_garlic=data.get("noGarlic", False)
+        no_garlic=data.get("noGarlic", False),
+        gluten_free=data.get("glutenFree", False)
     )
+
+    import random
+    
+    # Categorize filtered recipes
+    breakfasts = [r for r in filtered_recipes if r["type"] == "Breakfast"]
+    lunches = [r for r in filtered_recipes if r["type"] == "Lunch"]
+    pre_workouts = [r for r in filtered_recipes if r["type"] == "Pre-Workout"]
+    dinners = [r for r in filtered_recipes if r["type"] == "Dinner"]
+
+    # Generate 7-day plan
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    weekly_plan = []
+    
+    for day in days:
+        day_meals = []
+        if breakfasts: day_meals.append({"type": "Breakfast", "food": random.choice(breakfasts)["name"], "cal": f"{random.choice(breakfasts)['calories']} kcal", "time": "08:00 AM"})
+        if lunches: day_meals.append({"type": "Lunch", "food": random.choice(lunches)["name"], "cal": f"{random.choice(lunches)['calories']} kcal", "time": "01:30 PM"})
+        if pre_workouts: day_meals.append({"type": "Pre-Workout", "food": random.choice(pre_workouts)["name"], "cal": f"{random.choice(pre_workouts)['calories']} kcal", "time": "04:30 PM"})
+        if dinners: day_meals.append({"type": "Dinner", "food": random.choice(dinners)["name"], "cal": f"{random.choice(dinners)['calories']} kcal", "time": "08:00 PM"})
+        weekly_plan.append({"day": day, "meals": day_meals})
 
     return jsonify({
         "status": "success",
-        "count": len(recipes),
-        "recipes": recipes
+        "weekly_plan": weekly_plan
     }), 200
 
 # =================================================
