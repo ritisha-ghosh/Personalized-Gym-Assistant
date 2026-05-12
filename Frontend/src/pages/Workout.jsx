@@ -341,7 +341,7 @@ const Workout = () => {
 
         {/* Injury Warning Box */}
         <div className={`p-4 rounded-xl border flex items-center justify-center gap-3 shadow-sm ${isDarkMode ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-600'}`}>
-          <span className="font-bold text-base sm:text-lg">⚠️ Note: If you have an injury, please skip today's workout.</span>
+          <span className="font-bold text-base sm:text-lg">⚠️ Note : If you have an injury, please skip today's workout.</span>
         </div>
 
         {/* --- Workouts Grid --- */}

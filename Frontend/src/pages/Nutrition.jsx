@@ -287,13 +287,13 @@ const Neutrations = () => {
               <h2 className="text-xl md:text-2xl font-bold leading-tight">
                 Drink 500ml of water before each meal
               </h2>
-              <p className={`text-s mt-2 max-w-md ${isDarkMode ? 'text-slate-300' : 'text-blue-100'}`}>
+              <p className={`text-sm mt-2 max-w-md ${isDarkMode ? 'text-slate-300' : 'text-blue-100'}`}>
                 Staying hydrated improves digestion and keeps your metabolism active!
               </p>
             </div>
-        <div className={`backdrop-blur-md p-4 rounded-xl border text-center min-w-[120px] ${isDarkMode ? 'bg-transparent border-transparent' : 'bg-white/20 border-white/30'}`}>
-              <div className="text-3xl font-bold mb-1">500</div>
-              <p className="text-xs font-semibold text-white/90">ml per meal</p>
+        <div className={`backdrop-blur-md p-7 rounded-xl border text-center min-w-[240px] max-w-[280px] ${isDarkMode ? 'bg-transparent border-transparent' : 'bg-black/20 border-white/30'}`}>
+              <div className="text-xl font-bold mb-1 leading-tight text-white">🍕 Cheat  Food 🍔</div>
+              <p className={`text-sm mt-2 ${isDarkMode ? 'text-slate-300' : 'text-blue-100'}`}>is OK sometimes to change taste!</p>
             </div>
           </div>
         </div>
