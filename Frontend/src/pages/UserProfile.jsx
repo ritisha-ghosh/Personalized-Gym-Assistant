@@ -8,7 +8,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 import api from '../utils/api';
 
 const UserProfile = () => {
-  const { user, login } = useContext(AuthContext); 
+  const { user, login, updateUser } = useContext(AuthContext); // ⭐ Add updateUser
   const { isDarkMode } = useContext(DarkModeContext);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
@@ -158,6 +158,20 @@ const UserProfile = () => {
       const updatedUser = updateResponse.data.user;
       setProfileImage(updatedUser.profileImage || null);
 
+      // ⭐ Update AuthContext with new user data (especially experience level)
+      updateUser({
+        experience: updatedUser.experience,
+        goal: updatedUser.goal,
+        age: updatedUser.age,
+        weight: updatedUser.weight,
+        height: updatedUser.height,
+        gender: updatedUser.gender,
+        bio: updatedUser.bio,
+        injury: updatedUser.injury,
+        dietType: updatedUser.dietType,
+        profileImage: updatedUser.profileImage
+      });
+
       login(updatedUser, { 
         accessToken: localStorage.getItem('accessToken'), 
         refreshToken: localStorage.getItem('refreshToken') 
@@ -166,6 +180,8 @@ const UserProfile = () => {
       setSaveStatus('✓ Profile updated successfully!');
       setIsEditMode(false);
       setProfileImageFile(null);
+      
+      console.log(`✅ Profile saved - Experience Level: ${updatedUser.experience}, Goal: ${updatedUser.goal}`);
       
       // FIXED: Display success message briefly, then refresh the page
       setTimeout(() => {

@@ -1,126 +1,157 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useSearchParams } from 'react-router-dom'; // 1. Import Hook
+import { useSearchParams } from 'react-router-dom';
 import Layout from "../componenets/layout/Layout";
-import { Droplet, CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
-import { getNutrition, addNutrition, deleteNutrition } from "../utils/storageUtils";
+import { Calendar, Clock, Droplet, CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
 import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
-import { DarkModeContext } from '../context/DarkModeContext'; // Added DarkModeContext
+import { DarkModeContext } from '../context/DarkModeContext';
 
 const Neutrations = () => {
-  // 2. Search Params Logic
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
   const { user } = useContext(AuthContext);
-  const { isDarkMode } = useContext(DarkModeContext); // Extract isDarkMode
+  const { isDarkMode } = useContext(DarkModeContext);
 
-  const [nutrition, setNutrition] = useState([]);
   const [userDietData, setUserDietData] = useState(null);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [weeklyPlan, setWeeklyPlan] = useState([]);
+  const [notes, setNotes] = useState([]);
+  const [completedMeals, setCompletedMeals] = useState([]);
+  const [allMealsCompletedToday, setAllMealsCompletedToday] = useState(false);
   
-  // State for the Hydration Popup
-  const [showHydrationPopup, setShowHydrationPopup] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const [formData, setFormData] = useState({
-    meal: '',
-    calories: '',
-    protein: '',
-    carbs: '',
-    fats: '',
-  });
+  const getTodayDateString = () => new Date().toISOString().split("T")[0];
+  
+  const formatLocalDate = (dateStr) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+       month: 'short',
+       day: 'numeric',
+       year: 'numeric'
+    });
+  };
+  
+  const getDayName = (dateStr) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return new Date(year, month - 1, day).toLocaleDateString('en-US', { weekday: 'long' });
+  };
 
-  // Fetch user diet preferences and nutrition data
   useEffect(() => {
     const fetchNutritionData = async () => {
       try {
         setLoading(true);
+        console.log(`🔄 Fetching nutrition plan for user: ${user?.name}`);
+
+        // Fetch User Profile
         const userResponse = await api.get('/users/profile');
         const userData = userResponse.data.user;
         setUserDietData({
           dietType: userData.dietType,
           noOnion: userData.noOnion,
           noGarlic: userData.noGarlic,
+          glutenFree: userData.glutenFree,
           goal: userData.goal,
           weight: userData.weight
         });
-      } catch (error) {
-        console.error("Failed to fetch diet data", error);
-      }
 
-      // Get local nutrition data - USER-SPECIFIC
-      if (user?.id) {
-        const saved = getNutrition(user.id);  // 👈 Pass userId
-        setNutrition(saved);
-        console.log(`📥 Loaded ${saved.length} meals for user ${user.id}`);
+        // Fetch Weekly Plan with ML integration
+        const planResponse = await api.get('/diet-tracking/weekly-plan');
+        if (planResponse.data.status === 'success') {
+          const plan = planResponse.data.plan;
+          setWeeklyPlan(plan);
+          console.log(`✅ Received nutrition plan - Days: ${plan.length}`);
+          
+          // Set notes and completed meals from today's plan
+          const todayPlan = plan.find(p => p.isToday);
+          if (todayPlan) {
+            setNotes(todayPlan.notes || []);
+            const todayMeals = todayPlan.meals || [];
+            const completedMealTypes = todayMeals
+              .filter(m => m.status === 'done')
+              .map(m => m.type);
+            setCompletedMeals(completedMealTypes);
+            setAllMealsCompletedToday(completedMealTypes.length === todayMeals.length);
+          }
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch diet data", error);
       }
       setLoading(false);
     };
 
-    fetchNutritionData();
-  }, [user?.id]);  // 👈 Re-fetch when user changes
-
-  const totalCalories = nutrition.reduce((sum, item) => sum + (parseInt(item.calories) || 0), 0);
-  const totalProtein = nutrition.reduce((sum, item) => sum + (parseInt(item.protein) || 0), 0);
-  const calorieTarget = 2450;
-
-  const handleAddMeal = () => {
-    if (formData.meal.trim() && formData.calories && user?.id) {
-      const newMeal = addNutrition(user.id, formData);  // 👈 Pass userId
-      setNutrition([...nutrition, newMeal]);
-      setFormData({ meal: '', calories: '', protein: '', carbs: '', fats: '' });
-      setShowAddForm(false);
-      console.log(`✅ Meal added for user ${user.id}`);
-    }
-  };
-
-  const handleDeleteMeal = (id) => {
     if (user?.id) {
-      deleteNutrition(user.id, id);  // 👈 Pass userId
-      setNutrition(nutrition.filter(item => item.id !== id));
-      console.log(`✅ Meal deleted for user ${user.id}`);
+      fetchNutritionData();
+    }
+  }, [user?.id]);
+
+  const handleAddNote = async () => {
+    if (noteText.trim() && user?.id) {
+      try {
+        const response = await api.post('/diet-tracking/add-note', {
+          date: getTodayDateString(),
+          note: noteText.trim()
+        });
+        if (response.data.status === 'success') {
+          setNotes([response.data.note, ...(notes || [])]);
+          setNoteText("");
+          setShowAddForm(false);
+        }
+      } catch (err) {
+        console.error("Failed to add note", err);
+      }
     }
   };
 
-  // Handler for logging water
-  const handleLogHydration = () => {
-    setShowHydrationPopup(true);
-    // Auto hide popup after 2.5 seconds
-    setTimeout(() => {
-      setShowHydrationPopup(false);
-    }, 2500);
+  const handleDeleteNote = async (noteId) => {
+    try {
+      const response = await api.delete(`/diet-tracking/notes/${noteId}`);
+      if (response.data.status === 'success') {
+        setNotes((notes || []).filter(n => n._id !== noteId));
+      }
+    } catch (err) {
+      console.error("Failed to delete note", err);
+    }
   };
 
-  // --- 3. FILTER LOGIC ---
-  
-  // A. Filter User Added Meals
-  const filteredUserMeals = nutrition.filter(meal => 
-    meal.meal.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleToggleMeal = async (date, mealType, isToday) => {
+    if (!isToday) return; // Only allow toggling for today
+    try {
+      const response = await api.post('/diet-tracking/toggle-meal', {
+        date,
+        mealType
+      });
+      if (response.data.status === 'success') {
+        // Update local state
+        const newCompleted = response.data.completedMeals;
+        setCompletedMeals(newCompleted);
+        
+        // Update the weekly plan
+        const updatedPlan = weeklyPlan.map(dayPlan => {
+          if (dayPlan.date === date) {
+            const updatedMeals = dayPlan.meals.map(m => ({
+              ...m,
+              status: newCompleted.includes(m.type) ? "done" : "pending"
+            }));
+            const todayMeals = updatedMeals;
+            setAllMealsCompletedToday(newCompleted.length === todayMeals.length);
+            return { ...dayPlan, meals: updatedMeals };
+          }
+          return dayPlan;
+        });
+        setWeeklyPlan(updatedPlan);
+      }
+    } catch (err) {
+      console.error("Failed to toggle meal", err);
+    }
+  };
 
-  // B. Filter Static Meal Plan
-  const mealPlan = [
-    { time: '08:00 AM', type: 'Breakfast', food: 'Greek Yogurt with Berries, Oats & Walnuts', cal: '450 kcal', p: '32g', c: '45g', f: '12g', status: 'done' },
-    { time: '01:30 PM', type: 'Lunch', food: 'Grilled Salmon, Quinoa, Steam Broccoli', cal: '620 kcal', p: '48g', c: '38g', f: '22g', status: 'done' },
-    { time: '04:30 PM', type: 'Pre-Workout', food: 'Apple with Almond Butter', cal: '210 kcal', p: '4g', c: '25g', f: '10g', status: 'pending' },
-    { time: '08:00 PM', type: 'Dinner', food: 'Lean Beef Tacos with Avocado & Salsa', cal: '730 kcal', p: '52g', c: '65g', f: '28g', status: 'pending' },
-  ];
-
-  const filteredMealPlan = mealPlan.filter(meal => 
-    meal.type.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    meal.food.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // C. Filter Micronutrients
-  const micros = [
-    { name: 'Iron', val: '85%', color: 'bg-red-500' },
-    { name: 'Vitamin D', val: '40%', color: 'bg-purple-500' },
-    { name: 'Magnesium', val: '62%', color: 'bg-emerald-500' },
-  ];
-  
-  const filteredMicros = micros.filter(m => 
-    m.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Calculate meal progress for today
+  const todayPlan = weeklyPlan.find(p => p.isToday) || { meals: [] };
+  const todayMealProgress = todayPlan.meals ? (completedMeals.length / todayPlan.meals.length) * 100 : 0;
 
   if (loading) {
     return (
@@ -134,94 +165,58 @@ const Neutrations = () => {
 
   return (
     <Layout>
-      {/* Inject Fonts locally */}
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
           body { font-family: 'Plus Jakarta Sans', sans-serif; }
-          
-          .animate-fade-in-up {
-            animation: fadeInUp 0.3s ease-out forwards;
-          }
-          
-          @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
         `}
       </style>
 
-      <div className={`space-y-6 sm:space-y-8 font-sans ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-        
-        {/* Page Title with Add Button */}
+      <div className="space-y-6 sm:space-y-8">
+
+        {/* --- Page Specific Header --- */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-             <h1 className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Nutrition Dashboard</h1>
-             {userDietData && (
-               <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                 Diet Type: <span className={`font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{userDietData.dietType}</span> 
-                 {userDietData.noOnion && ' • No Onion'} 
-                 {userDietData.noGarlic && ' • No Garlic'}
-               </p>
-             )}
-             {searchQuery && <p className="text-sm font-bold text-[#00c4b4]">Searching for: "{searchQuery}"</p>}
+          <div>
+            <h1 className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Weekly Meal Plan</h1>
+            <div className={`text-sm mt-2 flex gap-3 flex-wrap items-center ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              {userDietData && (
+                <>
+                  <p>Diet Type : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-[#00c4b4]/20 text-[#00c4b4]`}>
+                    {userDietData.dietType}
+                  </span></p>
+                  {userDietData.noOnion && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>No Onion</p>}
+                  {userDietData.noGarlic && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>No Garlic</p>}
+                  {userDietData.glutenFree && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Gluten-Free</p>}
+                </>
+              )}
+            </div>
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0"
+            className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0 h-[48px]"
           >
             <Plus size={18} />
-            <span className="hidden sm:inline">Add Meal</span>
-            <span className="sm:hidden">Add</span>
+            <span className="hidden sm:inline">Add Note</span>
+            <span className="sm:hidden">Note</span>
           </button>
         </div>
 
-        {/* Add Meal Form - Responsive */}
+        {/* Add Note Form */}
         {showAddForm && (
           <div className={`p-4 sm:p-6 rounded-2xl border space-y-4 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-[#00c4b4]/20'}`}>
-            <input
-              type="text"
-              placeholder="Meal Name"
-              value={formData.meal}
-              onChange={(e) => setFormData({...formData, meal: e.target.value})}
-              className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+            <textarea
+              rows="3"
+              placeholder="How are you feeling today? Any cravings or off-plan meals?"
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border resize-none ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
             />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              <input
-                type="number"
-                placeholder="Calories"
-                value={formData.calories}
-                onChange={(e) => setFormData({...formData, calories: e.target.value})}
-                className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
-              />
-              <input
-                type="number"
-                placeholder="Protein (g)"
-                value={formData.protein}
-                onChange={(e) => setFormData({...formData, protein: e.target.value})}
-                className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
-              />
-              <input
-                type="number"
-                placeholder="Carbs (g)"
-                value={formData.carbs}
-                onChange={(e) => setFormData({...formData, carbs: e.target.value})}
-                className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
-              />
-              <input
-                type="number"
-                placeholder="Fats (g)"
-                value={formData.fats}
-                onChange={(e) => setFormData({...formData, fats: e.target.value})}
-                className={`px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
-              />
-            </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={handleAddMeal}
+                onClick={handleAddNote}
                 className="flex-1 bg-[#00c4b4] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#00a89f] transition text-sm shadow-md shadow-[#00c4b4]/20 hover:-translate-y-0.5 active:translate-y-0"
               >
-                Save Meal
+                Save Note
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
@@ -233,248 +228,195 @@ const Neutrations = () => {
           </div>
         )}
 
-        {/* --- Hero Section: Calories --- */}
-        <div className="bg-gradient-to-r from-[#00c4b4] to-[#ff52d0] rounded-[2rem] p-8 text-white shadow-xl shadow-[#00c4b4]/20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-          
-          <div className="flex flex-col md:flex-row items-end justify-between gap-8 relative z-10">
-            <div>
-              <p className="text-sm font-bold tracking-widest uppercase text-white/80 mb-2">Daily Calorie Target</p>
-              <div className="flex items-baseline gap-2">
-                <h2 className="text-7xl font-black">{calorieTarget}</h2>
-                <span className="text-2xl font-medium text-white/80">kcal</span>
+        {/* Notes List */}
+        {notes && notes.length > 0 && (
+          <div className={`space-y-3`}>
+            {notes.map((note) => (
+              <div key={note._id} className={`p-4 rounded-xl border flex justify-between items-center transition ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100 shadow-sm'}`}>
+                <p className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{note.text}</p>
+                <button
+                  onClick={() => handleDeleteNote(note._id)}
+                  className="text-red-500 hover:text-red-700 transition active:scale-90 ml-4 p-2"
+                >
+                  <Trash2 size={18} />
+                </button>
               </div>
-              <p className="mt-4 font-medium text-white/90">
-                You have <span className="font-bold border-b border-white/40">{calorieTarget - totalCalories}</span> kcal remaining for today.
+            ))}
+          </div>
+        )}
+
+        {/* Stats Row */}
+        <div className={`p-6 rounded-3xl border shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 divide-y md:divide-y-0 md:divide-x ${isDarkMode ? 'bg-[#1e293b] border-[#334155] divide-[#334155]' : 'bg-white border-slate-100 divide-slate-100'}`}>
+          <div className="flex items-center gap-4 px-4 w-full">
+            <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-500 flex items-center justify-center">
+              <Calendar size={24} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Week Range</p>
+              <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                {weeklyPlan.length > 0 && weeklyPlan[6] ? `${formatLocalDate(weeklyPlan[0].date)} - ${formatLocalDate(weeklyPlan[6].date)}` : 'Loading...'}
               </p>
             </div>
+          </div>
 
-            <div className="flex gap-4">
-              <div className="bg-white/20 backdrop-blur-md p-4 rounded-2xl min-w-[100px] text-center border border-white/10">
-                <p className="text-xs font-bold uppercase text-white/70 mb-1">Consumed</p>
-                <p className="text-xl font-bold">{totalCalories}</p>
+          <div className="flex items-center gap-4 px-4 w-full">
+            <div className="w-12 h-12 rounded-2xl bg-[#00c4b4]/10 text-[#00c4b4] flex items-center justify-center">
+              <Droplet size={24} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Meals Completed Today</p>
+              <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                {completedMeals.length} of {todayPlan?.meals?.length || 0} meals
+              </p>
+            </div>
+          </div>
+
+
+        </div>
+
+        {/* --- Hydration Tips Section --- */}
+        <div className={`rounded-[2rem] p-4 md:p-5 relative overflow-hidden ${isDarkMode ? 'bg-transparent border border-transparent text-white' : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-xl shadow-blue-500/20'}`}>
+          {!isDarkMode && <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>}
+          
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 relative z-10">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+              {/*  <Droplet size={20} className="text-cyan-200" /> */}
+                <p className="text-xl font-bold tracking-widest uppercase text-white/80">💧 Hydration Tip</p>
               </div>
-              <div className="bg-white/20 backdrop-blur-md p-4 rounded-2xl min-w-[100px] text-center border border-white/10">
-                <p className="text-xs font-bold uppercase text-white/70 mb-1">Protein</p>
-                <p className="text-xl font-bold">{totalProtein}g</p>
-              </div>
+              <h2 className="text-xl md:text-2xl font-bold leading-tight">
+                Drink 500ml of water before each meal
+              </h2>
+              <p className={`text-s mt-2 max-w-md ${isDarkMode ? 'text-slate-300' : 'text-blue-100'}`}>
+                Staying hydrated improves digestion and keeps your metabolism active!
+              </p>
+            </div>
+        <div className={`backdrop-blur-md p-4 rounded-xl border text-center min-w-[120px] ${isDarkMode ? 'bg-transparent border-transparent' : 'bg-white/20 border-white/30'}`}>
+              <div className="text-3xl font-bold mb-1">500</div>
+              <p className="text-xs font-semibold text-white/90">ml per meal</p>
             </div>
           </div>
         </div>
 
-        {/* --- Macros Cards --- */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Protein */}
-          <div className={`p-6 rounded-[2rem] border shadow-sm flex items-center gap-6 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
-            <div className="relative w-20 h-20 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle cx="40" cy="40" r="32" stroke={isDarkMode ? "#334155" : "#f1f5f9"} strokeWidth="8" fill="transparent" />
-                <circle cx="40" cy="40" r="32" stroke="#0ea5e9" strokeWidth="8" fill="transparent" strokeDasharray="200" strokeDashoffset="60" strokeLinecap="round" />
-              </svg>
-              <span className="absolute text-sm font-bold text-[#0ea5e9]">{totalProtein > 0 ? '65' : '0'}%</span>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Protein</p>
-              <div className="flex items-baseline gap-1">
-                <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{totalProtein}</span>
-                <span className="text-sm text-slate-400 font-medium">/ 185g</span>
-              </div>
-              <div className={`w-full h-1.5 rounded-full mt-3 overflow-hidden ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-100'}`}>
-                <div className="h-full bg-[#0ea5e9] w-[65%] rounded-full"></div>
-              </div>
-            </div>
-          </div>
+        {/* --- Meal Plan Grid --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
-          {/* Carbs */}
-          <div className={`p-6 rounded-[2rem] border shadow-sm flex items-center gap-6 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
-            <div className="relative w-20 h-20 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle cx="40" cy="40" r="32" stroke={isDarkMode ? "#334155" : "#f1f5f9"} strokeWidth="8" fill="transparent" />
-                <circle cx="40" cy="40" r="32" stroke="#00c4b4" strokeWidth="8" fill="transparent" strokeDasharray="200" strokeDashoffset="110" strokeLinecap="round" />
-              </svg>
-              <span className="absolute text-sm font-bold text-[#00c4b4]">45%</span>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Carbs</p>
-              <div className="flex items-baseline gap-1">
-                <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>110</span>
-                <span className="text-sm text-slate-400 font-medium">/ 245g</span>
-              </div>
-              <div className={`w-full h-1.5 rounded-full mt-3 overflow-hidden ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-100'}`}>
-                <div className="h-full bg-[#00c4b4] w-[45%] rounded-full"></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Fats */}
-          <div className={`p-6 rounded-[2rem] border shadow-sm flex items-center gap-6 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
-            <div className="relative w-20 h-20 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle cx="40" cy="40" r="32" stroke={isDarkMode ? "#334155" : "#f1f5f9"} strokeWidth="8" fill="transparent" />
-                <circle cx="40" cy="40" r="32" stroke="#eab308" strokeWidth="8" fill="transparent" strokeDasharray="200" strokeDashoffset="140" strokeLinecap="round" />
-              </svg>
-              <span className="absolute text-sm font-bold text-[#eab308]">30%</span>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Fats</p>
-              <div className="flex items-baseline gap-1">
-                <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>24</span>
-                <span className="text-sm text-slate-400 font-medium">/ 82g</span>
-              </div>
-              <div className={`w-full h-1.5 rounded-full mt-3 overflow-hidden ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-100'}`}>
-                <div className="h-full bg-[#eab308] w-[30%] rounded-full"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* --- Today's Meals (Filtered) --- */}
-        {nutrition.length > 0 && filteredUserMeals.length > 0 && (
-          <div className={`p-6 rounded-2xl border space-y-4 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
-            <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Added Meals ({filteredUserMeals.length})</h3>
-            <div className="space-y-3">
-              {filteredUserMeals.map((meal) => (
-                <div key={meal.id} className={`flex items-center justify-between p-4 rounded-lg transition ${isDarkMode ? 'bg-[#0f172a] hover:bg-[#334155]' : 'bg-slate-50 hover:bg-slate-100'}`}>
-                  <div className="flex-1">
-                    <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{meal.meal}</p>
-                    <p className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                      {meal.calories} kcal | Protein: {meal.protein}g | Carbs: {meal.carbs}g | Fats: {meal.fats}g
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      {new Date(meal.createdAt).toLocaleTimeString()}
+          {/* Active Card (Today) */}
+          {todayPlan && todayPlan.meals && todayPlan.meals.length > 0 && (
+            <div className="lg:col-span-1 xl:col-span-1 row-span-2">
+              <div className={`p-6 rounded-[2rem] border-2 shadow-xl h-full flex flex-col ${allMealsCompletedToday ? 'border-green-500 shadow-green-500/10' : 'border-[#00c4b4] shadow-[#00c4b4]/10'} ${isDarkMode ? 'bg-[#1e293b]' : 'bg-white'}`}>
+                <div className="flex justify-between items-start mb-4 gap-3">
+                  <div className="flex-1 min-w-0">
+                    <span className={`text-xs font-bold uppercase tracking-wider block break-words ${allMealsCompletedToday ? 'text-green-500' : 'text-[#00c4b4]'}`}>
+                      {getDayName(todayPlan.date)} (Today)
+                    </span>
+                    <p className={`text-xs font-semibold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {formatLocalDate(todayPlan.date)}
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleDeleteMeal(meal.id)}
-                    className="text-red-500 hover:text-red-700 transition active:scale-90"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center flex-shrink-0 ${allMealsCompletedToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}>
+                    <CheckCircle2 size={16} />
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* --- Main Content Grid --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Left: Meal Plan List (Filtered) */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className={`p-6 rounded-[2rem] border shadow-sm ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
-              <div className="flex items-center justify-between mb-8">
-                <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Today's Meal Plan</h3>
-                <div className={`px-4 py-2 rounded-xl text-sm font-semibold border ${isDarkMode ? 'bg-[#0f172a] text-slate-300 border-[#334155]' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
-                  May 17, 2024
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
+                    <span>Meal Progress</span>
+                    <span className={allMealsCompletedToday ? 'text-green-500' : 'text-[#00c4b4]'}>{Math.round(todayMealProgress)}%</span>
+                  </div>
+                  <div className={`w-full h-2 rounded-full overflow-hidden border ${isDarkMode ? 'bg-[#334155] border-[#334155]' : 'bg-slate-100 border-slate-100'}`}>
+                    <div
+                      className={`h-full transition-all duration-500 ${allMealsCompletedToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}
+                      style={{ width: `${todayMealProgress}%` }}
+                    ></div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Header Row */}
-              <div className="grid grid-cols-12 text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2">
-                <div className="col-span-3">Meal</div>
-                <div className="col-span-4">Food Items</div>
-                <div className="col-span-2">Calories</div>
-                <div className="col-span-2">Macros (P/C/F)</div>
-                <div className="col-span-1 text-right">Status</div>
-              </div>
+                {/* Meals List */}
+                <div className="space-y-3 flex-1">
+                  {todayPlan.meals.map((meal, idx) => {
+                    const isDone = completedMeals.includes(meal.type);
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => handleToggleMeal(todayPlan.date, meal.type, true)}
+                        className={`flex gap-3 items-start p-3 rounded-xl transition-all cursor-pointer border
+                          ${isDone
+                            ? (isDarkMode ? 'bg-green-500/20 border-green-500/30' : 'bg-green-50 border-green-200')
+                            : (isDarkMode ? 'bg-[#0f172a] border-[#334155] hover:bg-[#334155]/50' : 'bg-white border-slate-100 hover:bg-slate-50')
+                          }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${isDone ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300'}`}>
+                          {isDone && <CheckCircle2 size={12} />}
+                        </div>
 
-              {/* Meals List */}
-              <div className="space-y-4">
-                {filteredMealPlan.length > 0 ? (
-                  filteredMealPlan.map((meal, idx) => (
-                    <div key={idx} className={`grid grid-cols-12 items-center p-4 rounded-2xl transition-colors border ${isDarkMode ? 'hover:bg-[#0f172a] border-transparent' : 'hover:bg-slate-50 border-slate-50'}`}>
-                      <div className="col-span-3">
-                        <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{meal.type}</p>
-                        <p className="text-xs text-slate-400 mt-1">{meal.time}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-base font-extrabold break-words ${isDone ? (isDarkMode ? 'text-slate-500 line-through' : 'text-slate-400 line-through') : (isDarkMode ? 'text-white' : 'text-slate-900')}`}>
+                            {meal.type}
+                          </p>
+                          <p className={`text-sm font-bold mt-1 leading-tight break-words ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                            {meal.food}
+                          </p>
+                          <div className={`flex items-center gap-3 text-xs mt-2`}>
+                            <span className={`${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{meal.time}</span>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-lg whitespace-nowrap ${isDone ? 'text-green-600 bg-green-500/10' : 'text-[#00c4b4] bg-[#00c4b4]/10'}`}>
+                              {meal.cal}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="col-span-4 pr-4">
-                        <p className={`text-sm font-medium leading-snug ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{meal.food}</p>
-                      </div>
-                      <div className="col-span-2">
-                        <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{meal.cal}</p>
-                      </div>
-                      <div className="col-span-2 flex flex-wrap gap-1.5">
-                        <span className="px-1.5 py-0.5 rounded bg-blue-100/10 text-[#0ea5e9] text-[10px] font-bold">{meal.p}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-pink-100/10 text-[#00c4b4] text-[10px] font-bold">{meal.c}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-yellow-100/10 text-[#ca8a04] text-[10px] font-bold">{meal.f}</span>
-                      </div>
-                      <div className="col-span-1 flex justify-end">
-                        {meal.status === 'done' ? (
-                          <CheckCircle2 className="text-teal-500 fill-teal-500/20" size={24} />
-                        ) : (
-                          <Circle className="text-slate-400" size={24} />
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                   <div className="text-center py-6 text-slate-400 text-sm">No meal plans found.</div>
-                )}
+                    );
+                  })}
+                </div>
+
+                {/* Completion Status Text */}
+                <div className={`mt-6 text-center font-bold text-sm ${allMealsCompletedToday ? 'text-green-500' : 'text-[#00c4b4]'}`}>
+                  {allMealsCompletedToday
+                    ? "✅ All meals done"
+                    : `${todayPlan.meals.length - completedMeals.length} more to complete`}
+                </div>
+
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Right: Sidebar Widgets */}
-          <div className="space-y-6">
-            
-            {/* Hydration Widget */}
-            <div className="bg-[#14b8a6] p-8 rounded-[2rem] text-white shadow-lg shadow-teal-200/50 relative overflow-hidden">
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/20 rounded-full blur-xl"></div>
-              <div className="relative z-10">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm">
-                  <Droplet className="text-white fill-white" size={24} />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Hydration Tip</h3>
-                <p className="text-teal-100 text-sm leading-relaxed mb-6">
-                  Drinking <span className="font-bold text-white">500ml of water</span> before your next meal can boost metabolic rate by 24%.
+          {/* Other Days Cards */}
+          {weeklyPlan.slice(1).map((day, idx) => (
+            <div key={idx + 1} className={`p-6 rounded-[2rem] border shadow-sm hover:shadow-md transition-shadow flex flex-col ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
+              <div className="mb-4">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  {getDayName(day.date)}
+                </span>
+                <p className={`text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  {formatLocalDate(day.date)}
                 </p>
-            {/*    <button 
-                  onClick={handleLogHydration}
-                  className="w-full py-3 bg-white text-[#14b8a6] font-bold rounded-xl hover:bg-teal-50 transition-colors shadow-sm"
-                >
-                  Log 500ml Now
-                </button>   */} 
               </div>
-            </div>
-
-            {/* Micronutrients Widget (Filtered) COMMENTED OUT */}
-            {/* <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 mb-6">Micronutrients</h3>
-              <div className="space-y-6">
-                {filteredMicros.length > 0 ? (
-                  filteredMicros.map((item, i) => (
-                    <div key={i}>
-                      <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-                        <span>{item.name}</span>
-                        <span>{item.val}</span>
-                      </div>
-                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className={`h-full ${item.color} rounded-full`} style={{ width: item.val }}></div>
-                      </div>
+              
+              <div className="flex-1 space-y-2">
+                {day.meals.slice(0, 4).map((meal, i) => (
+                  <div key={i} className={`flex flex-col items-start gap-1.5 text-sm border-b pb-2 last:border-0 ${isDarkMode ? 'border-[#334155]' : 'border-slate-50'}`}>
+                    <div className="w-full break-words">
+                      <span className={`text-base font-extrabold block break-words ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                        {meal.type}
+                      </span>
+                      <span className={`text-sm font-bold block leading-tight mt-0.5 break-words ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                        {meal.food}
+                      </span>
                     </div>
-                  ))
-                ) : (
-                   <div className="text-center text-slate-400 text-xs">No micronutrients found.</div>
+                    <span className="text-[#00c4b4] font-bold text-xs bg-[#00c4b4]/10 px-2 py-0.5 rounded whitespace-nowrap inline-block">
+                      {meal.cal}
+                    </span>
+                  </div>
+                ))}
+                {day.meals.length > 4 && (
+                  <p className={`text-xs italic pt-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                    +{day.meals.length - 4} more meals
+                  </p>
                 )}
               </div>
-            </div> 
-            */}
-
-          </div>
-        </div>
-
-        {/* --- Hydration Popup Modal --- */}
-        {showHydrationPopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
-            <div className={`flex flex-col items-center p-8 rounded-3xl shadow-2xl animate-fade-in-up ${isDarkMode ? 'bg-[#1e293b] border border-[#334155]' : 'bg-white'}`}>
-              <div className="w-16 h-16 bg-teal-500 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-teal-500/40">
-                <CheckCircle2 size={32} className="text-white" />
-              </div>
-              <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Done!</h3>
-              <p className={`mt-2 font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>500ml logged successfully.</p>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
 
       </div>
     </Layout>

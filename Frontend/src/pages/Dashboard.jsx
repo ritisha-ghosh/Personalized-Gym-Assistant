@@ -184,7 +184,10 @@ const Dashboard = () => {
           {/* Right Column */}
           <div className="space-y-6 lg:col-span-4">
             {shouldShow(["consistency", "week", "streak", "calendar"]) && <WeeklyConsistency />}
-            {shouldShow(["goal", "comparison", "bmi", "weight target"]) && <GoalComparisonCard />}
+            
+            {/* GOAL COMPARISON CARD - COMMENTED OUT */}
+            {/* {shouldShow(["goal", "comparison", "bmi", "weight target"]) && <GoalComparisonCard />} */}
+            
             {shouldShow(["trainer", "insight", "ai", "tip", "advice"]) && <TrainerInsight />}
             
             {/* LEADERBOARD - COMMENTED OUT */}

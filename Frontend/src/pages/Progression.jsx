@@ -70,7 +70,9 @@ const Progression = () => {
         setWorkoutLogs(logs); // Store raw logs for PDF generation
 
         // 4. Process Logs into Heatmap Data
-        const dates = logs.map(log => {
+        const activeLogs = logs.filter(log => log.status === "active");
+        
+        const dates = activeLogs.map(log => {
           const d = new Date(log.date || log.createdAt);
           return toYYYYMMDD(d);
         });

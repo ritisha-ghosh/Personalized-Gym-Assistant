@@ -48,7 +48,7 @@ const WeeklyConsistency = () => {
             const logDate =
               new Date(log.date).toLocaleDateString("en-CA");
 
-            return logDate === currentDate;
+            return logDate === currentDate && log.status === "active";
           });
 
           if (hasWorkout) totalCompleted++;

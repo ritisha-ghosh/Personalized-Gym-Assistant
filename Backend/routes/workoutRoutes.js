@@ -7,7 +7,11 @@ const {
   updatePlan,
   deletePlan,
   weeklyPlanAdjustment,
-  generateSmartRecommendation
+  generateSmartRecommendation,
+  getWeeklyPlan,
+  addCustomNote,
+  deleteCustomNote,
+  getCustomNotes
 } = require("../controllers/workoutController");
 
 
@@ -15,7 +19,15 @@ const { validatePlan } = require("../middleware/validateWorkout");
 
 const router = express.Router();
 
-// 🛡️ Smart Recommendation
+// 🗓️ GET DYNAMIC WEEKLY PLAN (Today + Next 6 Days)
+router.get("/weekly-plan", protect, getWeeklyPlan);
+
+// Custom Notes
+router.get("/notes", protect, getCustomNotes);
+router.post("/notes", protect, addCustomNote);
+router.delete("/notes/:logId", protect, deleteCustomNote);
+
+// ️ Smart Recommendation
 router.get("/smart-recommendation", protect, generateSmartRecommendation);
 
 // CREATE WORKOUT PLAN
