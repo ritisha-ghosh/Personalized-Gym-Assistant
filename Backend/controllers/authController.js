@@ -219,7 +219,7 @@ exports.sendOtpForPasswordReset = async (req, res) => {
 
     // Send email
     await transporter.sendMail({
-      from: `"PulseAI - Personalized Gym Assistant" <${process.env.EMAIL_USER}>`,
+      from: `"BeFit - Personalized Gym Assistant" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Your Password Reset OTP",
       text: `Your One-Time Password for password reset is: ${otp}. It will expire in 10 minutes.`,

@@ -204,22 +204,17 @@ exports.generateSmartRecommendation = async (req, res) => {
   }
 };
 
-// 📝 GET CUSTOM WORKOUT NOTES
+// 📝 GET CUSTOM WORKOUT NOTES - Get ALL notes (not just today)
 exports.getCustomNotes = async (req, res) => {
   try {
     const userId = req.user.id;
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
 
     const logs = await UserLog.find({
       user: userId,
-      status: 'note',
-      date: { $gte: todayStart, $lte: todayEnd }
+      status: 'note'
     }).sort({ createdAt: -1 });
 
-    const notes = logs.map(log => ({ _id: log._id, text: log.notes }));
+    const notes = logs.map(log => ({ _id: log._id, text: log.notes, date: log.date }));
 
     res.status(200).json({ status: 'success', notes });
   } catch (error) {

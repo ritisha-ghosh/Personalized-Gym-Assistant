@@ -41,7 +41,7 @@ const Sidebar = ({ onClose }) => {
           </svg>
         </div>
         <span className={`text-lg sm:text-xl font-bold tracking-tight truncate ${isDarkMode ? 'text-white' : 'text-[#0f172a]'}`}>
-          PulseAI
+          BeFit
         </span>
       </div>
 

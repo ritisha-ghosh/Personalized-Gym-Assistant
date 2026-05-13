@@ -218,7 +218,7 @@ const Dashboard = () => {
         className="fixed bottom-8 right-8 w-16 h-16 bg-teal-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group border-4 border-white"
       >
         <div className="absolute -top-12 right-0 bg-slate-900 text-white text-[10px] py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          Talk to PulseAI
+          Talk to BeFit
         </div>
         <Mic size={28} />
       </button>

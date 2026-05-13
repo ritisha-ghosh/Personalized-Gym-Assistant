@@ -65,10 +65,9 @@ const Neutrations = () => {
           setWeeklyPlan(plan);
           console.log(`✅ Received nutrition plan - Days: ${plan.length}`);
           
-          // Set notes and completed meals from today's plan
+          // Set completed meals from today's plan
           const todayPlan = plan.find(p => p.isToday);
           if (todayPlan) {
-            setNotes(todayPlan.notes || []);
             const todayMeals = todayPlan.meals || [];
             const completedMealTypes = todayMeals
               .filter(m => m.status === 'done')
@@ -76,6 +75,13 @@ const Neutrations = () => {
             setCompletedMeals(completedMealTypes);
             setAllMealsCompletedToday(completedMealTypes.length === todayMeals.length);
           }
+        }
+
+        // Fetch ALL notes (not just today's) from the backend
+        const notesResponse = await api.get('/diet-tracking/notes');
+        if (notesResponse.data.status === 'success') {
+          setNotes(notesResponse.data.notes || []);
+          console.log(`✅ Received ${notesResponse.data.notes?.length || 0} notes`);
         }
       } catch (error) {
         console.error("❌ Failed to fetch diet data", error);
@@ -232,11 +238,15 @@ const Neutrations = () => {
         {notes && notes.length > 0 && (
           <div className={`space-y-3`}>
             {notes.map((note) => (
-              <div key={note._id} className={`p-4 rounded-xl border flex justify-between items-center transition ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100 shadow-sm'}`}>
-                <p className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{note.text}</p>
+              <div key={note._id} className={`p-4 rounded-xl border flex justify-between items-start transition gap-4 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100 shadow-sm'}`}>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{note.text}</p>
+                  {note.date && <p className={`text-xs mt-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{formatLocalDate(note.date)}</p>}
+           {/*       {note.time && <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{new Date(note.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>}  */} 
+                </div>
                 <button
                   onClick={() => handleDeleteNote(note._id)}
-                  className="text-red-500 hover:text-red-700 transition active:scale-90 ml-4 p-2"
+                  className="text-red-500 hover:text-red-700 transition active:scale-90 p-2 flex-shrink-0"
                 >
                   <Trash2 size={18} />
                 </button>
