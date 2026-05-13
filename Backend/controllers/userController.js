@@ -51,6 +51,8 @@ exports.updateUserProfile = async (req, res) => {
       return;
     }
 
+    const oldWeight = user.weight;
+
     // Update text fields
     const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'goal', 'dietType', 'bio', 'injury'];
     fieldsToUpdate.forEach(field => {
@@ -58,6 +60,19 @@ exports.updateUserProfile = async (req, res) => {
         user[field] = req.body[field];
       }
     });
+
+    if (req.body.weight !== undefined && Number(req.body.weight) !== Number(oldWeight)) {
+      try {
+        await UserLog.create({
+          user: user._id,
+          status: 'note',
+          notes: 'Weight updated via profile',
+          weight: Number(req.body.weight)
+        });
+      } catch (err) {
+        console.error("Error creating UserLog on weight update:", err);
+      }
+    }
 
     // --- DIRECT MONGODB IMAGE SAVING ---
     // If a file was uploaded, convert it from memory buffer to Base64 String

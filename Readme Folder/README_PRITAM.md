@@ -1,4 +1,4 @@
-🧠 Orchestration & Intelligence Layer – PulseAI System  
+🧠 Orchestration & Intelligence Layer – BeFit System  
 👨‍💻 Developer: Pritam Chakraborty  
 
 📌 Weekly Task Progress Report  

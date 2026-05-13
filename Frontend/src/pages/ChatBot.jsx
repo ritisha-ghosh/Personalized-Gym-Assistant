@@ -306,7 +306,7 @@ const ChatBot = () => {
           </div>
 
           <p className="text-center text-[10px] text-slate-300 mt-3 font-medium">
-            PulseAI Coach can make mistakes. Verify important health information with a professional.
+            BeFit Coach can make mistakes. Verify important health information with a professional.
           </p>
         </div>
 

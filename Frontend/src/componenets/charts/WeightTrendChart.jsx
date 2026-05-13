@@ -14,33 +14,78 @@ const WeightTrendChart = () => {
   const { isDarkMode } = useContext(DarkModeContext); // 2. Extracted dark mode state
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/logs", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        console.log(response);
+    const token = localStorage.getItem("accessToken");
 
-        const logs = Array.isArray(response)
-          ? response
-          : response.data || [];
+    Promise.all([
+      fetch("http://localhost:5000/api/logs", {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((res) => res.json()),
+      fetch("http://localhost:5000/api/users/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((res) => res.json())
+    ])
+      .then(([logsResponse, profileResponse]) => {
+        const logs = Array.isArray(logsResponse)
+          ? logsResponse
+          : logsResponse.data || [];
 
-        const formattedData = logs
-          .slice()
-          .reverse()
-          .map((log) => ({
-            day: new Date(log.date).toLocaleDateString("en-US", {
+        const currentProfileWeight = profileResponse?.user?.weight || null;
+
+        const sortedLogs = logs.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let firstLogDate = new Date(today);
+        if (sortedLogs.length > 0) {
+          firstLogDate = new Date(sortedLogs[0].date);
+          firstLogDate.setHours(0, 0, 0, 0);
+        }
+        
+        // Ensure we show at least the last 7 days so the chart always has a timeline
+        const start = new Date(today);
+        start.setDate(today.getDate() - 6);
+        const startDate = firstLogDate < start ? firstLogDate : start;
+
+        const dateMap = {};
+        sortedLogs.forEach(log => {
+          if (log.weight) {
+            const d = new Date(log.date);
+            dateMap[d.toDateString()] = log.weight;
+          }
+        });
+
+        // Ensure today always has the most up-to-date weight from the profile
+        if (currentProfileWeight) {
+          dateMap[today.toDateString()] = currentProfileWeight;
+        }
+
+        const formattedData = [];
+        let current = new Date(startDate);
+        
+        while (current <= today) {
+          const dateString = current.toDateString();
+          formattedData.push({
+            day: current.toLocaleDateString("en-US", {
               weekday: "short",
+              month: "short",
+              day: "numeric",
             }),
-            actual: log.weight,
-          }));
+            fullDate: current.toLocaleDateString("en-US", {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+              year: "numeric"
+            }),
+            actual: dateMap[dateString] || null, // Let connectNulls interpolate missing days
+          });
+          current.setDate(current.getDate() + 1);
+        }
 
         setData(formattedData);
       })
       .catch((error) => {
-        console.error("Error fetching logs:", error);
+        console.error("Error fetching data for chart:", error);
       });
   }, []);
 
@@ -58,6 +103,7 @@ const WeightTrendChart = () => {
             
             {/* 4. Applied Dark Mode CSS to Tooltip */}
             <Tooltip 
+              labelFormatter={(value, payload) => payload?.[0]?.payload?.fullDate || value}
               contentStyle={{ 
                 backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
                 borderColor: isDarkMode ? '#334155' : '#f1f5f9',
@@ -73,6 +119,7 @@ const WeightTrendChart = () => {
               dataKey="actual"
               stroke="#FF00FF"
               strokeWidth={3}
+              connectNulls={true}
             />
           </LineChart>
         </ResponsiveContainer>

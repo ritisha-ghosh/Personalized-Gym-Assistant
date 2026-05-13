@@ -59,7 +59,7 @@ const LandingPage = () => {
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-105 ${isDarkMode ? 'bg-[#00c4b4]' : 'bg-teal-500'}`}>
               <span className="text-2xl font-bold">⚡</span>
             </div>
-            <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-[#00c4b4]' : 'text-[#142E5C]'}`}>PulseAI</h2>
+            <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-[#00c4b4]' : 'text-[#142E5C]'}`}>BeFit</h2>
           </Link>
           
           <nav className={`hidden md:flex items-center gap-10 bg-transparent ${isDarkMode ? 'text-[#cbd5e1]' : 'text-[#142E5C]'}`}>
@@ -221,13 +221,13 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6 w-full mb-16">
           <div className={`flex flex-col md:flex-row justify-between items-start gap-12 md:gap-8 ${isDarkMode ? 'text-[#cbd5e1]' : 'text-gray-900'}`}>
             
-            {/* Left: PulseAI */}
+            {/* Left: BeFit */}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center text-white">
                   ⚡
                 </div>
-                <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-[#00c4b4]' : 'text-[#142E5C]'}`}>PulseAI</h2>
+                <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-[#00c4b4]' : 'text-[#142E5C]'}`}>BeFit</h2>
               </div>
               <p className={`text-sm leading-relaxed max-w-sm ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'}`}>
                 The future of performance coaching. AI-driven, human-centered, results-oriented.

@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html, body {
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+.logo-text {
+  font-family: 'Libre Baskerville', serif;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+}

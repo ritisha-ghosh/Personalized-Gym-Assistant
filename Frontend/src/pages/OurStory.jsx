@@ -126,7 +126,7 @@ const OurStory = () => {
             <div className="relative w-[90%] sm:w-4/5 lg:w-full mx-auto rounded-[2rem] comic-shadow border-4 border-slate-900 overflow-hidden bg-slate-200">
               <img 
                 src={TeamImg} 
-                alt="PulseAI Team" 
+                alt="BeFit Team" 
                 className="w-full h-auto block pointer-events-none" 
                 onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" }}
               />
@@ -172,7 +172,7 @@ const OurStory = () => {
               </p>
 
               <p className={`text-base md:text-lg font-medium leading-relaxed bg-transparent ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                Enter PulseAI ! A squad of gym junkies and code wizards banded together . Powered entirely by passion , late-night pizzas , and endless cups of coffee , we trained cutting-edge AI-ML models to actually understand human biomechanics .
+                Enter BeFit ! A squad of gym junkies and code wizards banded together . Powered entirely by passion , late-night pizzas , and endless cups of coffee , we trained cutting-edge AI-ML models to actually understand human biomechanics .
               </p>
             </div>
 
