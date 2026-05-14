@@ -196,8 +196,8 @@ const Workout = () => {
   };
 
   // Calculate progress for today
-  const todayProgressPercentage = weekPlan.length > 0 && weekPlan[0]?.exercises
-    ? Math.round((completedExerciseIds.length / weekPlan[0].exercises.length) * 100)
+  const todayProgressPercentage = weekPlan.length > 0 && weekPlan[0]
+    ? Math.round((completedExerciseIds.length / (weekPlan[0].type === 'rest' ? 1 : Math.max(weekPlan[0].exercises?.length || 1, 1))) * 100)
     : 0;
 
   // Get today's plan
@@ -217,8 +217,8 @@ const Workout = () => {
     <Layout>
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          body { font-family: 'Plus Jakarta Sans', sans-serif; }
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+          body { font-family: 'Libre Baskerville', serif; }
         `}
       </style>
 
@@ -324,7 +324,7 @@ const Workout = () => {
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Completed Today</p>
               <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {completedExerciseIds.length} of {todayPlan?.exercises?.length || 0} exercises
+                {completedExerciseIds.length} of {todayPlan?.type === 'rest' ? 1 : (todayPlan?.exercises?.length || 0)} exercises
               </p>
             </div>
           </div>
@@ -385,12 +385,31 @@ const Workout = () => {
                 </div>
 
                 {/* Exercises List */}
-                {todayPlan.type === 'recovery' || todayPlan.type === 'rest' ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-                    <div className="text-4xl mb-3">🧘</div>
-                    <p className={`text-sm font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                      {todayPlan.type === 'rest' ? 'Rest Day - Recovery and prepare for next workout!' : 'Active Recovery - Light movement and mobility work'}
-                    </p>
+                {todayPlan.type === 'rest' ? (
+                  <div className="space-y-4 flex-1">
+                    <div
+                      onClick={() => toggleExercise(0)}
+                      className={`flex gap-4 items-center p-3 rounded-xl transition-all cursor-pointer border
+                        ${completedExerciseIds.includes(0)
+                          ? (isDarkMode ? 'bg-green-500/20 border-green-500/30' : 'bg-green-50 border-green-200')
+                          : (isDarkMode ? 'bg-[#0f172a] border-[#334155] hover:bg-[#334155]/50' : 'bg-white border-slate-100 hover:bg-slate-50')
+                        }`}
+                    >
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${completedExerciseIds.includes(0) ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300'}`}>
+                        {completedExerciseIds.includes(0) && <CheckCircle2 size={12} />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-bold ${completedExerciseIds.includes(0) ? (isDarkMode ? 'text-slate-500 line-through' : 'text-slate-400 line-through') : (isDarkMode ? 'text-white' : 'text-slate-900')}`}>
+                          Rest & Recovery
+                        </p>
+                        <div className={`flex gap-3 text-xs mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                          <span>1 Full Day</span>
+                        </div>
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${completedExerciseIds.includes(0) ? 'text-green-600 bg-green-500/10' : 'text-[#00c4b4] bg-[#00c4b4]/10'}`}>
+                        Bodyweight
+                      </span>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4 flex-1">
@@ -431,21 +450,21 @@ const Workout = () => {
 
                 {/* Complete Workout Button */}
                 <button
-                  disabled={isWorkoutDoneToday || completedExerciseIds.length !== todayPlan.exercises.length || todayPlan.type === 'recovery' || todayPlan.type === 'rest'}
+                  disabled={isWorkoutDoneToday || completedExerciseIds.length !== (todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length)}
                   onClick={handleCompleteWorkout}
                   className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md flex justify-center items-center gap-2 ${
                     isWorkoutDoneToday
                       ? 'bg-green-500 text-white cursor-default shadow-none'
-                      : completedExerciseIds.length === todayPlan.exercises.length
+                      : completedExerciseIds.length === (todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length)
                         ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
                         : (isDarkMode ? 'bg-[#334155] text-slate-400 cursor-not-allowed shadow-none' : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none')
                   }`}
                 >
                   {isWorkoutDoneToday
                     ? <><CheckCircle2 size={20} /> Done for Today</>
-                    : completedExerciseIds.length === todayPlan.exercises.length
-                      ? "✅ Complete Workout"
-                      : `Finish ${todayPlan.exercises.length - completedExerciseIds.length} more to Complete`}
+                    : completedExerciseIds.length === (todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length)
+                      ? (todayPlan.type === 'rest' ? "✅ Complete Rest Day" : "✅ Complete Workout")
+                      : `Finish ${(todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length) - completedExerciseIds.length} more to Complete`}
                 </button>
               </div>
             </div>
@@ -467,13 +486,13 @@ const Workout = () => {
                 {day.title}
               </h3>
 
-              {day.type === 'recovery' || day.type === 'rest' ? (
+              {day.type === 'rest' ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
                   <div className="text-3xl mb-2">
-                    {day.type === 'rest' ? '😴' : '🧘'}
+                    😴
                   </div>
                   <p className={`text-sm font-medium leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    {day.type === 'rest' ? 'Complete Rest Day' : 'Active Recovery & Mobility'}
+                    Complete Rest Day
                   </p>
                 </div>
               ) : (
@@ -538,15 +557,13 @@ const Workout = () => {
               {selectedDayForModal.title}
             </h3>
 
-            {selectedDayForModal.type === 'recovery' || selectedDayForModal.type === 'rest' ? (
+            {selectedDayForModal.type === 'rest' ? (
               <div className="text-center py-8">
                 <div className="text-5xl mb-3">
-                  {selectedDayForModal.type === 'rest' ? '😴' : '🧘'}
+                  😴
                 </div>
                 <p className={`font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                  {selectedDayForModal.type === 'rest' 
-                    ? 'Today is a complete rest day. Focus on recovery, hydration, and sleep!' 
-                    : 'This is an active recovery day. Light movement and mobility work.'}
+                  Today is a complete rest day. Focus on recovery, hydration, and sleep!
                 </p>
               </div>
             ) : (

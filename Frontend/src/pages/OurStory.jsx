@@ -43,17 +43,18 @@ const OurStory = () => {
 
   return (
     <div 
-      className={`min-h-screen font-sans flex flex-col select-none transition-all duration-150 ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-slate-50'} ${isSecurityBlurred ? 'blur-xl grayscale' : ''}`}
+      className={`min-h-screen flex flex-col select-none transition-all duration-150 ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-slate-50'} ${isSecurityBlurred ? 'blur-xl grayscale' : ''}`}
       onContextMenu={(e) => e.preventDefault()} 
       onDragStart={(e) => e.preventDefault()}   
+      style={{ fontFamily: "'Libre Baskerville', serif" }}
     >
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800;900&family=Noto+Sans:wght@400;500;600;700&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
           @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0');
           
-          body { font-family: 'Epilogue', sans-serif; }
-          .font-body { font-family: 'Noto Sans', sans-serif; }
+          body { font-family: 'Libre Baskerville', serif; }
+          .font-body { font-family: 'Libre Baskerville', serif; }
 
           @media print {
             body { display: none !important; }
@@ -108,10 +109,10 @@ const OurStory = () => {
       <main className="flex-1 max-w-7xl mx-auto w-full px-8 lg:px-16 py-10 flex flex-col items-center justify-center bg-transparent">
         
         <div className="text-center mb-16 w-full bg-transparent">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter cartoon-text uppercase mb-4 bg-transparent">
-            Our Journey !
+          <h1 className="text-1xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter cartoon-text uppercase mb-4 py-2">
+            Our-Journey
           </h1>
-          <p className={`text-lg md:text-2xl font-bold bg-transparent ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          <p className={`text-lg md:text-1xl font-bold bg-transparent ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
             How a friendly discussion became the future of fitness.
           </p>
         </div>
@@ -159,19 +160,19 @@ const OurStory = () => {
           {/* Right Column: Story Text & Mission Box */}
           <div className="flex-1 w-full flex flex-col justify-between gap-8 bg-transparent">
             <div className="space-y-6 bg-transparent">
-              <h2 className={`text-2xl md:text-3xl font-extrabold tracking-tight bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>
+              <h2 className={`text-xl md:text-2xl font-extrabold tracking-tight bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>
                 Final Year Project ⚡
               </h2>
               
-              <p className={`text-base md:text-lg font-medium leading-relaxed bg-transparent ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+              <p className={`text-base md:text-m font-medium leading-relaxed bg-transparent ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                 It all started with a crazy observation : <span className="cartoon-text font-bold bg-transparent">getting fit shouldn't be boring , and personal trainers shouldn't cost a fortune .</span> We wanted to build a world where anyone , anywhere , could access elite-level coaching right from their living room .
               </p>
               
-              <p className={`text-base md:text-lg font-medium leading-relaxed bg-transparent ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+              <p className={`text-base md:text-m font-medium leading-relaxed bg-transparent ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                 We are from the <b>B.Tech CSE</b> , 2022–2026 batch at the Bengal Institute of Technology , Kolkata . One day, our team was discussing various fitness problems , which inspired us to develop a solution for our final year project . And then under the mentorship of <b>Prof. Bulbul Mukherjee</b> , we developed this platform .
               </p>
 
-              <p className={`text-base md:text-lg font-medium leading-relaxed bg-transparent ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+              <p className={`text-base md:text-m font-medium leading-relaxed bg-transparent ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                 Enter BeFit ! A squad of gym junkies and code wizards banded together . Powered entirely by passion , late-night pizzas , and endless cups of coffee , we trained cutting-edge AI-ML models to actually understand human biomechanics .
               </p>
             </div>
@@ -179,7 +180,7 @@ const OurStory = () => {
             {/* mt-auto forces this box to pin to the absolute bottom of the column */}
             <div className={`mt-auto p-5 md:p-6 rounded-3xl border-4 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-teal-50 border-teal-100'}`}>
               <h3 className={`text-xl font-black mb-2 ${isDarkMode ? 'text-[#00f5ff]' : 'text-teal-600'}`}>Our Mission is Simple :</h3>
-              <p className={`font-bold text-lg bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>
+              <p className={`font-bold text-xm bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>
                Fitness made simple. We’ve streamlined gym routines and diet plans so you can reach your goals at home. Track your daily progress and start your journey toward a healthier life today !
               </p>
             </div>

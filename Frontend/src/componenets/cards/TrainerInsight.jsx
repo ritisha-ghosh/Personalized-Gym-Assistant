@@ -19,6 +19,7 @@ Consider a whey shake before your Push session to maximize recovery.`,
         backdrop-blur-md
         ${isDarkMode ? 'bg-teal-500/20 border-teal-500/30' : 'bg-teal-50/60 border-teal-100/60'}
       `}
+      style={{ fontFamily: "'Libre Baskerville', serif" }}
     >
       <div className="relative z-10 flex items-start gap-3">
         {/* Icon */}

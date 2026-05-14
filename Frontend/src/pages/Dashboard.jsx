@@ -122,9 +122,15 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className={`min-h-full ${isDarkMode ? 'bg-[#0f172a]' : 'bg-white'}`}> {/* Added wrapper div with conditional background */}
+      <style>
+        {`
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+          body { font-family: 'Libre Baskerville', serif; }
+        `}
+      </style>
+      <div className={`space-y-6 sm:space-y-8 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
         {/* Greeting */}
-        <div className="mb-6 sm:mb-8">
+        <div>
           <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
             {getGreeting()}, {user?.name || "User"}.
           </h1>
@@ -142,7 +148,7 @@ const Dashboard = () => {
 
         {/* Stats - Responsive grid (Filtered) */}
         {filteredStats.length > 0 && (
-          <div className="mb-6 sm:mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredStats.map((stat) => (
               <StatCard
                 key={stat.id}
@@ -205,17 +211,19 @@ const Dashboard = () => {
             <button 
                 onClick={() => window.history.back()}
                 className="mt-2 text-[#df20af] font-bold hover:underline transition-transform active:scale-95 inline-block"
+                style={{ fontFamily: "'Libre Baskerville', serif" }}
             >
                 Clear Search
             </button>
             </div>
         )}
-      </div> {/* End of new wrapper div */}
+      </div>
 
       {/* --- NEW: VOICE ASSISTANT FAB --- */}
       <button 
         onClick={() => navigate('/chat')} // Redirects to chat so they can talk
         className="fixed bottom-8 right-8 w-16 h-16 bg-teal-500 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group border-4 border-white"
+        style={{ fontFamily: "'Libre Baskerville', serif" }}
       >
         <div className="absolute -top-12 right-0 bg-slate-900 text-white text-[10px] py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
           Talk to BeFit

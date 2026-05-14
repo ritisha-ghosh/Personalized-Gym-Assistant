@@ -85,6 +85,7 @@ const WeeklyConsistency = () => {
             : "bg-white/60 border-slate-100/60"
         }
       `}
+      style={{ fontFamily: "'Libre Baskerville', serif" }}
     >
       <h3
         className={`mb-6 text-left text-lg font-bold ${

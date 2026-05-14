@@ -15,14 +15,14 @@ const LandingPage = () => {
   const hoverTeal = '#00c4b4';
 
   return (
-    <div className={`min-h-screen font-sans ${isDarkMode ? 'dark-mode' : 'bg-white'} selection:bg-teal-500 selection:text-white`}>
+    <div className={`min-h-screen ${isDarkMode ? 'dark-mode' : 'bg-white'} selection:bg-teal-500 selection:text-white`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800;900&family=Noto+Sans:wght@400;500;600;700&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
           @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0');
           
-          body { font-family: 'Epilogue', sans-serif; }
-          .font-body { font-family: 'Noto Sans', sans-serif; }
+          body { font-family: 'Libre Baskerville', serif; }
+          .font-body { font-family: 'Libre Baskerville', serif; }
           
           .soft-shadow { box-shadow: 0 10px 30px -5px rgba(20, 46, 92, 0.05); }
           .teal-gradient { background: linear-gradient(135deg, #00c4b4 0%, #00a89f 100%); }
@@ -147,7 +147,7 @@ const LandingPage = () => {
           <div className="max-w-7xl mx-auto px-6">
             <div className={`grid grid-cols-2 lg:grid-cols-4 gap-8 ${isDarkMode ? 'divide-[#334155]' : 'divide-gray-200'} divide-x`}>
               {[
-                { val: '50k+', label: 'Active Athletes' },
+                { val: '50k+', label: 'Active Users' },
                 { val: '1.2M+', label: 'Guided Workouts' },
                 { val: '99.8%', label: 'AI Precision' },
                 { val: '4.9/5', label: 'User Rating' }

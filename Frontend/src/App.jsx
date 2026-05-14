@@ -30,28 +30,36 @@ import Tutorial from "./pages/Tutorial";
 function App() {
   return (
     <DarkModeProvider>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* New route */}
-          <Route path="/reset-password" element={<ResetPasswordPage />} /> {/* New route */}
-          <Route path="/register" element={<RegisterPage />} /> 
-          <Route path="/verify-otp" element={<OtpPage />} /> {/* Add the route for OTP verification */}
-          <Route path='/OurStory' element={<OurStory/>}/>
+      <style>
+        {`
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+          body { font-family: 'Libre Baskerville', serif; }
+        `}
+      </style>
+      <div style={{ fontFamily: "'Libre Baskerville', serif", width: "100%", height: "100%" }}>
+        <Router>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* New route */}
+            <Route path="/reset-password" element={<ResetPasswordPage />} /> {/* New route */}
+            <Route path="/register" element={<RegisterPage />} /> 
+            <Route path="/verify-otp" element={<OtpPage />} /> {/* Add the route for OTP verification */}
+            <Route path='/OurStory' element={<OurStory/>}/>
 
-          {/* Protected / App Routes */}
-          <Route path='/dashboard' element={<Dashboard/>}/>
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path='/workouts' element={<Workout/>}/>
-          <Route path='/tutorial' element={<Tutorial/>}/>
-          <Route path='/nutrition' element={<Nutrition/>}/>
-          <Route path='/settings' element={<Settings/>}/>
-          <Route path='/progress' element={<Progression/>}/>
-          <Route path='/chat' element={<ChatBot/>}/>
-        </Routes>
-      </Router>
+            {/* Protected / App Routes */}
+            <Route path='/dashboard' element={<Dashboard/>}/>
+            <Route path="/profile" element={<UserProfile />} />
+            <Route path='/workouts' element={<Workout/>}/>
+            <Route path='/tutorial' element={<Tutorial/>}/>
+            <Route path='/nutrition' element={<Nutrition/>}/>
+            <Route path='/settings' element={<Settings/>}/>
+            <Route path='/progress' element={<Progression/>}/>
+            <Route path='/chat' element={<ChatBot/>}/>
+          </Routes>
+        </Router>
+      </div>
     </DarkModeProvider>
   );
 }

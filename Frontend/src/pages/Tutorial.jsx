@@ -135,12 +135,12 @@ const Tutorial = () => {
       {/* Inject Fonts locally */}
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          body { font-family: 'Plus Jakarta Sans', sans-serif; }
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+          body { font-family: 'Libre Baskerville', serif; }
         `}
       </style>
 
-      <div className="font-sans text-slate-900 max-w-7xl mx-auto space-y-8 pb-10">
+      <div className="text-slate-900 max-w-7xl mx-auto space-y-8 pb-10" style={{ fontFamily: "'Libre Baskerville', serif" }}>
         
         {/* --- Header Section --- */}
         <div>

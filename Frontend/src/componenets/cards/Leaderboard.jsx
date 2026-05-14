@@ -11,7 +11,7 @@ const Leaderboard = ({ users }) => {
   ];
 
   return (
-    <div className={`rounded-2xl p-6 shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`}>
+    <div className={`rounded-2xl p-6 shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <h3 className={`font-bold text-lg mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
         Leaderboard
       </h3>

@@ -43,7 +43,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className={`relative min-h-screen flex flex-col font-sans overflow-hidden ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-slate-50'}`}>
+    <div className={`relative min-h-screen flex flex-col overflow-hidden ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-slate-50'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <style>
         {`
           /* Global Scrollbar Styles */

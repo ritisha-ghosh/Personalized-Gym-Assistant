@@ -16,6 +16,7 @@ const WeightTrendCard = () => {
         backdrop-blur-md
         ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}
       `}
+      style={{ fontFamily: "'Libre Baskerville', serif" }}
     >
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
