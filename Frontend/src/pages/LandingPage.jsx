@@ -147,7 +147,7 @@ const LandingPage = () => {
           <div className="max-w-7xl mx-auto px-6">
             <div className={`grid grid-cols-2 lg:grid-cols-4 gap-8 ${isDarkMode ? 'divide-[#334155]' : 'divide-gray-200'} divide-x`}>
               {[
-                { val: '50k+', label: 'Active Athletes' },
+                { val: '50k+', label: 'Active Users' },
                 { val: '1.2M+', label: 'Guided Workouts' },
                 { val: '99.8%', label: 'AI Precision' },
                 { val: '4.9/5', label: 'User Rating' }
