@@ -33,7 +33,7 @@ const ForgotPasswordPage = () => {
 
   return (
     // Updated container background for dark mode
-    <div className={`flex min-h-screen items-center justify-center font-sans ${isDarkMode ? 'bg-[#0f172a]' : 'bg-gray-100'}`}>
+    <div className={`flex min-h-screen items-center justify-center ${isDarkMode ? 'bg-[#0f172a]' : 'bg-gray-100'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <style>
         {`
           /* Global Scrollbar Styles */

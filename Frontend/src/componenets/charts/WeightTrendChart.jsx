@@ -90,14 +90,14 @@ const WeightTrendChart = () => {
   }, []);
 
   return (
-    <div className="h-48 w-full">
+    <div className="h-48 w-full" style={{ fontFamily: "'Libre Baskerville', serif" }}>
       {data && data.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             {/* 3. Make the X-Axis text visible in dark mode */}
             <XAxis 
               dataKey="day" 
-              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b' }}
+              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontFamily: "'Libre Baskerville', serif" }}
             />
             <YAxis hide />
             
@@ -109,7 +109,8 @@ const WeightTrendChart = () => {
                 borderColor: isDarkMode ? '#334155' : '#f1f5f9',
                 color: isDarkMode ? '#f1f5f9' : '#0f172a',
                 borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                fontFamily: "'Libre Baskerville', serif"
               }}
               itemStyle={{ color: isDarkMode ? '#FF00FF' : '#0ea5e9' }}
             />

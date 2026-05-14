@@ -77,7 +77,7 @@ const GoalComparisonCard = () => {
 
   if (loading) {
     return (
-      <div className={`p-5 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`}>
+      <div className={`p-5 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
         <p className={isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-900'}>
           Loading AI Goal Comparison...
         </p>
@@ -86,7 +86,7 @@ const GoalComparisonCard = () => {
   }
 
   return (
-    <div className={`p-5 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`}>
+    <div className={`p-5 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <h2 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
         AI Goal Comparison
       </h2>
@@ -96,14 +96,15 @@ const GoalComparisonCard = () => {
           <BarChart data={data}>
             <XAxis 
               dataKey="name" 
-              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 12 }}
+              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 12, fontFamily: "'Libre Baskerville', serif" }}
             />
             <Tooltip 
               contentStyle={{
                 backgroundColor: isDarkMode ? '#334155' : '#ffffff',
                 border: isDarkMode ? '1px solid #475569' : '1px solid #e2e8f0',
                 borderRadius: '8px',
-                color: isDarkMode ? '#f1f5f9' : '#000000'
+                color: isDarkMode ? '#f1f5f9' : '#000000',
+                fontFamily: "'Libre Baskerville', serif"
               }}
             />
             <Bar dataKey="Current" fill="#00c4b4" />

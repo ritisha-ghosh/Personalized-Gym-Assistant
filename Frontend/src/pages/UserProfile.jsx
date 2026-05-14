@@ -280,10 +280,10 @@ const UserProfile = () => {
     <Layout>
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
           @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
           
-          .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
+          .font-jakarta { font-family: 'Libre Baskerville', serif; }
           .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 20px; }
           .icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
           @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
@@ -291,7 +291,7 @@ const UserProfile = () => {
         `}
       </style>
 
-      <div className={`font-jakarta max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-10 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+      <div className={`max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pb-10 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
 
         {/* --- HEADER SECTION --- */}
         <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">

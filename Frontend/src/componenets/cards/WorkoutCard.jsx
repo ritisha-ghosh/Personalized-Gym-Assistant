@@ -25,6 +25,7 @@ const WorkoutCard = () => {
           ? 'bg-transparent border-[#334155]/60' 
           : 'bg-transparent border-slate-100/70'}
       `}
+      style={{ fontFamily: "'Libre Baskerville', serif" }}
     >
       {/* Left Content */}
       <div className="flex-1">

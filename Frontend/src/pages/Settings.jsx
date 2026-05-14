@@ -243,8 +243,6 @@ const Settings = () => { // Renamed from Settings to Settings
     <Layout>
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          body { font-family: 'Plus Jakarta Sans', sans-serif; }
           
           .toggle-checkbox:checked {
             right: 0;
@@ -257,7 +255,7 @@ const Settings = () => { // Renamed from Settings to Settings
         `}
       </style>
 
-      <div className="font-sans text-slate-900 max-w-5xl mx-auto">
+      <div className="text-slate-900 max-w-5xl mx-auto" style={{ fontFamily: "'Libre Baskerville', serif" }}>
         
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
@@ -649,7 +647,7 @@ const Settings = () => { // Renamed from Settings to Settings
         </div>
 
         {isDeleteModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in" style={{ fontFamily: "'Libre Baskerville', serif" }}>
             <div className="bg-white p-8 rounded-2xl shadow-lg max-w-sm w-full">
               <h2 className="text-lg font-bold text-red-600">Confirm Account Deletion</h2>
               <p className="text-sm text-slate-500 mt-2 mb-4">

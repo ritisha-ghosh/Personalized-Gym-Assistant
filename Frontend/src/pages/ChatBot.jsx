@@ -143,12 +143,12 @@ const ChatBot = () => {
     <Layout>
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          body { font-family: 'Plus Jakarta Sans', sans-serif; }
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+          body { font-family: 'Libre Baskerville', serif; }
         `}
       </style>
 
-      <div className={`flex flex-col h-[calc(100vh-140px)] font-sans ${isDarkMode ? 'dark-mode' : ''}`}>
+      <div className={`flex flex-col h-[calc(100vh-140px)] ${isDarkMode ? 'dark-mode' : ''}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
 
         {/* --- Chat Header --- */}
         <div className="mb-6">

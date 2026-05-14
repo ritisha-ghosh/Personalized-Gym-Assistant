@@ -84,6 +84,7 @@ const WorkoutHeatmap = () => {
           ? "bg-[#1e293b]/60 border-[#334155]/60"
           : "bg-white/60 border-slate-100/60"
       }`}
+      style={{ fontFamily: "'Libre Baskerville', serif" }}
     >
 
       <h2

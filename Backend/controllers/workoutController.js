@@ -404,8 +404,8 @@ exports.getWeeklyPlan = async (req, res) => {
           focusMuscles: ["general"],
           type: "recovery",
           exercises: [
-            { name: "Light Cardio", duration: "30 mins", type: "cardio" },
-            { name: "Stretching & Mobility", duration: "15 mins", type: "mobility" },
+            { name: "Light Cardio", duration: "30 mins", type: "cardio", sets: 1, reps: "1 session" },
+            { name: "Stretching & Mobility", duration: "15 mins", type: "mobility", sets: 1, reps: "1 session" },
           ]
         },
         {
@@ -474,8 +474,8 @@ exports.getWeeklyPlan = async (req, res) => {
           focusMuscles: ["general"],
           type: "recovery",
           exercises: [
-            { name: "Steady State Cardio", duration: "45 mins", type: "cardio" },
-            { name: "Yoga & Stretching", duration: "20 mins", type: "mobility" },
+            { name: "Steady State Cardio", duration: "45 mins", type: "cardio", sets: 1, reps: "1 session" },
+            { name: "Yoga & Stretching", duration: "20 mins", type: "mobility", sets: 1, reps: "1 session" },
           ]
         },
         {
@@ -505,7 +505,7 @@ exports.getWeeklyPlan = async (req, res) => {
           title: "Full Body Pump",
           focusMuscles: ["full body"],
           exercises: [
-            { name: "Circuit Training (3 rounds)", duration: "45 mins", type: "circuit" },
+            { name: "Circuit Training (3 rounds)", duration: "45 mins", type: "circuit", sets: 3, reps: "1 circuit" },
           ]
         },
         {
@@ -555,8 +555,8 @@ exports.getWeeklyPlan = async (req, res) => {
           focusMuscles: ["general"],
           type: "recovery",
           exercises: [
-            { name: "Low Intensity Cardio", duration: "60 mins", type: "cardio" },
-            { name: "Mobility & Flexibility", duration: "30 mins", type: "mobility" },
+            { name: "Low Intensity Cardio", duration: "60 mins", type: "cardio", sets: 1, reps: "1 session" },
+            { name: "Mobility & Flexibility", duration: "30 mins", type: "mobility", sets: 1, reps: "1 session" },
           ]
         },
         {
@@ -628,8 +628,8 @@ exports.getWeeklyPlan = async (req, res) => {
           type: "recovery",
           focusMuscles: ["general"],
           exercises: [
-            { name: "Light Cardio (e.g., walking, cycling)", duration: "30-40 mins", type: "cardio" },
-            { name: "Full Body Stretching & Mobility", duration: "15-20 mins", type: "mobility" },
+            { name: "Light Cardio (e.g., walking, cycling)", duration: "30-40 mins", type: "cardio", sets: 1, reps: "1 session" },
+            { name: "Full Body Stretching & Mobility", duration: "15-20 mins", type: "mobility", sets: 1, reps: "1 session" },
           ],
           notes: `AI detected recent fatigue or injury affecting your ${[...dayTemplate.focusMuscles].join(', ')}. Prioritizing recovery today.`
         };

@@ -108,7 +108,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className={`flex min-h-screen font-sans ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-white'}`}>
+    <div className={`flex min-h-screen ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-white'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <style>
         {`
           /* Global Scrollbar Styles */

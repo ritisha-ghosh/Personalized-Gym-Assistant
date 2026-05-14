@@ -173,12 +173,12 @@ const Neutrations = () => {
     <Layout>
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          body { font-family: 'Plus Jakarta Sans', sans-serif; }
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+          body { font-family: 'Libre Baskerville', serif; }
         `}
       </style>
 
-      <div className="space-y-6 sm:space-y-8">
+      <div className="space-y-6 sm:space-y-8" style={{ fontFamily: "'Libre Baskerville', serif" }}>
 
         {/* --- Page Specific Header --- */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

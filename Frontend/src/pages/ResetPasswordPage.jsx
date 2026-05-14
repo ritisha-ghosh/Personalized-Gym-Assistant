@@ -63,7 +63,7 @@ const ResetPasswordPage = () => {
 
   return (
     // Updated container background for dark mode
-    <div className={`flex min-h-screen items-center justify-center font-sans ${isDarkMode ? 'bg-[#0f172a]' : 'bg-gray-100'}`}>
+    <div className={`flex min-h-screen items-center justify-center font-sans ${isDarkMode ? 'bg-[#0f172a]' : 'bg-gray-100'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <style>
         {`
           /* Global Scrollbar Styles */
@@ -118,6 +118,7 @@ const ResetPasswordPage = () => {
                   : 'bg-slate-50/50 border-slate-200 text-slate-900'
               }`}
               placeholder="· · · · · ·"
+              style={{ fontFamily: "'Libre Baskerville', serif" }}
             />
           </div>
 
@@ -136,6 +137,7 @@ const ResetPasswordPage = () => {
                   : 'bg-slate-50/50 border-slate-200 text-slate-900'
               }`}
               placeholder="New Password"
+              style={{ fontFamily: "'Libre Baskerville', serif" }}
             />
           </div>
 
@@ -154,6 +156,7 @@ const ResetPasswordPage = () => {
                   : 'bg-slate-50/50 border-slate-200 text-slate-900'
               }`}
               placeholder="Confirm New Password"
+              style={{ fontFamily: "'Libre Baskerville', serif" }}
             />
           </div>
 
@@ -166,13 +169,14 @@ const ResetPasswordPage = () => {
                   ? 'bg-slate-300 cursor-not-allowed text-slate-500' 
                   : 'bg-[#db2777] hover:bg-[#be185d] text-white'
               }`}
+              style={{ fontFamily: "'Libre Baskerville', serif" }}
             >
               {loading ? 'Resetting Password...' : 'Reset Password'}
             </button>
           </div>
         </form>
         <p className={`text-center text-sm ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-500'}`}>
-          <Link to="/login" className={`font-medium hover:underline ${isDarkMode ? 'text-white' : 'text-slate-600'}`}>
+          <Link to="/login" className={`font-medium hover:underline ${isDarkMode ? 'text-white' : 'text-slate-600'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
             &larr; Back to Login
           </Link>
         </p>

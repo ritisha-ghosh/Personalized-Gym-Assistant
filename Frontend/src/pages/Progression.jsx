@@ -162,28 +162,39 @@ const Progression = () => {
     try {
       const doc = new jsPDF();
       
-      // 1. Header Section
-      doc.setFontSize(22);
-      doc.setTextColor(0, 196, 180); // Teal 500
-      doc.text("BeFit Progress Report", 14, 22);
+      // Set to standard Serif font to match Libre Baskerville natively
+      doc.setFont("times", "normal");
       
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
+      // 1. Beautiful Header Banner - Made deeper green/teal
+      doc.setFillColor(15, 118, 110); // Deeper Teal (Teal 700)
+      doc.rect(0, 0, 210, 45, 'F');
       
-      // Format current date for the generation timestamp (DD-Month-YYYY)
+      doc.setFontSize(28);
+      doc.setTextColor(255, 255, 255); // White
+      doc.setFont("times", "bold");
+      doc.text("BeFit Progress Report", 14, 25);
+      
+      doc.setFontSize(11);
+      doc.setFont("times", "italic");
+      
+      // Format current date for the generation timestamp
       const today = new Date();
       const dd = String(today.getDate()).padStart(2, '0');
       const monthName = today.toLocaleString('default', { month: 'long' });
       const yyyy = today.getFullYear();
-      doc.text(`Generated on: ${dd}-${monthName}-${yyyy} at ${today.toLocaleTimeString()}`, 14, 30);
+      doc.text(`Generated on : ${dd} ${monthName} ${yyyy} at ${today.toLocaleTimeString()}`, 14, 34);
+      
+      // Reset font styles for body
+      doc.setFont("times", "normal");
+      doc.setTextColor(30, 41, 59); // Slate 800
       
       // 2. User Profile Info
-      doc.setFontSize(14);
-      doc.setTextColor(30, 41, 59); // Slate 800
-      doc.text("Athlete Profile", 14, 45);
+      doc.setFontSize(22); // Increased heading size
+      doc.setFont("times", "bold");
+      doc.text("User Profile", 14, 60);
       
       autoTable(doc, {
-        startY: 50,
+        startY: 68,
         head: [['Metric', 'Value']],
         body: [
           ['Name', userProfile.name || 'N/A'],
@@ -193,18 +204,24 @@ const Progression = () => {
           ['Diet Type', userProfile.dietType || 'N/A'],
         ],
         theme: 'grid',
-        headStyles: { fillColor: [0, 196, 180], textColor: 255 },
-        styles: { fontSize: 11 },
+        styles: { 
+          lineColor: [0, 0, 0], // Enforces black grid lines
+          lineWidth: 0.3 
+        },
+        headStyles: { fillColor: [51, 65, 85], textColor: 255, font: 'times', fontStyle: 'bold', fontSize: 14 },
+        bodyStyles: { font: 'times', fontSize: 14, textColor: [0, 0, 0], cellPadding: 4 }, // Increased text size, purely black text, smaller padding
+        alternateRowStyles: { fillColor: [241, 245, 249] }, // Light slate
         margin: { top: 10 }
       });
 
       // 3. Workout Statistics
       const finalYProfile = doc.lastAutoTable.finalY || 50;
-      doc.setFontSize(14);
-      doc.text("Workout Statistics", 14, finalYProfile + 15);
+      doc.setFontSize(22); // Increased heading size
+      doc.setFont("times", "bold");
+      doc.text("Workout Statistics", 14, finalYProfile + 20);
       
       autoTable(doc, {
-        startY: finalYProfile + 20,
+        startY: finalYProfile + 28,
         head: [['Total Workouts', 'Current Streak', 'Longest Streak', 'Consistency (1 Yr)']],
         body: [[
           workoutCount.toString(),
@@ -213,36 +230,38 @@ const Progression = () => {
           `${((workoutCount / 365) * 100).toFixed(1)}%`
         ]],
         theme: 'grid',
-        headStyles: { fillColor: [219, 39, 119], textColor: 255 }, // Pink 600
-        styles: { halign: 'center', fontSize: 11 },
+        styles: { 
+          lineColor: [0, 0, 0], // Enforces black grid lines
+          lineWidth: 0.3 
+        },
+        // Also updated this header to match the deeper teal
+        headStyles: { fillColor: [15, 118, 110], textColor: 255, font: 'times', fontStyle: 'bold', fontSize: 13 },
+        bodyStyles: { halign: 'center', font: 'times', fontSize: 15, fontStyle: 'bold', textColor: [0, 0, 0], cellPadding: 5 }, // Increased text size, black text, reduced padding
       });
 
       // 4. Workout History Log (Table)
       const finalYStats = doc.lastAutoTable.finalY || finalYProfile + 20;
-      doc.setFontSize(14);
-      doc.text("Recent Workout Logs (Last 30 Days)", 14, finalYStats + 15);
+      doc.setFontSize(22); // Increased heading size
+      doc.setFont("times", "bold");
+      doc.text("1 Month Full Report", 14, finalYStats + 20); // NEW Heading Name
       
       const filteredLogs = workoutLogs.filter(log => !['note', 'diet_day_completed'].includes(log.status));
-      
-      // Helper to find the last recorded weight on or before a given date
-      const getHistoricalWeight = (targetDate, isToday) => {
-        // For today, always prioritize the live profile weight, regardless of workout status
-        if (isToday && userProfile?.weight) {
-          return `${userProfile.weight} kg`;
-        }
 
+      
+      
+      // WEIGHT LOGIC COMMENTED OUT AS REQUESTED
+      /*
+      const getHistoricalWeight = (targetDate, isToday) => {
+        if (isToday && userProfile?.weight) return `${userProfile.weight} kg`;
         const endOfDay = new Date(targetDate);
         endOfDay.setHours(23, 59, 59, 999);
-        
         const pastLogs = workoutLogs
           .filter(l => l.weight && new Date(l.date || l.createdAt) <= endOfDay)
           .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
-          
         if (pastLogs.length > 0) return `${pastLogs[0].weight} kg`;
-        
-        // Return '-' instead of a default profile weight for days before any logs exist
         return '-';
       };
+      */
       
       const logDataForTable = [];
       const todayDate = new Date();
@@ -255,7 +274,7 @@ const Progression = () => {
         const day = String(targetDate.getDate()).padStart(2, '0');
         const monthStr = targetDate.toLocaleString('default', { month: 'long' });
         const year = targetDate.getFullYear();
-        const formattedDate = `${day}-${monthStr}-${year}`;
+        const formattedDate = `${day} ${monthStr} ${year}`;
         
         const targetYMD = `${year}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${day}`;
         
@@ -266,8 +285,8 @@ const Progression = () => {
           return lYMD === targetYMD;
         });
         
-        // Get actual historical weight for this specific date
-        const historicalWeight = getHistoricalWeight(targetDate, i === 0);
+        // WEIGHT LOGIC COMMENTED OUT
+        // const historicalWeight = getHistoricalWeight(targetDate, i === 0);
 
         if (dayLogs.length > 0) {
           // Use the most recent log if there are multiple on the same day
@@ -276,25 +295,35 @@ const Progression = () => {
             ? 'Completed' 
             : latestLog.status ? latestLog.status.charAt(0).toUpperCase() + latestLog.status.slice(1) : 'Completed';
             
-          const weightDisplay = latestLog.weight ? `${latestLog.weight} kg` : historicalWeight;
+          // const weightDisplay = latestLog.weight ? `${latestLog.weight} kg` : historicalWeight; // COMMENTED OUT
           
-          logDataForTable.push([formattedDate, displayStatus, weightDisplay]);
+          // Pushed without weight column
+          logDataForTable.push([formattedDate, displayStatus]);
         } else {
-          // Skipped day
-          logDataForTable.push([formattedDate, 'Not Completed', historicalWeight]);
+          // Skipped day (Pushed without weight column)
+          logDataForTable.push([formattedDate, 'Skipped']);
         }
       }
 
       autoTable(doc, {
-        startY: finalYStats + 20,
-        head: [['Date', 'Workout Status', 'Body Weight logged']],
+        startY: finalYStats + 28,
+        // Removed 'Body Weight logged' from headers
+        head: [['Date', 'Workout Status']],
         body: logDataForTable,
-        theme: 'striped',
-        headStyles: { fillColor: [51, 65, 85], textColor: 255 }, // Slate 700
-        styles: { fontSize: 10 },
+        theme: 'grid', // Uses grid to easily support black outlines
+        styles: { 
+          font: 'times', 
+          fontSize: 11,
+          lineColor: [0, 0, 0], // Enforces black grid lines
+          lineWidth: 0.3      // Outline thickness
+        }, 
+        headStyles: { fillColor: [51, 65, 85], textColor: 255, font: 'times', fontStyle: 'bold', fontSize: 14 },
+        bodyStyles: { font: 'times', fontSize: 14, textColor: [0, 0, 0] }, // Increased text size, black text
+        alternateRowStyles: { fillColor: [248, 250, 252] },
       });
 
-      // 5. Download the PDF
+
+      // 6. Download the PDF
       const safeName = (userProfile?.name || 'User').replace(/\s+/g, '_');
       doc.save(`BeFit_Report_${safeName}.pdf`);
 
@@ -302,7 +331,7 @@ const Progression = () => {
       console.error("PDF Generation Error: ", err);
       console.error(err.stack); // This prints the detailed error in console
       alert("Error generating PDF. Check console for details.");
-    }BeFit
+    }
   };
 
   // --- FILTER LOGIC ---
@@ -325,12 +354,12 @@ const Progression = () => {
     <Layout>
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          body { font-family: 'Plus Jakarta Sans', sans-serif; }
+          @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+          body { font-family: 'Libre Baskerville', serif; }
         `}
       </style>
 
-      <div className={`space-y-6 sm:space-y-8 font-sans ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+      <div className={`space-y-6 sm:space-y-8 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
         
         {/* --- Page Header --- */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
