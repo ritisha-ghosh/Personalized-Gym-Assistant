@@ -301,9 +301,9 @@ const Neutrations = () => {
                 Staying hydrated improves digestion and keeps your metabolism active!
               </p>
             </div>
-        <div className={`backdrop-blur-md p-7 rounded-xl border text-center min-w-[240px] max-w-[280px] ${isDarkMode ? 'bg-transparent border-transparent' : 'bg-black/20 border-white/30'}`}>
+        <div className={`backdrop-blur-md p-7 rounded-xl border text-center min-w-[260px] max-w-[300px] ${isDarkMode ? 'bg-transparent border-transparent' : 'bg-black/20 border-white/30'}`}>
               <div className="text-xl font-bold mb-1 leading-tight text-white">🍕 Cheat  Food 🍔</div>
-              <p className={`text-sm mt-2 ${isDarkMode ? 'text-slate-300' : 'text-blue-100'}`}>is OK sometimes to change taste!</p>
+              <p className={`text-sm mt-2 ${isDarkMode ? 'text-slate-300' : 'text-blue-100'}`}>is OK sometimes to change taste !</p>
             </div>
           </div>
         </div>

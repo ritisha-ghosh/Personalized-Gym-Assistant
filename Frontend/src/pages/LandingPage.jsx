@@ -199,9 +199,9 @@ const LandingPage = () => {
         <section className={`py-32 ${isDarkMode ? 'bg-[#1e293b]' : 'bg-white'}`} id="pricing">
           <div className="max-w-5xl mx-auto px-6 text-center">
             <div className={`p-12 lg:p-20 rounded-[3rem] border soft-shadow ${isDarkMode ? 'bg-gradient-to-br from-[#1e293b] to-[#334155] border-[#334155]' : 'bg-gradient-to-br from-[#f9fafb] to-white border-gray-100'}`}>
-              <h2 className={`text-4xl lg:text-6xl font-black mb-8 ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>Ready to break your records?</h2>
+              <h2 className={`text-4xl lg:text-6xl font-black mb-8 ${isDarkMode ? 'text-white' : 'text-[#142E5C]'}`}>Ready to break your records ?</h2>
               <p className={`text-lg mb-12 max-w-2xl mx-auto ${isDarkMode ? 'text-[#cbd5e1]' : 'text-gray-600'}`}>
-                Join 50,000+ athletes who are already training smarter, not harder. Start your 14-day premium trial today.
+                Join 50,000+ users who are already training smarter, not harder. Start your 14-day premium trial today.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/register" className="bg-[#00c4b4] !text-white px-12 py-5 rounded-xl text-lg font-bold shadow-2xl shadow-teal-500/40 hover:-translate-y-1 transition-all">

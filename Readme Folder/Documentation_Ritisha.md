@@ -87,7 +87,7 @@ To empower fitness enthusiasts with:
 | User Type                     | Profile                       | Needs                                               |
 | ----------------------------- | ----------------------------- | --------------------------------------------------- |
 | **Beginners**           | Just starting fitness journey | Guidance, easy-to-follow plans, motivation          |
-| **Athletes**            | Serious about performance     | Detailed tracking, personalized coaching, analytics |
+| **Users**            | Serious about performance     | Detailed tracking, personalized coaching, analytics |
 | **Fitness Enthusiasts** | Regular gym-goers             | Community, progressive plans, nutrition guidance    |
 | **Busy Professionals**  | Limited time for fitness      | Quick workouts, efficient tracking                  |
 
@@ -3591,7 +3591,7 @@ PersonalizedGymAssistant is a **full-stack AI-powered fitness application** that
 
 - Fitness enthusiasts wanting personalized guidance
 - People starting their fitness journey
-- Athletes tracking performance metrics
+- Users tracking performance metrics
 - Anyone needing nutrition and workout planning
 
 ---

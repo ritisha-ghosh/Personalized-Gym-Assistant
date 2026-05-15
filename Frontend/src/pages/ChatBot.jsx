@@ -305,8 +305,8 @@ const ChatBot = () => {
             </button>
           </div>
 
-          <p className="text-center text-[10px] text-slate-300 mt-3 font-medium">
-            BeFit Coach can make mistakes. Verify important health information with a professional.
+          <p className={`text-center text-[10px] mt-3 font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>
+            ⚠️Note : BeFit AI Coach can make mistakes. Verify important health information with a professional.
           </p>
         </div>
 

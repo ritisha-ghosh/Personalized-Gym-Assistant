@@ -7,11 +7,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { DarkModeContext } from "../../context/DarkModeContext"; // 1. Imported Context
+import { DarkModeContext } from "../../context/DarkModeContext";
 
 const WeightTrendChart = () => {
   const [data, setData] = useState([]);
-  const { isDarkMode } = useContext(DarkModeContext); // 2. Extracted dark mode state
+  const { isDarkMode } = useContext(DarkModeContext);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -31,14 +31,16 @@ const WeightTrendChart = () => {
 
         const currentProfileWeight = profileResponse?.user?.weight || null;
 
-        const sortedLogs = logs.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+        // Sort logs chronologically to track weight changes accurately
+        const sortedLogs = logs.slice().sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt));
         
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
+        // Find the earliest date to start the chart
         let firstLogDate = new Date(today);
         if (sortedLogs.length > 0) {
-          firstLogDate = new Date(sortedLogs[0].date);
+          firstLogDate = new Date(sortedLogs[0].date || sortedLogs[0].createdAt);
           firstLogDate.setHours(0, 0, 0, 0);
         }
         
@@ -47,24 +49,43 @@ const WeightTrendChart = () => {
         start.setDate(today.getDate() - 6);
         const startDate = firstLogDate < start ? firstLogDate : start;
 
+        // Map every explicit weight log to its date
         const dateMap = {};
         sortedLogs.forEach(log => {
-          if (log.weight) {
-            const d = new Date(log.date);
-            dateMap[d.toDateString()] = log.weight;
+          if (log.weight && !isNaN(log.weight)) {
+            const d = new Date(log.date || log.createdAt);
+            d.setHours(0, 0, 0, 0);
+            dateMap[d.toDateString()] = Number(log.weight);
           }
         });
 
-        // Ensure today always has the most up-to-date weight from the profile
-        if (currentProfileWeight) {
-          dateMap[today.toDateString()] = currentProfileWeight;
+        // Find the absolute first known weight to start our running total
+        // Fallback to profile weight if no logs have weights yet
+        let runningWeight = currentProfileWeight ? Number(currentProfileWeight) : 0; 
+        for (let i = 0; i < sortedLogs.length; i++) {
+            if (sortedLogs[i].weight && !isNaN(sortedLogs[i].weight)) {
+                runningWeight = Number(sortedLogs[i].weight);
+                break; 
+            }
         }
 
         const formattedData = [];
         let current = new Date(startDate);
         
+        // Step through every single day, assigning a weight so NO days are null
         while (current <= today) {
           const dateString = current.toDateString();
+          
+          // If a new weight was logged on this specific day, update the running total
+          if (dateMap[dateString]) {
+             runningWeight = dateMap[dateString];
+          }
+
+          // If it's today, the profile weight is the absolute source of truth
+          if (dateString === today.toDateString() && currentProfileWeight) {
+             runningWeight = Number(currentProfileWeight);
+          }
+
           formattedData.push({
             day: current.toLocaleDateString("en-US", {
               weekday: "short",
@@ -77,8 +98,10 @@ const WeightTrendChart = () => {
               day: "numeric",
               year: "numeric"
             }),
-            actual: dateMap[dateString] || null, // Let connectNulls interpolate missing days
+            // Because we pass the carried-over runningWeight, EVERY day gets a dot! No more blank points.
+            actual: runningWeight, 
           });
+          
           current.setDate(current.getDate() + 1);
         }
 
@@ -93,15 +116,19 @@ const WeightTrendChart = () => {
     <div className="h-48 w-full" style={{ fontFamily: "'Libre Baskerville', serif" }}>
       {data && data.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            {/* 3. Make the X-Axis text visible in dark mode */}
+          <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <XAxis 
               dataKey="day" 
-              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontFamily: "'Libre Baskerville', serif" }}
+              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontFamily: "'Libre Baskerville', serif", fontSize: 12 }}
+              tickMargin={10}
             />
-            <YAxis hide />
+            {/* Added padding to bottom and top to ensure the line floats above the baseline */}
+            <YAxis 
+              hide 
+              domain={['dataMin - 5', 'dataMax + 5']} 
+              padding={{ bottom: 20, top: 20 }} 
+            />
             
-            {/* 4. Applied Dark Mode CSS to Tooltip */}
             <Tooltip 
               labelFormatter={(value, payload) => payload?.[0]?.payload?.fullDate || value}
               contentStyle={{ 
@@ -112,15 +139,18 @@ const WeightTrendChart = () => {
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                 fontFamily: "'Libre Baskerville', serif"
               }}
-              itemStyle={{ color: isDarkMode ? '#FF00FF' : '#0ea5e9' }}
+              itemStyle={{ color: isDarkMode ? '#FF00FF' : '#0ea5e9', fontWeight: 'bold' }}
             />
             
             <Line
-              type="monotone"
+              type="linear"
               dataKey="actual"
+              name="Weight"
               stroke="#FF00FF"
               strokeWidth={3}
-              connectNulls={true}
+              // Dots will now explicitly render for every day since data is never null
+              dot={{ r: 4, fill: isDarkMode ? '#1e293b' : '#ffffff', strokeWidth: 2 }} 
+              activeDot={{ r: 6, fill: "#FF00FF", stroke: "#ffffff", strokeWidth: 2 }}
             />
           </LineChart>
         </ResponsiveContainer>

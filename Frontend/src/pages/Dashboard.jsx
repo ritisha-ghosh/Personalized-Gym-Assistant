@@ -135,7 +135,7 @@ const Dashboard = () => {
             {getGreeting()}, {user?.name || "User"}.
           </h1>
           <p className={`mt-1 text-sm sm:text-base font-medium ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>
-            AI Trainer: "Keep up the great work! {recentWorkouts.length} workouts this week."
+            AI Trainer : "Keep up the great work! {recentWorkouts.length} workouts this week."
           </p>
           
           {/* Search Result Indicator */}
@@ -226,7 +226,7 @@ const Dashboard = () => {
         style={{ fontFamily: "'Libre Baskerville', serif" }}
       >
         <div className="absolute -top-12 right-0 bg-slate-900 text-white text-[10px] py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          Talk to BeFit
+          Talk to BeFit AI
         </div>
         <Mic size={28} />
       </button>
