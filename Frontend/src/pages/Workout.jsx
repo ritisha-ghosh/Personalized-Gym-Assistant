@@ -23,10 +23,12 @@ const Workout = () => {
   const [currentUserExperience, setCurrentUserExperience] = useState(null);
   const [userGoal, setUserGoal] = useState(null);
   const [userInjury, setUserInjury] = useState(null);
+  const [userWeight, setUserWeight] = useState(null);
   
   const [notes, setNotes] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [noteText, setNoteText] = useState("");
+  const [feedbackModal, setFeedbackModal] = useState({ show: false, type: '', message: '' });
 
   const formatLocalDate = (dateStr) => {
     if (!dateStr) return '';
@@ -52,6 +54,7 @@ const Workout = () => {
         setCurrentUserExperience(response.data.user?.experienceLevel);
         setUserGoal(response.data.user?.goal);
         setUserInjury(response.data.user?.injury);
+        setUserWeight(response.data.user?.weight);
         
         // If today is completed, mark all exercises as completed
         if (response.data.weekPlan[0]?.completed) {
@@ -105,6 +108,7 @@ const Workout = () => {
       setCurrentUserExperience(response.data.user?.experienceLevel);
       setUserGoal(response.data.user?.goal);
       setUserInjury(response.data.user?.injury);
+      setUserWeight(response.data.user?.weight);
       
       if (response.data.weekPlan[0]?.completed) {
         setIsWorkoutDoneToday(true);
@@ -120,10 +124,10 @@ const Workout = () => {
           }
       }
       
-      alert(`✅ Workouts refreshed! Experience Level: ${response.data.user?.experienceLevel}`);
+      setFeedbackModal({ show: true, type: 'success', message: `Workouts refreshed! Experience Level: ${response.data.user?.experienceLevel}` });
     } catch (error) {
       console.error("❌ Refresh failed:", error);
-      alert("Failed to refresh workouts");
+      setFeedbackModal({ show: true, type: 'error', message: "Failed to refresh workouts" });
     } finally {
       setRefreshing(false);
     }
@@ -171,7 +175,7 @@ const Workout = () => {
       const logData = {
         status: "active",
         difficultyRating: 7,
-        weight: user?.weight || 70,
+        weight: userWeight || 70,
         date: new Date(),
         exercisesLogged: completedExerciseIds
       };
@@ -180,11 +184,11 @@ const Workout = () => {
       
       // Mark as completed
       setIsWorkoutDoneToday(true);
-      alert("✅ Workout Logged Successfully!");
+      setFeedbackModal({ show: true, type: 'success', message: 'Workout Logged Successfully! Great Job.' });
       
     } catch (error) {
       console.error("Workout log error:", error);
-      alert(error?.response?.data?.message || "Failed to log workout");
+      setFeedbackModal({ show: true, type: 'error', message: error?.response?.data?.message || "Failed to log workout" });
     }
   };
 
@@ -595,6 +599,40 @@ const Workout = () => {
               className="w-full mt-6 py-3 bg-[#00c4b4] text-white font-bold rounded-xl hover:bg-[#00a89f] transition-all"
             >
               Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Modal (Success/Error) */}
+      {feedbackModal.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <div className={`rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center transform transition-all ${isDarkMode ? 'bg-[#0f172a] border border-[#334155]' : 'bg-white border border-slate-100'}`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+              feedbackModal.type === 'success' 
+                ? 'bg-green-100 text-green-500' 
+                : 'bg-red-100 text-red-500'
+            }`}>
+              {feedbackModal.type === 'success' ? <CheckCircle2 size={32} /> : <X size={32} />}
+            </div>
+            
+            <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              {feedbackModal.type === 'success' ? 'Awesome Work!' : 'Oops!'}
+            </h3>
+            
+            <p className={`text-sm mb-6 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+              {feedbackModal.message}
+            </p>
+            
+            <button
+              onClick={() => setFeedbackModal({ show: false, type: '', message: '' })}
+              className={`w-full py-3 font-bold rounded-xl transition-all shadow-md active:scale-95 ${
+                feedbackModal.type === 'success'
+                  ? 'bg-[#00c4b4] hover:bg-[#00a89f] text-white shadow-[#00c4b4]/20'
+                  : 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20'
+              }`}
+            >
+              Continue
             </button>
           </div>
         </div>

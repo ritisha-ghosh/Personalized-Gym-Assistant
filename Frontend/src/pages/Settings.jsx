@@ -255,11 +255,11 @@ const Settings = () => { // Renamed from Settings to Settings
         `}
       </style>
 
-      <div className="text-slate-900 max-w-5xl mx-auto" style={{ fontFamily: "'Libre Baskerville', serif" }}>
+      <div className={`max-w-5xl mx-auto ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
         
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-          <p className="text-slate-500 text-sm mt-1">Manage your account preferences and app settings.</p>
+          <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Settings</h1>
+          <p className={`text-sm mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Manage your account preferences and app settings.</p>
           
           {searchQuery && (
              <p className="text-sm font-bold text-[#00c4b4] mt-2 animate-pulse transition-all">
@@ -271,7 +271,7 @@ const Settings = () => { // Renamed from Settings to Settings
         <div className="flex flex-col lg:flex-row gap-8">
           
           <div className="w-full lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden sticky top-24">
+            <div className={`rounded-2xl shadow-sm border overflow-hidden sticky top-24 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
               <nav className="flex flex-col p-2">
                 {tabs.map((tab) => (
                   <button
@@ -280,7 +280,7 @@ const Settings = () => { // Renamed from Settings to Settings
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                       activeTab === tab.id 
                         ? 'bg-[#00c4b4]/10 text-[#00c4b4]' 
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 active:scale-95'
+                        : (isDarkMode ? 'text-slate-400 hover:bg-[#334155] hover:text-slate-200 active:scale-95' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 active:scale-95')
                     }`}
                   >
                     <tab.icon size={18} />
@@ -288,8 +288,12 @@ const Settings = () => { // Renamed from Settings to Settings
                   </button>
                 ))}
               </nav>
-              <div className="border-t border-slate-100 p-2 mt-2">
-                <Link to="/" className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all active:scale-95">
+              <div className={`border-t p-2 mt-2 ${isDarkMode ? 'border-[#334155]' : 'border-slate-100'}`}>
+                <Link to="/" className={`flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all active:scale-95 ${
+                  isDarkMode 
+                    ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300' 
+                    : 'text-red-500 hover:bg-red-50'
+                }`}>
                   <LogOut size={18} />
                   Sign Out
                 </Link>

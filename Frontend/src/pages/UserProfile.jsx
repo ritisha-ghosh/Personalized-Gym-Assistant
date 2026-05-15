@@ -352,12 +352,12 @@ const UserProfile = () => {
               </p>
               {formData.dietType && (
                 <p className={`font-medium text-xs mt-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
-                  <span className="text-teal-500 font-bold">Diet:</span> {formData.dietType.charAt(0).toUpperCase() + formData.dietType.slice(1)}
+                  <span className="text-teal-500 font-bold">Diet :</span> {formData.dietType.charAt(0).toUpperCase() + formData.dietType.slice(1)}
                 </p>
               )}
               {formData.goal && (
                 <p className={`font-medium text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
-                  <span className="text-teal-500 font-bold">Goal:</span> {formData.goal.charAt(0).toUpperCase() + formData.goal.slice(1)}
+                  <span className="text-teal-500 font-bold">Goal :</span> {formData.goal.charAt(0).toUpperCase() + formData.goal.slice(1)}
                 </p>
               )}
             </div>
