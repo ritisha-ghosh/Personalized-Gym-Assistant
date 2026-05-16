@@ -9,6 +9,7 @@ const LandingPage = () => {
 
   // State to handle the hover for "Our Story" manually since we are using inline styles
   const [isStoryHovered, setIsStoryHovered] = useState(false);
+  const [isContactHovered, setIsContactHovered] = useState(false);
 
   // Define the exact grey color for Kolkata text to reuse
   const locationGrey = isDarkMode ? '#94a3b8' : '#6b7280';
@@ -270,6 +271,24 @@ const LandingPage = () => {
                       >
                         Our Story
                       </Link>
+                    </div>
+                  </li>
+                  <li>
+                    <div className="inline-block">
+                      <a 
+                        href="mailto:gym2689@gmail.com" 
+                        onMouseEnter={() => setIsContactHovered(true)}
+                        onMouseLeave={() => setIsContactHovered(false)}
+                        className="transition-all duration-200 transform hover:scale-105 active:scale-95 py-0.5"
+                        style={{ 
+                          color: isContactHovered ? hoverTeal : locationGrey, 
+                          textDecoration: 'none',
+                          borderBottom: `1px solid ${isContactHovered ? hoverTeal : (isDarkMode ? 'rgba(148, 163, 184, 0.3)' : 'rgba(107, 114, 128, 0.3)')}`,
+                          display: 'inline-block'
+                        }}
+                      >
+                        Contact Us
+                      </a>
                     </div>
                   </li>
                 </ul>

@@ -278,13 +278,25 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Email and password required" });
     }
 
-    // FIX applied: added .select('+password') to retrieve hashed password
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
+    // Case-insensitive email search to support old users
+    const user = await User.findOne({ email: new RegExp('^' + email + '$', 'i') }).select('+password');
+    
+    if (!user || !user.password) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    let isMatch = await bcrypt.compare(password, user.password);
+    
+    // Fallback for old test accounts saved with plain-text passwords
+    if (!isMatch && password === user.password) {
+      isMatch = true;
+      
+      // Automatically upgrade their password to a secure hash for future logins
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+      await user.save();
+    }
+
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -375,7 +387,11 @@ exports.getCurrentUser = async (req, res) => {
         experience: user.experience,
         dietType: user.dietType,
         noOnion: user.noOnion,
-        noGarlic: user.noGarlic
+        noGarlic: user.noGarlic,
+        glutenFree: user.glutenFree,
+        lactoseFree: user.lactoseFree,
+        nutAllergy: user.nutAllergy,
+        sugarFree: user.sugarFree
       }
     });
 
