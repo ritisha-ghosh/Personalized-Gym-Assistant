@@ -1,8 +1,6 @@
-const axios = require("axios");
 const User = require("../models/User");
 const UserDietTracking = require("../models/UserDietTracking");
-
-const ML_API_URL = process.env.ML_API_URL || "http://127.0.0.1:5001";
+const { getOrCreateDietPlan } = require("../services/userPlanService");
 
 // Helper to format date as YYYY-MM-DD (using LOCAL date, not UTC)
 const getFormattedDate = (dateObj) => {
@@ -18,21 +16,17 @@ const getWeeklyPlan = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Request weekly plan from ML layer
-    const mlResponse = await axios.post(`${ML_API_URL}/diet-recommendation`, {
-      dietType: user.dietType || "vegetarian",
-      noOnion: user.noOnion || false,
-      noGarlic: user.noGarlic || false,
-      glutenFree: user.glutenFree || false
-    });
+    const dietPlan = await getOrCreateDietPlan(user);
+    if (!dietPlan || !Array.isArray(dietPlan.weeklyPlan) || dietPlan.weeklyPlan.length === 0) {
+      return res.status(500).json({ message: "Unable to load diet plan" });
+    }
 
-    const weeklyPlan = mlResponse.data.weekly_plan || [];
-
-    // Map actual real dates to the weekly plan
     const today = new Date();
-    const resultPlan = weeklyPlan.map((dayData, index) => {
+    today.setHours(0, 0, 0, 0);
+
+    const resultPlan = dietPlan.weeklyPlan.map((dayData, index) => {
       const targetDate = new Date(today);
-      targetDate.setDate(today.getDate() + index); // Day 0 is today
+      targetDate.setDate(today.getDate() + index);
       return {
         ...dayData,
         date: getFormattedDate(targetDate),
@@ -40,14 +34,12 @@ const getWeeklyPlan = async (req, res) => {
       };
     });
 
-    // Fetch tracking data for these dates
     const dates = resultPlan.map((p) => p.date);
     const trackingData = await UserDietTracking.find({
       userId: user._id,
       date: { $in: dates }
     });
 
-    // Merge tracking status into the plan
     const finalPlan = resultPlan.map((plan) => {
       const tracking = trackingData.find((t) => t.date === plan.date);
       const meals = plan.meals.map((meal) => ({

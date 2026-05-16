@@ -45,18 +45,46 @@ df_diet = None
 
 def initialize_ml_engine():
     global vectorizer, model, knn_model, df_users, df_diet
+    load_errors = []
     try:
         vectorizer = joblib.load('vectorizer.pkl')
+        print("✅ NLP vectorizer loaded.")
+    except Exception as e:
+        vectorizer = None
+        load_errors.append(f"vectorizer.pkl: {e}")
+
+    try:
         model = joblib.load('model.pkl')
+        print("✅ NLP classifier model loaded.")
+    except Exception as e:
+        model = None
+        load_errors.append(f"model.pkl: {e}")
+
+    try:
         knn_model = joblib.load('knn_model.pkl')
+        print("✅ KNN recommendation model loaded.")
+    except Exception as e:
+        knn_model = None
+        load_errors.append(f"knn_model.pkl: {e}")
+
+    try:
         df_users = joblib.load('df_users.pkl')
-        print("✅ ML Engine loaded all NLP and KNN Pickle files successfully.")
-        
-        # Load the new diet dataset directly into memory
+        print("✅ User recommendation dataset loaded.")
+    except Exception as e:
+        df_users = None
+        load_errors.append(f"df_users.pkl: {e}")
+
+    try:
         df_diet = pd.read_csv('diet_dataset.csv', encoding='latin1')
         print("🥗 Diet Dataset loaded successfully.")
     except Exception as e:
-        print(f"❌ CRITICAL ERROR: Could not load data files. Error: {e}")
+        df_diet = None
+        load_errors.append(f"diet_dataset.csv: {e}")
+
+    if load_errors:
+        print("⚠️ ML Engine loaded with warnings:")
+        for err in load_errors:
+            print(f"  - {err}")
 
 # =================================================
 # 🔹 1. SMART CHATBOT (UPGRADED WITH CONTEXT & DIETS)
@@ -202,7 +230,18 @@ def diet_recommendation():
     diet_type = data.get("dietType", "").lower()
     
     if df_diet is None or df_diet.empty:
-        raise APIError("Diet database is currently unavailable.")
+        return jsonify({
+            "status": "fallback",
+            "message": "Diet database is temporarily unavailable. Returning default meal templates.",
+            "weekly_plan": [
+                {"day": day, "meals": [
+                    {"type": "Breakfast", "food": "Oatmeal with fruits", "cal": "350 kcal"},
+                    {"type": "Lunch", "food": "Grilled vegetables and quinoa", "cal": "500 kcal"},
+                    {"type": "Pre-Workout", "food": "Banana and almonds", "cal": "200 kcal"},
+                    {"type": "Dinner", "food": "Lentil soup and salad", "cal": "450 kcal"}
+                ]} for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+            ]
+        }), 200
 
     filtered = df_diet.copy()
     
@@ -235,6 +274,13 @@ def diet_recommendation():
 @app.route('/recommend-plan', methods=['POST'])
 def recommend_plan():
     data = request.json
+    if knn_model is None or df_users is None:
+        return jsonify({
+            "status": "fallback",
+            "message": "ML recommendation engine is temporarily unavailable. Returning default plan variant.",
+            "recommended_plan_id": "1",
+            "fatigued_muscles_avoided": data.get('exhausted_muscles', [])
+        }), 200
     try:
         target_user = [[float(data['age']), float(data['weight_kg']), float(data['experience_level']), float(data['goal_type'])]]
         exhausted_muscles = data.get('exhausted_muscles', [])
