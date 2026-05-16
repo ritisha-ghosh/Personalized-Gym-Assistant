@@ -1,6 +1,8 @@
+# app.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
+import pandas as pd
 import random
 
 app = Flask(__name__)
@@ -39,20 +41,25 @@ vectorizer = None
 model = None
 knn_model = None
 df_users = None
+df_diet = None
 
 def initialize_ml_engine():
-    global vectorizer, model, knn_model, df_users
+    global vectorizer, model, knn_model, df_users, df_diet
     try:
         vectorizer = joblib.load('vectorizer.pkl')
         model = joblib.load('model.pkl')
         knn_model = joblib.load('knn_model.pkl')
         df_users = joblib.load('df_users.pkl')
         print("✅ ML Engine loaded all NLP and KNN Pickle files successfully.")
+        
+        # Load the new diet dataset directly into memory
+        df_diet = pd.read_csv('diet_dataset.csv', encoding='latin1')
+        print("🥗 Diet Dataset loaded successfully.")
     except Exception as e:
-        print(f"❌ CRITICAL ERROR: Could not load Pickles. Error: {e}")
+        print(f"❌ CRITICAL ERROR: Could not load data files. Error: {e}")
 
 # =================================================
-# 🔹 1. SMART CHATBOT (UPGRADED WITH CONTEXT)
+# 🔹 1. SMART CHATBOT (UPGRADED WITH CONTEXT & DIETS)
 # =================================================
 
 @app.route('/predict', methods=['POST'])
@@ -100,9 +107,37 @@ def predict():
         else:
             personalized_msg = "You're fresh! A full-body session or high-intensity interval training would be perfect for your current energy levels."
 
-    elif intent == "diet_info":
-        if len(context_muscles) > 0:
-            personalized_msg = f"After that workout hitting your {', '.join(set(context_muscles))}, make sure to prioritize protein and complex carbs for muscle repair."
+    # NEW: Smart Diet Generation
+    elif intent in ["diet_info", "diet_plan"]:
+        if df_diet is not None and not df_diet.empty:
+            user_message_lower = user_query.lower()
+            filtered_diet = df_diet.copy()
+            
+            # 1. Filter by Diet Type
+            if 'keto' in user_message_lower:
+                filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Keto', case=False, na=False)]
+            elif 'vegan' in user_message_lower or 'vegetarian' in user_message_lower:
+                filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Vegan|Vegetarian', case=False, na=False)]
+                
+            # 2. Filter by Goal
+            if 'loss' in user_message_lower or 'cut' in user_message_lower:
+                filtered_diet = filtered_diet[filtered_diet['Focus Goal'].str.contains('Loss', case=False, na=False)]
+            elif 'gain' in user_message_lower or 'bulk' in user_message_lower:
+                filtered_diet = filtered_diet[filtered_diet['Focus Goal'].str.contains('Gain|Muscle', case=False, na=False)]
+
+            # 3. Fallback
+            if filtered_diet.empty:
+                filtered_diet = df_diet
+
+            # 4. Generate the Menu
+            rec = filtered_diet.sample(1).iloc[0]
+            personalized_msg = (
+                f"Here is a suggested full-day meal plan optimized for {rec['Focus Goal']}:\n"
+                f"🍳 Breakfast: {rec['Breakfast Suggestion']} ({rec['Breakfast Calories (kcal)']} kcal)\n"
+                f"🥗 Lunch: {rec['Lunch Suggestion']} ({rec['Lunch Calories (kcal)']} kcal)\n"
+                f"⚡ Pre-Workout: {rec['Pre-Workout Food']} ({rec['Pre-Workout Calories (kcal)']} kcal)\n"
+                f"🍛 Dinner: {rec['Dinner Suggestion']} ({rec['Dinner Calories (kcal)']} kcal)"
+            )
         else:
             personalized_msg = "Nutrition is 70% of the game. Are you looking for a meal plan for weight loss or muscle gain?"
 
@@ -158,35 +193,37 @@ def scale_difficulty():
     return jsonify({"status": "success", "action": action, "plan": new_plan, "message": msg})
 
 # =================================================
-# 🔹 3. DIET RECOMMENDATION ENGINE
+# 🔹 3. DIET RECOMMENDATION ENGINE (DATA-DRIVEN)
 # =================================================
-
-RECIPES = [
-    { "name": "Paneer Stir Fry", "vegetarian": True, "ingredients": ["paneer", "capsicum"], "calories": 420, "type": "Dinner" },
-    { "name": "Dal Tadka", "vegetarian": True, "ingredients": ["lentils", "garlic"], "calories": 350, "type": "Lunch" },
-    { "name": "Chicken Salad", "vegetarian": False, "ingredients": ["chicken"], "calories": 450, "type": "Lunch" },
-    { "name": "Oatmeal with Almonds", "vegetarian": True, "ingredients": ["oats", "almonds"], "calories": 350, "type": "Breakfast" },
-    { "name": "Grilled Salmon", "vegetarian": False, "ingredients": ["salmon", "broccoli"], "calories": 500, "type": "Dinner" },
-    { "name": "Banana and Walnuts", "vegetarian": True, "ingredients": ["banana", "walnuts"], "calories": 180, "type": "Pre-Workout" },
-]
 
 @app.route('/diet-recommendation', methods=['POST'])
 def diet_recommendation():
     data = request.json
-    diet_type = data.get("dietType", "vegetarian").lower()
+    diet_type = data.get("dietType", "").lower()
     
-    filtered = [r for r in RECIPES if (diet_type == "non-vegetarian" or r["vegetarian"])]
+    if df_diet is None or df_diet.empty:
+        raise APIError("Diet database is currently unavailable.")
+
+    filtered = df_diet.copy()
     
+    # Filter for vegetarian/vegan if requested
+    if diet_type and "non-veg" not in diet_type:
+        filtered = filtered[filtered['Diet Type'].str.contains(diet_type, case=False, na=False)]
+        
+    if filtered.empty:
+        filtered = df_diet # Fallback if filter is too strict
+
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     weekly_plan = []
     
     for day in days:
-        day_meals = []
-        for m_type in ["Breakfast", "Lunch", "Pre-Workout", "Dinner"]:
-            opts = [r for r in filtered if r["type"] == m_type]
-            if opts:
-                choice = random.choice(opts)
-                day_meals.append({"type": m_type, "food": choice["name"], "cal": f"{choice['calories']} kcal"})
+        choice = filtered.sample(1).iloc[0]
+        day_meals = [
+            {"type": "Breakfast", "food": choice['Breakfast Suggestion'], "cal": f"{choice['Breakfast Calories (kcal)']} kcal"},
+            {"type": "Lunch", "food": choice['Lunch Suggestion'], "cal": f"{choice['Lunch Calories (kcal)']} kcal"},
+            {"type": "Pre-Workout", "food": choice['Pre-Workout Food'], "cal": f"{choice['Pre-Workout Calories (kcal)']} kcal"},
+            {"type": "Dinner", "food": choice['Dinner Suggestion'], "cal": f"{choice['Dinner Calories (kcal)']} kcal"}
+        ]
         weekly_plan.append({"day": day, "meals": day_meals})
 
     return jsonify({"status": "success", "weekly_plan": weekly_plan}), 200
