@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"; // Added for navigation
 import ProgressRing from "../common/ProgressRing";
 import { DarkModeContext } from "../../context/DarkModeContext";
 
-const WorkoutCard = () => {
+const WorkoutCard = ({ workout }) => {
   const { isDarkMode } = useContext(DarkModeContext);
   const navigate = useNavigate(); // Initialize navigation
 
@@ -41,13 +41,12 @@ const WorkoutCard = () => {
 
         {/* Title */}
         <h3 className={`mb-2 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-          Push Day – Chest &amp; Shoulders
+          {workout?.title || "No Workout Available"}
         </h3>
 
         {/* Description */}
         <p className={`mb-6 max-w-xl leading-relaxed ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>
-          Bench Press, OHP, Incline Flyes, Lateral Raises.
-          Focus on controlled tempo and full range of motion.
+         {workout?.goal || "Your next recommended workout will appear here."}
         </p>
 
         {/* Actions */}
@@ -91,14 +90,15 @@ const WorkoutCard = () => {
 
       {/* Right Progress */}
       <div className="flex flex-col items-center">
-        <ProgressRing percent={60} />
-        <span className={`mt-2 text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-          60%
-        </span>
-        <span className={`text-[10px] font-black uppercase tracking-widest ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-400'}`}>
-          Complete
-        </span>
-      </div>
+  <ProgressRing percent={60} />
+  <span
+    className={`mt-2 text-2xl font-bold ${
+      isDarkMode ? "text-white" : "text-slate-900"
+    }`}
+  >
+    60%
+  </span>
+</div>
     </div>
   );
 };
