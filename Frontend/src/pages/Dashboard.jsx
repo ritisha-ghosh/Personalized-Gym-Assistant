@@ -62,15 +62,23 @@ const thisWeekLogs = logs.filter((log) => {
 
 setWeeklyWorkoutCount(thisWeekLogs.length);
 
-const workoutsResponse = await api.get("/workouts");
-const workouts = workoutsResponse.data;
+const weeklyPlanResponse = await api.get("/workouts/weekly-plan");
+const weeklyPlan = weeklyPlanResponse.data.weekPlan;
 
-console.log("Full workouts response:", workouts);
+console.log("Weekly plan:", weeklyPlan);
 
-if (workouts.length > 0) {
-  setRecommendedWorkout(workouts[0]);
-  setRecentWorkouts(workouts.slice(-3));
+// today's workout
+const todayWorkout = weeklyPlan.find(day => day.isToday);
+
+if (todayWorkout) {
+  setRecommendedWorkout({
+    ...todayWorkout,
+    progress: todayWorkout.completed ? 100 : 0
+  });
 }
+
+// last few workouts for AI message if needed
+setRecentWorkouts(weeklyPlan.slice(0, 3));
       } catch (error) {
         console.error("Dashboard error:", error);
         // On failure, set profile to null so the UI can show a loading/error state.

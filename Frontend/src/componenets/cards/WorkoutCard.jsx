@@ -6,6 +6,7 @@ import { DarkModeContext } from "../../context/DarkModeContext";
 const WorkoutCard = ({ workout }) => {
   const { isDarkMode } = useContext(DarkModeContext);
   const navigate = useNavigate(); // Initialize navigation
+  const isCompleted = workout?.completed;
 
   return (
     <div
@@ -52,21 +53,27 @@ const WorkoutCard = ({ workout }) => {
         {/* Actions */}
         <div className="flex flex-wrap gap-4">
           <button
-            onClick={() => navigate('/workouts')} // Connects to workouts page
-            className={`
-              flex items-center gap-2
-              rounded-xl
-              px-8 py-3.5
-              font-bold
-              text-white
-              shadow-lg
-              transition-all
-              hover:-translate-y-0.5 active:translate-y-0
-              ${isDarkMode ? 'bg-teal-500 shadow-teal-500/30' : 'bg-pink-500 shadow-pink-500/30'}
-            `}
-          >
-            Start Session
-          </button>
+  onClick={() => !isCompleted && navigate('/workouts')}
+  disabled={isCompleted}
+  className={`
+    flex items-center gap-2
+    rounded-xl
+    px-8 py-3.5
+    font-bold
+    text-white
+    shadow-lg
+    transition-all
+    ${
+      isCompleted
+        ? "bg-green-500 cursor-default"
+        : isDarkMode
+          ? "bg-teal-500 shadow-teal-500/30 hover:-translate-y-0.5 active:translate-y-0"
+          : "bg-pink-500 shadow-pink-500/30 hover:-translate-y-0.5 active:translate-y-0"
+    }
+  `}
+>
+  {isCompleted ? "Completed ✓" : "Start Session"}
+</button>
 
           {/* VIEW ROUTINE BUTTON COMMENTED OUT
           <button
@@ -90,14 +97,14 @@ const WorkoutCard = ({ workout }) => {
 
       {/* Right Progress */}
       <div className="flex flex-col items-center">
-  <ProgressRing percent={60} />
-  <span
-    className={`mt-2 text-2xl font-bold ${
-      isDarkMode ? "text-white" : "text-slate-900"
-    }`}
-  >
-    60%
-  </span>
+  <ProgressRing percent={workout?.progress || 0} />
+<span
+  className={`mt-2 text-2xl font-bold ${
+    isDarkMode ? "text-white" : "text-slate-900"
+  }`}
+>
+  {workout?.progress || 0}%
+</span>
 </div>
     </div>
   );
