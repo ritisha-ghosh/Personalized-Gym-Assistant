@@ -3,6 +3,7 @@ import pandas as pd # type: ignore
 from sklearn.feature_extraction.text import TfidfVectorizer # type: ignore
 from sklearn.tree import DecisionTreeClassifier # type: ignore
 from sklearn.neighbors import NearestNeighbors # type: ignore
+from sklearn.preprocessing import LabelEncoder # type: ignore
 import joblib # type: ignore
 import os
 
@@ -31,11 +32,16 @@ joblib.dump(model_nlp, 'model.pkl')
 # PIPELINE 2: COLLABORATIVE FILTERING 
 # ==========================================
 print("📥 Extracting User data from user_profiles_demo.csv...")
-df_users = pd.read_csv("user_profiles_demo.csv")
+df_users = pd.read_csv("user_profiles_demo.csv", encoding="latin1")
 
 print("⚙️ Transforming User metrics...")
-# Features: age, weight_kg, experience_level, goal_type
-X_users = df_users[['age', 'weight_kg', 'experience_level', 'goal_type']]
+# 1. Grab the columns and make a safe copy to avoid pandas warnings
+X_users = df_users[['Age', 'Weight (kg)', 'Profile Level', 'Focus Goal']].copy()
+
+# 2. Translate the text words into numbers so the AI can do its math
+le = LabelEncoder()
+X_users['Profile Level'] = le.fit_transform(X_users['Profile Level'].astype(str))
+X_users['Focus Goal'] = le.fit_transform(X_users['Focus Goal'].astype(str))
 
 print("🧠 Training NearestNeighbors Recommender...")
 # n_neighbors=1 because we want the single closest matching profile
@@ -44,7 +50,8 @@ knn_model.fit(X_users)
 
 print("📦 Pickling KNN models...")
 joblib.dump(knn_model, 'knn_model.pkl')
-# Pickle the dataframe so Flask can look up the plan ID later
+
+# Pickle the dataframe so Flask can look up the plan details later
 joblib.dump(df_users, 'df_users.pkl')
 
 print("✅ Dual ETL Process Complete! All 4 .pkl files are ready for production.")
