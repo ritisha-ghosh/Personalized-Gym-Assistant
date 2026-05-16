@@ -7,9 +7,9 @@ import StatCard from "../componenets/cards/StatCard";
 import WorkoutCard from "../componenets/cards/WorkoutCard";
 import WeeklyConsistency from "../componenets/cards/WeeklyConsistency";
 import TrainerInsight from "../componenets/cards/TrainerInsight";
-import Leaderboard from "../componenets/cards/Leaderboard";
-import WeightTrendCard from "../componenets/cards/WeightTrendCard";
-import { getUserProfile, getWorkouts } from "../utils/storageUtils";
+//import Leaderboard from "../componenets/cards/Leaderboard";
+//import WeightTrendCard from "../componenets/cards/WeightTrendCard";
+//import { getUserProfile, getWorkouts } from "../utils/storageUtils";
 import GoalComparisonCard from "../componenets/cards/GoalComparisonCard";
 import { AuthContext } from '../context/AuthContext';
 import { DarkModeContext } from '../context/DarkModeContext';
@@ -24,6 +24,8 @@ const Dashboard = () => {
   const [recentWorkouts, setRecentWorkouts] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
+  const [weeklyWorkoutCount, setWeeklyWorkoutCount] = useState(0);
+  const [recommendedWorkout, setRecommendedWorkout] = useState(null);
 
   // 2. Get the search query from URL
   const [searchParams] = useSearchParams();
@@ -38,14 +40,45 @@ const Dashboard = () => {
         const profileResponse = await api.get('/users/profile');
         const profileData = profileResponse.data.user;
         
-        setUserProfile(profileData);
+       setUserProfile(profileData);
 
-        // Get local workouts - USER-SPECIFIC
-        if (user?.id) {
-          const workouts = getWorkouts(user.id);
-          setRecentWorkouts(workouts.slice(-3));
-          console.log(`📥 Loaded ${workouts.length} workouts for user ${user.id} on Dashboard`);
-        }
+// Fetch workout logs from backend
+const logsResponse = await api.get("/logs");
+const logs = logsResponse.data;
+
+const now = new Date();
+const startOfWeek = new Date(now);
+
+const day = startOfWeek.getDay();
+const diff = day === 0 ? 6 : day - 1;
+
+startOfWeek.setDate(startOfWeek.getDate() - diff);
+startOfWeek.setHours(0, 0, 0, 0);
+
+const thisWeekLogs = logs.filter((log) => {
+  const logDate = new Date(log.createdAt);
+  return logDate >= startOfWeek;
+});
+
+setWeeklyWorkoutCount(thisWeekLogs.length);
+
+const weeklyPlanResponse = await api.get("/workouts/weekly-plan");
+const weeklyPlan = weeklyPlanResponse.data.weekPlan;
+
+console.log("Weekly plan:", weeklyPlan);
+
+// today's workout
+const todayWorkout = weeklyPlan.find(day => day.isToday);
+
+if (todayWorkout) {
+  setRecommendedWorkout({
+    ...todayWorkout,
+    progress: todayWorkout.completed ? 100 : 0
+  });
+}
+
+// last few workouts for AI message if needed
+setRecentWorkouts(weeklyPlan.slice(0, 3));
       } catch (error) {
         console.error("Dashboard error:", error);
         // On failure, set profile to null so the UI can show a loading/error state.
@@ -61,12 +94,24 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, [user?.id]);
 
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
-  };
+ const getGreeting = () => {
+  const hour = currentTime.getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 18) return "Good Afternoon";
+  return "Good Evening";
+};
+
+const getAiMessage = () => {
+  if (weeklyWorkoutCount === 0) {
+    return "Let's start your first workout this week!";
+  }
+
+  if (weeklyWorkoutCount < 3) {
+    return `Great start! ${weeklyWorkoutCount} workouts this week.`;
+  }
+
+  return `Amazing! ${weeklyWorkoutCount} workouts this week. Keep it up!`;
+};
 
   // 3. Helper to check if a component should be visible
   // Returns true if search is empty OR if the keyword matches the search query
@@ -83,7 +128,7 @@ const Dashboard = () => {
       title: "Current Weight", 
       value: userProfile?.weight?.toString() || "0", 
       unit: "kg", 
-      footer: "-0.5kg this week", 
+      footer: "Updated from profile",
       accent: "text-teal-500",
       keywords: ["weight", "kg", "loss", "current"] 
     },
@@ -135,8 +180,8 @@ const Dashboard = () => {
             {getGreeting()}, {user?.name || "User"}.
           </h1>
           <p className={`mt-1 text-sm sm:text-base font-medium ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>
-            AI Trainer : "Keep up the great work! {recentWorkouts.length} workouts this week."
-          </p>
+  AI Trainer: {getAiMessage()}
+</p>
           
           {/* Search Result Indicator */}
           {searchQuery && (
@@ -169,12 +214,11 @@ const Dashboard = () => {
           <div className="space-y-6 lg:col-span-8">
             {/* Conditionally render based on search keywords */}
             {shouldShow(["workout", "training", "exercise", "plan"]) && (
-              <WorkoutCard 
-                /* Connected Start Session to Workout page */
-                onStartSession={() => navigate('/workouts')}
-                /* Passed prop to comment out/hide View Routine button inside WorkoutCard */
-                hideViewRoutine={true}
-              />
+              <WorkoutCard
+  workout={recommendedWorkout}
+  onStartSession={() => navigate('/workouts')}
+  hideViewRoutine={true}
+/>
             )}
             
             {/* WEIGHT TREND CHART - COMMENTED OUT */}
