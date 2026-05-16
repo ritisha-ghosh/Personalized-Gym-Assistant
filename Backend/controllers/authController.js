@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { regenerateUserPlans } = require("../services/userPlanService");
 console.log("AUTH CONTROLLER LOADED");
 const generateAccessToken = (userId) => {
   return jwt.sign(
@@ -111,6 +112,7 @@ exports.signup = async (req, res) => {
       goal,
       injury,
       experience,
+      activityLevel,
       dietType,
       noOnion,
       noGarlic
@@ -142,7 +144,10 @@ exports.signup = async (req, res) => {
     } else if (normalizedDietType === 'vegan') {
         normalizedDietType = 'vegetarian';
     }
-
+    let normalizedActivityLevel = activityLevel?.toLowerCase().trim();
+    if (!['sedentary', 'light', 'moderate', 'active', 'very_active'].includes(normalizedActivityLevel)) {
+      normalizedActivityLevel = 'moderate';
+    }
     const normalizedGender = gender?.toLowerCase().trim();
 
     const salt = await bcrypt.genSalt(10);
@@ -163,10 +168,17 @@ exports.signup = async (req, res) => {
 
       experience: normalizedExperience,
 
+      activityLevel: normalizedActivityLevel,
       dietType: normalizedDietType || "vegetarian",
       noOnion: noOnion ?? false,
       noGarlic: noGarlic ?? false
     });
+
+    try {
+      await regenerateUserPlans(user);
+    } catch (planError) {
+      console.error("Plan generation failed during signup:", planError);
+    }
 
     res.status(201).json({
       message: "User registered successfully",

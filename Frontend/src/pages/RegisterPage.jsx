@@ -45,10 +45,9 @@ const RegisterPage = () => {
     };
 
     try {
-      const response = await api.post('/auth/send-otp', payload);
-      
+      const response = await api.post('/auth/signup', payload);
       if (response.data) {
-        navigate('/verify-otp', { state: { email: formData.email } });
+        navigate('/login', { state: { message: 'Registration successful. Please log in.' } });
       }
     } catch (err) {
       console.error(err);

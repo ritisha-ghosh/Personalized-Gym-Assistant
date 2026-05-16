@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs');
 const User = require("../models/User");
+const UserLog = require("../models/UserLog");
+const { regenerateUserPlans } = require("../services/userPlanService");
 
 exports.getUserProfile = async (req, res) => {
   try {
@@ -29,6 +31,7 @@ exports.getUserProfile = async (req, res) => {
         bio: fullUser.bio,
         injury: fullUser.injury,
         experience: fullUser.experience,
+        activityLevel: fullUser.activityLevel,
         dietType: fullUser.dietType,
         noOnion: fullUser.noOnion,
         noGarlic: fullUser.noGarlic,
@@ -55,10 +58,27 @@ exports.updateUserProfile = async (req, res) => {
       return;
     }
 
+    const oldValues = {
+      height: user.height,
+      weight: user.weight,
+      age: user.age,
+      gender: user.gender,
+      goal: user.goal,
+      experience: user.experience,
+      activityLevel: user.activityLevel,
+      dietType: user.dietType,
+      noOnion: user.noOnion,
+      noGarlic: user.noGarlic,
+      glutenFree: user.glutenFree,
+      lactoseFree: user.lactoseFree,
+      nutAllergy: user.nutAllergy,
+      sugarFree: user.sugarFree
+    };
+
     const oldWeight = user.weight;
 
     // Update text fields
-    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'goal', 'dietType', 'bio', 'injury', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
+    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'activityLevel', 'goal', 'dietType', 'bio', 'injury', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
     fieldsToUpdate.forEach(field => {
       if (req.body[field] !== undefined) {
         // Convert string representations to boolean for checkboxes
@@ -92,6 +112,16 @@ exports.updateUserProfile = async (req, res) => {
 
     const updatedUser = await user.save();
 
+    const planTriggerFields = ['height', 'weight', 'age', 'gender', 'goal', 'experience', 'activityLevel', 'dietType', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
+    const shouldRefreshPlans = planTriggerFields.some(field => String(oldValues[field] || '') !== String(updatedUser[field] || ''));
+    if (shouldRefreshPlans) {
+      try {
+        await regenerateUserPlans(updatedUser);
+      } catch (planError) {
+        console.error('Plan regeneration failed after profile update:', planError);
+      }
+    }
+
     res.json({
       message: "Profile updated successfully",
       user: {
@@ -105,6 +135,7 @@ exports.updateUserProfile = async (req, res) => {
         gender: updatedUser.gender,
         experience: updatedUser.experience,
         goal: updatedUser.goal,
+        activityLevel: updatedUser.activityLevel,
         dietType: updatedUser.dietType,
         bio: updatedUser.bio,
         injury: updatedUser.injury,
