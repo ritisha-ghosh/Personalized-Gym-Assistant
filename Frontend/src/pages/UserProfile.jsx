@@ -27,6 +27,7 @@ const UserProfile = () => {
     experience: '',
     goal: '',
     dietType: '',
+    activityLevel: '',
     bio: '',
     injury: 'none',
     noOnion: false,
@@ -106,6 +107,7 @@ const UserProfile = () => {
           experience: data.experience || '',
           goal: data.goal || '',
           dietType: data.dietType || '',
+          activityLevel: data.activityLevel || '',
           bio: data.bio || '',
           injury: data.injury || 'none',
           noOnion: data.noOnion === true || data.noOnion === 'true',
@@ -156,6 +158,7 @@ const UserProfile = () => {
       if (formData.experience) formDataToSend.append('experience', formData.experience);
       if (formData.goal) formDataToSend.append('goal', formData.goal);
       if (formData.dietType) formDataToSend.append('dietType', formData.dietType);
+      if (formData.activityLevel) formDataToSend.append('activityLevel', formData.activityLevel);
       formDataToSend.append('noOnion', formData.noOnion);
       formDataToSend.append('noGarlic', formData.noGarlic);
       formDataToSend.append('glutenFree', formData.glutenFree);
@@ -180,6 +183,7 @@ const UserProfile = () => {
       updateUser({
         experience: updatedUser.experience,
         goal: updatedUser.goal,
+        activityLevel: updatedUser.activityLevel,
         age: updatedUser.age,
         weight: updatedUser.weight,
         height: updatedUser.height,
@@ -511,6 +515,22 @@ const UserProfile = () => {
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
                     <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className={`text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Daily Activity</label>
+                  <select
+                    name="activityLevel"
+                    value={formData.activityLevel}
+                    onChange={handleInputChange}
+                    className={inputStyles}
+                  >
+                    <option value="">Select Activity</option>
+                    <option value="sedentary">Sedentary (Office Job)</option>
+                    <option value="light">Lightly Active</option>
+                    <option value="moderate">Moderately Active</option>
+                    <option value="active">Very Active</option>
+                    <option value="very_active">Extremely Active</option>
                   </select>
                 </div>
               </div>

@@ -14,7 +14,7 @@ const api = axios.create({
 */
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -33,7 +33,7 @@ export const signup = (userData) => api.post('/auth/signup', userData); // Kept 
 export const getCurrentUser = () => api.get('/users/profile'); // Corrected path to match user routes
 
 // This is the function to update the user's profile
-export const updateUserProfile = (profileData) => api.put('/users/update-settings', profileData); // Corrected path to match user routes
+export const updateUserProfile = (profileData) => api.put('/users/profile', profileData); // Correct path to match user routes
 
 export const refreshAccessToken = () => api.post('/auth/refresh-token');
 

@@ -13,7 +13,6 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"; // Import new page
 import ResetPasswordPage from "./pages/ResetPasswordPage"; // Import new page
-import OtpPage from "./pages/OtpPage"; // Import the OtpPage component
 import OurStory from "./pages/OurStory"; // Import the new OurStory page
 
 // --- Main Feature Pages ---
@@ -45,7 +44,6 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* New route */}
             <Route path="/reset-password" element={<ResetPasswordPage />} /> {/* New route */}
             <Route path="/register" element={<RegisterPage />} /> 
-            <Route path="/verify-otp" element={<OtpPage />} /> {/* Add the route for OTP verification */}
             <Route path='/OurStory' element={<OurStory/>}/>
 
             {/* Protected / App Routes */}

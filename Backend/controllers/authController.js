@@ -3,6 +3,7 @@ const Otp = require("../models/Otp");
 const sendEmail = require("../models/sendEmail");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { regenerateUserPlans } = require("../services/userPlanService");
 console.log("AUTH CONTROLLER LOADED");
 
 const generateAccessToken = (userId) => {
@@ -110,6 +111,7 @@ exports.verifyOtpAndRegister = async (req, res) => {
       injuryStatus, // mapped from frontend payload
       injury,
       experience,
+      activityLevel,
       dietType,
       noOnion,
       noGarlic
@@ -141,7 +143,10 @@ exports.verifyOtpAndRegister = async (req, res) => {
     } else if (normalizedDietType === 'vegan') {
         normalizedDietType = 'vegetarian';
     }
-
+    let normalizedActivityLevel = activityLevel?.toLowerCase().trim();
+    if (!['sedentary', 'light', 'moderate', 'active', 'very_active'].includes(normalizedActivityLevel)) {
+      normalizedActivityLevel = 'moderate';
+    }
     const normalizedGender = gender?.toLowerCase().trim();
 
     const salt = await bcrypt.genSalt(10);
@@ -162,16 +167,25 @@ exports.verifyOtpAndRegister = async (req, res) => {
 
       experience: normalizedExperience,
 
+      activityLevel: normalizedActivityLevel,
       dietType: normalizedDietType || "vegetarian",
       noOnion: noOnion ?? false,
       noGarlic: noGarlic ?? false
     });
 
+<<<<<<< HEAD
     await Otp.deleteOne({ email }); // Clear the OTP upon successful usage
 
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
     await User.findByIdAndUpdate(user._id, { refreshToken: refreshToken });
+=======
+    try {
+      await regenerateUserPlans(user);
+    } catch (planError) {
+      console.error("Plan generation failed during signup:", planError);
+    }
+>>>>>>> 9e01a854b00c675904c5776f718f6fcf52c99b56
 
     res.status(201).json({
       success: true,
