@@ -246,7 +246,7 @@ const isFlatWeeklyPlan = (weeklyPlan) => {
   return weeklyPlan.every((day) => JSON.stringify(day.meals || []) === reference);
 };
 
-const getRecommendationId = async (user) => {
+const getMLWorkoutRecommendation = async (user) => {
   try {
     const response = await axios.post(`${ML_API_URL}/recommend-plan`, {
       age: Number(user.age) || 25,
@@ -256,11 +256,176 @@ const getRecommendationId = async (user) => {
       exhausted_muscles: []
     }, { timeout: 6000 });
 
-    return response.data.recommended_plan_id || null;
+    return {
+      recommendationId: response.data.recommended_plan_id || null,
+      suggestion: response.data.exercise_suggestion || response.data.suggestion || null,
+      planMeta: response.data.plan_meta || null
+    };
   } catch (error) {
     console.warn('Workout plan recommendation service unavailable:', error.message || error);
-    return null;
+    return { recommendationId: null, suggestion: null, planMeta: null };
   }
+};
+
+const inferMuscleGroup = (text) => {
+  const lower = String(text || '').toLowerCase();
+  if (/chest|pec|bench/.test(lower)) return 'chest';
+  if (/back|row|pull|lat/.test(lower)) return 'back';
+  if (/shoulder|press|overhead|lateral/.test(lower)) return 'shoulders';
+  if (/bicep|curl/.test(lower)) return 'biceps';
+  if (/tricep|dip|pushdown/.test(lower)) return 'triceps';
+  if (/squat|quad|leg|lunge|press/.test(lower)) return 'quads';
+  if (/deadlift|hamstring|romanian|glute/.test(lower)) return 'hamstrings';
+  if (/calf|heel/.test(lower)) return 'calves';
+  if (/core|plank|crunch|twist|ab|sit-up/.test(lower)) return 'core';
+  if (/yoga|stretch|mobility|walking|jog|cycle|run/.test(lower)) return 'full body';
+  return 'full body';
+};
+
+const parseSuggestionToExercises = (suggestion) => {
+  if (!suggestion || typeof suggestion !== 'string') return [];
+  const cleaned = suggestion
+    .replace(/[“”]/g, '"')
+    .replace(/\s*\/\s*/g, ' + ')
+    .replace(/\s*;\s*/g, ' + ')
+    .replace(/\s*:\s*/g, ': ');
+
+  const parts = cleaned
+    .split(/\s*\+\s*|,\s*|\s+and\s+/i)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .filter((text) => !/split|rotation|program|protocol|cycle/i.test(text));
+
+  const items = parts.length > 0 ? parts : [suggestion.trim()];
+
+  return items.map((item) => {
+    const cleanText = item.replace(/\[.*?\]/g, '').trim();
+    const repMatch = cleanText.match(/(.+?)\s+(\d+)\s*x\s*(\d+)/i);
+    const timeMatch = cleanText.match(/(.+?)\s+(\d+)\s*min/i);
+    const rangeMatch = cleanText.match(/(.+?)\s+(\d+)\s*-\s*(\d+)\s*reps/i);
+
+    if (repMatch) {
+      return {
+        name: repMatch[1].trim(),
+        sets: Number(repMatch[2]),
+        reps: Number(repMatch[3]),
+        muscleGroup: inferMuscleGroup(repMatch[1].trim())
+      };
+    }
+
+    if (timeMatch) {
+      return {
+        name: `${timeMatch[1].trim()} (${timeMatch[2]} min)`,
+        sets: 1,
+        reps: Number(timeMatch[2]),
+        muscleGroup: inferMuscleGroup(timeMatch[1].trim())
+      };
+    }
+
+    if (rangeMatch) {
+      return {
+        name: rangeMatch[1].trim(),
+        sets: 3,
+        reps: Number(rangeMatch[2]),
+        muscleGroup: inferMuscleGroup(rangeMatch[1].trim())
+      };
+    }
+
+    return {
+      name: cleanText,
+      sets: 3,
+      reps: 12,
+      muscleGroup: inferMuscleGroup(cleanText)
+    };
+  });
+};
+
+const buildWeeklyWorkoutPlanFromSuggestion = (user, suggestion) => {
+  const baseExercises = parseSuggestionToExercises(suggestion);
+  const normalizedText = (suggestion || '').toLowerCase();
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const useAlternateRest = /ppl|push-pull-legs|split|tabata|circuit|hypertrophy|crossfit|functional|training/.test(normalizedText);
+
+  const muscleCategory = (muscleGroup) => {
+    if (['chest', 'shoulders', 'triceps'].includes(muscleGroup)) return 'push';
+    if (['back', 'biceps'].includes(muscleGroup)) return 'pull';
+    if (['quads', 'hamstrings', 'glutes', 'calves'].includes(muscleGroup)) return 'legs';
+    if (['core'].includes(muscleGroup)) return 'core';
+    return 'fullBody';
+  };
+
+  const buildDayExercises = (pattern, dayIndex) => {
+    let filtered = baseExercises.filter((exercise) => {
+      const category = muscleCategory(exercise.muscleGroup);
+      if (pattern === 'fullBody') return true;
+      if (pattern === 'upper') return ['push', 'pull'].includes(category);
+      return category === pattern;
+    });
+
+    if (filtered.length === 0) {
+      filtered = [...baseExercises];
+    }
+
+    if (filtered.length === 0) {
+      return [{
+        name: suggestion || 'ML-generated workout',
+        sets: 3,
+        reps: 12,
+        muscleGroup: inferMuscleGroup(suggestion)
+      }];
+    }
+
+    const offset = dayIndex % filtered.length;
+    const rotated = filtered.slice(offset).concat(filtered.slice(0, offset));
+    const selected = rotated.slice(0, Math.min(4, rotated.length));
+
+    return selected.map((exercise) => ({
+      ...exercise,
+      name: exercise.name,
+      sets: exercise.sets || 3,
+      reps: exercise.reps || 12,
+      muscleGroup: exercise.muscleGroup || inferMuscleGroup(exercise.name)
+    }));
+  };
+
+  const dayPatterns = useAlternateRest
+    ? ['push', 'pull', 'rest', 'legs', 'push', 'pull', 'rest']
+    : ['fullBody', 'upper', 'lower', 'core', 'fullBody', 'upper', 'rest'];
+
+  const planTemplate = days.map((day, idx) => {
+    const pattern = dayPatterns[idx];
+    const isRestDay = pattern === 'rest';
+    const title = isRestDay ? `${day} Active Recovery` : `${day} ${pattern === 'fullBody' ? 'Full Body' : pattern.charAt(0).toUpperCase() + pattern.slice(1)} Workout`;
+    const exercises = isRestDay ? [] : buildDayExercises(pattern, idx);
+    const notePrefix = isRestDay ? 'Rest and recovery day.' : 'ML workout suggestion:';
+
+    return {
+      title,
+      type: isRestDay ? 'rest' : 'strength',
+      focusMuscles: exercises.length > 0 ? Array.from(new Set(exercises.map((ex) => ex.muscleGroup))) : ['rest'],
+      exercises,
+      notes: isRestDay ? 'Recovery day based on the ML workout recommendation.' : `${notePrefix} ${suggestion || ''}`.trim()
+    };
+  });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return planTemplate.map((item, idx) => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + idx);
+    const isoDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+    return {
+      date: isoDate,
+      dayName: date.toLocaleDateString('en-US', { weekday: 'long' }),
+      isToday: idx === 0,
+      dayIndex: idx,
+      ...item,
+      completed: false,
+      completedExercises: []
+    };
+  });
 };
 
 const buildWeeklyWorkoutPlan = (user, recommendationId) => {
@@ -429,8 +594,8 @@ const buildWeeklyWorkoutPlan = (user, recommendationId) => {
 };
 
 const generateAndSaveWorkoutPlan = async (user) => {
-  const recommendationId = await getRecommendationId(user);
-  const weeklyPlan = buildWeeklyWorkoutPlan(user, recommendationId);
+  const mlRecommendation = await getMLWorkoutRecommendation(user);
+  const weeklyPlan = buildWeeklyWorkoutPlanFromSuggestion(user, mlRecommendation.suggestion || '');
 
   const filter = { user: user._id, isAutoGenerated: true };
   const payload = {
@@ -444,7 +609,7 @@ const generateAndSaveWorkoutPlan = async (user) => {
     weeklyPlan,
     generatedAt: new Date(),
     planSource: 'ml',
-    recommendationId: recommendationId ? String(recommendationId) : null
+    recommendationId: mlRecommendation.recommendationId ? String(mlRecommendation.recommendationId) : null
   };
 
   const updatedPlan = await WorkoutPlan.findOneAndUpdate(filter, payload, {
@@ -458,7 +623,14 @@ const generateAndSaveWorkoutPlan = async (user) => {
 
 const getOrCreateWorkoutPlan = async (user) => {
   let plan = await WorkoutPlan.findOne({ user: user._id, isAutoGenerated: true }).lean();
-  if (!plan || !Array.isArray(plan.weeklyPlan) || plan.weeklyPlan.length !== 7) {
+  const shouldRegenerate =
+    !plan ||
+    !Array.isArray(plan.weeklyPlan) ||
+    plan.weeklyPlan.length !== 7 ||
+    plan.planSource !== 'ml' ||
+    !plan.recommendationId;
+
+  if (shouldRegenerate) {
     plan = await generateAndSaveWorkoutPlan(user);
   }
   return plan;
