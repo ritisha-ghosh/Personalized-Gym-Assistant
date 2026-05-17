@@ -81,6 +81,14 @@ const userSchema = new mongoose.Schema({
     lowercase: true
   },
 
+  activityLevel: {
+    type: String,
+    enum: ["sedentary", "light", "moderate", "active", "very_active"],
+    default: "moderate",
+    lowercase: true,
+    trim: true
+  },
+
   noOnion: {
     type: Boolean,
     default: false

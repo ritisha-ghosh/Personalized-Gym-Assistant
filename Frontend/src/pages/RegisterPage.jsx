@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { DarkModeContext } from '../context/DarkModeContext';
+import logoImg from '../assets/logo.png';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -45,10 +46,9 @@ const RegisterPage = () => {
     };
 
     try {
-      const response = await api.post('/auth/send-otp', payload);
-      
+      const response = await api.post('/auth/signup', payload);
       if (response.data) {
-        navigate('/verify-otp', { state: { email: formData.email } });
+        navigate('/verify-otp', { state: { email: formData.email, userData: payload, isRegistration: true } });
       }
     } catch (err) {
       console.error(err);
@@ -111,6 +111,7 @@ const RegisterPage = () => {
     <div className={`flex min-h-screen ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-white'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <style>
         {`
+          @import url('https://fonts.googleapis.com/css2?family=Goblin+One&display=swap');
           /* Global Scrollbar Styles */
           ::-webkit-scrollbar {
             width: 6px;
@@ -129,10 +130,11 @@ const RegisterPage = () => {
       <div className={`hidden lg:flex w-1/3 p-12 flex-col justify-between relative overflow-hidden ${isDarkMode ? 'bg-[#1e293b] border-r border-[#334155]' : 'bg-[#e0f7f1]'}`}>
         <div>
           <Link to="/" className="flex items-center gap-2 mb-16 hover:opacity-80 transition-opacity w-fit">
-            <div className="w-8 h-8 bg-[#00c4b4] rounded-md flex items-center justify-center rotate-45">
-              <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
-            </div>
-            <span className="text-xl font-bold text-slate-800 tracking-tight">BeFit</span>
+            <img src={logoImg} alt="BeFit Logo" className="w-16 h-16 object-contain" />
+            <span className="text-3xl font-bold tracking-wide transition-all !bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+              <span className={`!bg-transparent ${isDarkMode ? 'text-white' : 'text-slate-800 [-webkit-text-stroke:0.5px_black]'}`}>Be</span>
+              <span className={`!bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.5px_black]'}`}>Fit</span>
+            </span>
           </Link>
 
           <div className="relative z-10">
@@ -168,10 +170,11 @@ const RegisterPage = () => {
           {/* Logo - Only visible on mobile */}
           <div className="lg:hidden">
             <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity w-fit">
-              <div className="w-8 h-8 bg-[#00c4b4] rounded-md flex items-center justify-center rotate-45">
-                <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
-              </div>
-              <span className="text-xl font-bold text-slate-800 tracking-tight">BeFit</span>
+              <img src={logoImg} alt="BeFit Logo" className="w-14 h-14 object-contain" />
+              <span className="text-3xl font-bold tracking-wide transition-all !bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+                <span className={`!bg-transparent ${isDarkMode ? 'text-white' : 'text-slate-800 [-webkit-text-stroke:0.5px_black]'}`}>Be</span>
+                <span className={`!bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.5px_black]'}`}>Fit</span>
+              </span>
             </Link>
           </div>
           <p className="text-sm text-slate-500 lg:w-full lg:text-right">

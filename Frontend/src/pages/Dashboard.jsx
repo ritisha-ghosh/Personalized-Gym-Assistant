@@ -7,9 +7,9 @@ import StatCard from "../componenets/cards/StatCard";
 import WorkoutCard from "../componenets/cards/WorkoutCard";
 import WeeklyConsistency from "../componenets/cards/WeeklyConsistency";
 import TrainerInsight from "../componenets/cards/TrainerInsight";
-import Leaderboard from "../componenets/cards/Leaderboard";
-import WeightTrendCard from "../componenets/cards/WeightTrendCard";
-import { getUserProfile, getWorkouts } from "../utils/storageUtils";
+//import Leaderboard from "../componenets/cards/Leaderboard";
+//import WeightTrendCard from "../componenets/cards/WeightTrendCard";
+//import { getUserProfile, getWorkouts } from "../utils/storageUtils";
 import GoalComparisonCard from "../componenets/cards/GoalComparisonCard";
 import { AuthContext } from '../context/AuthContext';
 import { DarkModeContext } from '../context/DarkModeContext';
@@ -24,6 +24,8 @@ const Dashboard = () => {
   const [recentWorkouts, setRecentWorkouts] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
+  const [weeklyWorkoutCount, setWeeklyWorkoutCount] = useState(0);
+  const [recommendedWorkout, setRecommendedWorkout] = useState(null);
 
   // 2. Get the search query from URL
   const [searchParams] = useSearchParams();
@@ -38,14 +40,71 @@ const Dashboard = () => {
         const profileResponse = await api.get('/users/profile');
         const profileData = profileResponse.data.user;
         
-        setUserProfile(profileData);
+       setUserProfile(profileData);
 
-        // Get local workouts - USER-SPECIFIC
-        if (user?.id) {
-          const workouts = getWorkouts(user.id);
-          setRecentWorkouts(workouts.slice(-3));
-          console.log(`📥 Loaded ${workouts.length} workouts for user ${user.id} on Dashboard`);
-        }
+// Fetch workout logs from backend
+const logsResponse = await api.get("/logs");
+const logs = logsResponse.data;
+
+const now = new Date();
+const startOfWeek = new Date(now);
+
+// Use a rolling 7-day window to perfectly match the Weekly Consistency tracker
+startOfWeek.setDate(startOfWeek.getDate() - 6);
+startOfWeek.setHours(0, 0, 0, 0);
+
+const thisWeekLogs = logs.filter((log) => {
+  const logDate = new Date(log.date || log.createdAt);
+  return log.status === "active" && logDate >= startOfWeek;
+});
+
+const uniqueWorkoutDatesThisWeek = new Set(
+  thisWeekLogs.map((log) => {
+    // Extract the raw date to prevent browser timezone shifts from merging days
+    if (log.date) {
+      return log.date.split('T')[0]; 
+    }
+    const d = new Date(log.date || log.createdAt);
+    return d.toDateString();
+  })
+);
+
+setWeeklyWorkoutCount(uniqueWorkoutDatesThisWeek.size);
+
+const weeklyPlanResponse = await api.get("/workouts/weekly-plan");
+const weeklyPlan = weeklyPlanResponse.data.weekPlan;
+
+console.log("Weekly plan:", weeklyPlan);
+
+// today's workout
+const todayWorkout = weeklyPlan.find(day => day.isToday);
+
+if (todayWorkout) {
+  let progressPercentage = 0;
+  
+  if (todayWorkout.completed) {
+    progressPercentage = 100;
+  } else if (user?.id && todayWorkout.date) {
+    const saved = localStorage.getItem(`workout_completed_${user.id}_${todayWorkout.date}`);
+    if (saved) {
+      try {
+        const completedExerciseIds = JSON.parse(saved);
+        const totalExercises = todayWorkout.type === 'rest' ? 1 : Math.max(todayWorkout.exercises?.length || 1, 1);
+        progressPercentage = Math.round((completedExerciseIds.length / totalExercises) * 100);
+      } catch (e) {
+        console.error("Error parsing saved workout progress:", e);
+      }
+    }
+  }
+
+  setRecommendedWorkout({
+    ...todayWorkout,
+    progress: progressPercentage
+  });
+}
+
+// last few workouts for AI message if needed
+setRecentWorkouts(weeklyPlan.slice(0, 3));
       } catch (error) {
         console.error("Dashboard error:", error);
         // On failure, set profile to null so the UI can show a loading/error state.
@@ -61,12 +120,24 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, [user?.id]);
 
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
-  };
+ const getGreeting = () => {
+  const hour = currentTime.getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 18) return "Good Afternoon";
+  return "Good Evening";
+};
+
+const getAiMessage = () => {
+  if (weeklyWorkoutCount === 0) {
+    return "Let's start your first workout this week!";
+  }
+
+  if (weeklyWorkoutCount < 3) {
+    return `Great start! ${weeklyWorkoutCount} workouts this week.`;
+  }
+
+  return `Amazing ! ${weeklyWorkoutCount} workouts this week. Keep it up !`;
+};
 
   // 3. Helper to check if a component should be visible
   // Returns true if search is empty OR if the keyword matches the search query
@@ -83,7 +154,7 @@ const Dashboard = () => {
       title: "Current Weight", 
       value: userProfile?.weight?.toString() || "0", 
       unit: "kg", 
-      footer: "-0.5kg this week", 
+      footer: "Updated from profile",
       accent: "text-teal-500",
       keywords: ["weight", "kg", "loss", "current"] 
     },
@@ -126,6 +197,30 @@ const Dashboard = () => {
         {`
           @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
           body { font-family: 'Libre Baskerville', serif; }
+          
+          /* Responsive fixes to prevent card text overflow on small screens */
+          .cards-responsive-wrapper {
+            min-width: 0;
+          }
+          .cards-responsive-wrapper > div {
+            min-width: 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+          }
+          @media (max-width: 640px) {
+            .cards-responsive-wrapper [class*="text-2xl"],
+            .cards-responsive-wrapper [class*="text-3xl"],
+            .cards-responsive-wrapper [class*="text-4xl"],
+            .cards-responsive-wrapper [class*="text-5xl"] {
+              font-size: 1.15rem !important;
+              line-height: 1.5rem !important;
+              white-space: normal !important;
+              word-break: break-word;
+            }
+            .cards-responsive-wrapper [class*="whitespace-nowrap"] {
+              white-space: normal !important;
+            }
+          }
         `}
       </style>
       <div className={`space-y-6 sm:space-y-8 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
@@ -135,8 +230,8 @@ const Dashboard = () => {
             {getGreeting()}, {user?.name || "User"}.
           </h1>
           <p className={`mt-1 text-sm sm:text-base font-medium ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>
-            AI Trainer : "Keep up the great work! {recentWorkouts.length} workouts this week."
-          </p>
+  AI Trainer : {getAiMessage()}
+</p>
           
           {/* Search Result Indicator */}
           {searchQuery && (
@@ -148,7 +243,7 @@ const Dashboard = () => {
 
         {/* Stats - Responsive grid (Filtered) */}
         {filteredStats.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 cards-responsive-wrapper">
             {filteredStats.map((stat) => (
               <StatCard
                 key={stat.id}
@@ -163,18 +258,17 @@ const Dashboard = () => {
         )}
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 cards-responsive-wrapper">
           
           {/* Left Column */}
           <div className="space-y-6 lg:col-span-8">
             {/* Conditionally render based on search keywords */}
             {shouldShow(["workout", "training", "exercise", "plan"]) && (
-              <WorkoutCard 
-                /* Connected Start Session to Workout page */
-                onStartSession={() => navigate('/workouts')}
-                /* Passed prop to comment out/hide View Routine button inside WorkoutCard */
-                hideViewRoutine={true}
-              />
+              <WorkoutCard
+  workout={recommendedWorkout}
+  onStartSession={() => navigate('/workouts')}
+  hideViewRoutine={true}
+/>
             )}
             
             {/* WEIGHT TREND CHART - COMMENTED OUT */}
@@ -206,8 +300,8 @@ const Dashboard = () => {
         {searchQuery && 
         filteredStats.length === 0 && 
         !shouldShow(["workout", "weight", "consistency", "trainer", "leaderboard"]) && (
-            <div className="text-center py-20 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-            <p className="text-slate-500">No results found for "{searchQuery}".</p>
+            <div className={`text-center py-20 rounded-xl border border-dashed ${isDarkMode ? 'bg-transparent border-slate-600 text-white' : 'bg-slate-50 border-slate-300'}`}>
+            <p className={isDarkMode ? 'text-white' : 'text-slate-500'}>No results found for "{searchQuery}".</p>
             <button 
                 onClick={() => window.history.back()}
                 className="mt-2 text-[#df20af] font-bold hover:underline transition-transform active:scale-95 inline-block"

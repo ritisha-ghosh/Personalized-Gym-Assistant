@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs');
 const User = require("../models/User");
+const UserLog = require("../models/UserLog");
+const { regenerateUserPlans } = require("../services/userPlanService");
 
 exports.getUserProfile = async (req, res) => {
   try {
@@ -29,9 +31,14 @@ exports.getUserProfile = async (req, res) => {
         bio: fullUser.bio,
         injury: fullUser.injury,
         experience: fullUser.experience,
+        activityLevel: fullUser.activityLevel,
         dietType: fullUser.dietType,
         noOnion: fullUser.noOnion,
-        noGarlic: fullUser.noGarlic
+        noGarlic: fullUser.noGarlic,
+        glutenFree: fullUser.glutenFree,
+        lactoseFree: fullUser.lactoseFree,
+        nutAllergy: fullUser.nutAllergy,
+        sugarFree: fullUser.sugarFree
       }
     });
 
@@ -51,13 +58,35 @@ exports.updateUserProfile = async (req, res) => {
       return;
     }
 
+    const oldValues = {
+      height: user.height,
+      weight: user.weight,
+      age: user.age,
+      gender: user.gender,
+      goal: user.goal,
+      experience: user.experience,
+      activityLevel: user.activityLevel,
+      dietType: user.dietType,
+      noOnion: user.noOnion,
+      noGarlic: user.noGarlic,
+      glutenFree: user.glutenFree,
+      lactoseFree: user.lactoseFree,
+      nutAllergy: user.nutAllergy,
+      sugarFree: user.sugarFree
+    };
+
     const oldWeight = user.weight;
 
     // Update text fields
-    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'goal', 'dietType', 'bio', 'injury'];
+    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'activityLevel', 'goal', 'dietType', 'bio', 'injury', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
     fieldsToUpdate.forEach(field => {
       if (req.body[field] !== undefined) {
-        user[field] = req.body[field];
+        // Convert string representations to boolean for checkboxes
+        if (req.body[field] === 'true' || req.body[field] === 'false') {
+          user[field] = req.body[field] === 'true';
+        } else {
+          user[field] = req.body[field];
+        }
       }
     });
 
@@ -83,6 +112,16 @@ exports.updateUserProfile = async (req, res) => {
 
     const updatedUser = await user.save();
 
+    const planTriggerFields = ['height', 'weight', 'age', 'gender', 'goal', 'experience', 'activityLevel', 'dietType', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
+    const shouldRefreshPlans = planTriggerFields.some(field => String(oldValues[field] || '') !== String(updatedUser[field] || ''));
+    if (shouldRefreshPlans) {
+      try {
+        await regenerateUserPlans(updatedUser);
+      } catch (planError) {
+        console.error('Plan regeneration failed after profile update:', planError);
+      }
+    }
+
     res.json({
       message: "Profile updated successfully",
       user: {
@@ -96,9 +135,16 @@ exports.updateUserProfile = async (req, res) => {
         gender: updatedUser.gender,
         experience: updatedUser.experience,
         goal: updatedUser.goal,
+        activityLevel: updatedUser.activityLevel,
         dietType: updatedUser.dietType,
         bio: updatedUser.bio,
         injury: updatedUser.injury,
+        noOnion: updatedUser.noOnion,
+        noGarlic: updatedUser.noGarlic,
+        glutenFree: updatedUser.glutenFree,
+        lactoseFree: updatedUser.lactoseFree,
+        nutAllergy: updatedUser.nutAllergy,
+        sugarFree: updatedUser.sugarFree
       }
     });
   } catch (error) {
@@ -140,13 +186,19 @@ exports.updateUserSettings = async (req, res) => {
 exports.updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select('+password');
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    let isMatch = await bcrypt.compare(currentPassword, user.password);
+    
+    // Fallback for old plain-text passwords
+    if (!isMatch && currentPassword === user.password) {
+      isMatch = true;
+    }
+
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid current password" });
     }
@@ -165,13 +217,19 @@ exports.updatePassword = async (req, res) => {
 exports.deleteAccount = async (req, res) => {
   try {
     const { password } = req.body; 
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select('+password');
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    let isMatch = await bcrypt.compare(password, user.password);
+    
+    // Fallback for old plain-text passwords
+    if (!isMatch && password === user.password) {
+      isMatch = true;
+    }
+
     if (!isMatch) {
       return res.status(400).json({ message: "Incorrect password provided." });
     }

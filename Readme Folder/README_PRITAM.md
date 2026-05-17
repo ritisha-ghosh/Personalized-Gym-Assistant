@@ -1,91 +1,126 @@
-🧠 Orchestration & Intelligence Layer – BeFit System  
-👨‍💻 Developer: Pritam Chakraborty  
+# 🧠 Orchestration & Intelligence Layer — BeFit System
+**Developer:** Pritam Chakraborty
+**System Role:** The Central Nervous System & Predictive Engine
 
-📌 Weekly Task Progress Report  
+---
 
-## ✅ Completed Tasks  
+## 🚀 System Overview
 
-### 🔹 Phase 1: Neural Bridge & System Orchestration (Week 1-2)
+The **BeFit Intelligence Layer** is a standalone Python Flask microservice that serves as the AI core for the Personalized Gym Assistant. By pairing a high-performance Node.js backend orchestration layer with data-driven machine learning pipelines, the system transforms from a static tracking utility into a dynamic, contextual, self-correcting digital personal trainer.
 
-#### 1. Node-Python "Bridge" Architecture  
-Designed the primary communication channel between Backend (Node.js) and Intelligence Layer (Python).  
-Initial Implementation: Used child_process.spawn for lightweight script execution.  
-Latency Optimization: Conducted performance tests, achieving <200ms response time for basic classification tasks.  
-Error Handling: Implemented fail-safe logic to prevent server crashes if the Python environment is unreachable.  
+```
+[Node.js Backend (Port 5000)]
+│
+▼ (Axios HTTP Bridge / Fail-safe Retry)
+[Python Flask Microservice (Port 5001)]
+├── 🤖 NLP Intent Engine (TF-IDF + Decision Tree)
+├── 🏋️‍♂️ Smart Coach Recommender (KNN Collaborative Filtering)
+└── 📊 Adaptive Volume Scaler (Self-Correcting Feedback Loop)
+```
 
-#### 2. User Classification Engine (Logic Layer)  
-Developed classify_user.py using rule-based decision trees.  
-Logic: Segments users into "Beginner," "Intermediate," or "Advanced" based on experience and frequency.  
-Output: Returns structured JSON payloads for the frontend to personalize the UI.  
+---
 
-### 🔹 Phase 2: The "Brain" Upgrade (Week 3)
+## 🔥 Key Architectural Features (Fully Completed)
 
-#### 3. Flask Microservice Transformation  
-Upgraded architecture to a persistent Flask Microservice (Port 5001).  
-Why: To support heavy ML models (NLP) without reloading them for every request.  
-Result: Reduced model loading overhead from ~3s to 0s (instant inference).  
+### 1. Node-Python "Bridge" Architecture & Fault Tolerance
 
-#### 4. NLP Intent Recognition (TF-IDF)  
-Implemented Natural Language Processing (NLP) using scikit-learn (TF-IDF + Cosine Similarity).  
-Function: Instantly categorizes user chat queries into actionable intents (e.g., diet_plan, exercise_info).  
-Confidence Scoring: Added logic to reject queries with low confidence (<20%).  
+- **Persistent Microservice Integration:** Upgraded from local script execution (`child_process.spawn`) to a persistent HTTP-based Flask service on `Port 5001`, driving model inference overhead from ~3 seconds down to **0ms (instant)**.
+- **Resilient Retry Policy:** Configured `aiModelService.js` with an asynchronous retry loop. If the Flask microservice is sleeping or experiences a brief dropout, the system automatically waits 1000ms and retries up to 3 times before falling back to a graceful `system_maintenance` routing, eliminating application crashes.
 
-#### 5. Full-Stack Integration (Axios + MongoDB)  
-Service Layer: Replaced spawn with axios HTTP requests in aiModelService.js.  
-Database Logging: Created UserActivity Mongoose schema to permanently store every user-AI interaction.  
+### 2. NLP Intent Recognition & Advanced Fallbacks
 
-### 🔹 Phase 3: Adaptive Intelligence & Security (Week 4)
+- **Pipeline Mechanics:** Utilizes a custom-trained scikit-learn pipeline blending `TfidfVectorizer` (with automated English stop-word filtering) and a `DecisionTreeClassifier` to parse natural language queries.
+- **Confidence Guardrails:** Implemented a strict 20% validation threshold. If an out-of-domain query (e.g., *"Capital of France"*) is submitted, the system flags the low similarity score and executes a graceful fallback message (`"I'm still learning..."`) instead of allowing model hallucinations.
 
-#### 6. Adaptive Difficulty Engine (Self-Correcting AI)  
-Implemented feedback loops in ML_Layer/app.py.  
-Logic: The AI now listens to user feedback (1-10 difficulty rating).  
-If "Too Easy" (<4): Automatically increases volume (Sets/Reps) by 10%.  
-If "Too Hard" (>8): Automatically decreases volume to prevent burnout.  
-Impact: Transforming the app from a static template generator to a dynamic personal trainer.  
+### 3. Smart Coach & KNN Collaborative Filtering
 
-#### 7. Security & Validation Layer  
-Implemented Middleware Guard (validateWorkout.js) in Node.js.  
-Function: Sanitizes all incoming workout data before it reaches the controller.  
-Security: Prevents NoSQL injection and ensures data integrity (e.g., preventing negative reps or empty titles).  
+- **Algorithmic Profiling:** Powered by an unsupervised `NearestNeighbors` algorithm utilizing a Euclidean distance metric.
+- **Data Pipelines:** Consumes a cleaned user metric registry (`user_profiles_demo.csv`) mapping `Age`, `Weight (kg)`, `Profile Level`, and `Focus Goal`. Text features are automatically translated on-the-fly using a scikit-learn `LabelEncoder` to maintain strict data compatibility for mathematical modeling.
+- **Contextual Fatigue Management:** Cross-references predictive profile targets with the user's active MongoDB log history to dynamically isolate and skip muscle groups suffering from acute fatigue.
 
-#### 8. Schema Evolution  
-Updated UserLog schema to include difficultyRating, enabling the data collection required for the Adaptive Engine.  
+### 4. Data-Driven Diet Engine
 
-### 🔹 Phase 4: Error Resilience & Final Polish (Week 5)
+- **Dynamic Menu Generation:** Integrates a multi-feature filtering system running over `diet_dataset.csv`.
+- **Macro Optimization:** Instead of passing static options, it parses user inputs for exact diet types (e.g., Keto, Vegan, Vegetarian) and body composition goals (e.g., Fat Loss, Muscle Gain) to compile comprehensive, calorie-tracked daily meal plans — Breakfast, Lunch, Pre-Workout, and Dinner.
 
-#### 9. Bridge Fault Tolerance (Retry Logic)  
-Upgraded the Node-Python bridge (aiModelService.js) to handle network timeouts and ECONNREFUSED errors.  
-Implementation: Added an asynchronous retry loop. If the Flask microservice is unreachable or waking up, the Node backend automatically waits 1000ms and retries up to 3 times before gracefully returning a system_maintenance intent, preventing total application crashes.  
+### 5. Adaptive Difficulty Scaling (Self-Correcting AI)
 
-#### 10. NLP Fallback & Stop-Word Filtering  
-Fine-tuned the TfidfVectorizer to automatically ignore English stop-words (e.g., "what", "is", "the", "how", "to"), drastically improving keyword matching accuracy.  
-Fallback Logic: Implemented a strict 20% confidence threshold. If a query falls below this match (e.g., out-of-domain questions like "Capital of France" or untrained entities), the AI safely catches the low similarity score and returns a polite unknown intent message ("I'm still learning...") instead of hallucinating an incorrect response.  
+- **Feedback Optimization:** Implemented a real-time reactive volume loop tied directly to updated Mongoose data schemas.
+- **Autoscaling Volume:** Evaluates user-submitted performance difficulty ratings (1–10 scale):
+  - If metrics signal an under-stimulated threshold (`< 4`): pushes volume **up by 10%**
+  - If ratings indicate over-exertion or burnout (`> 8`): automatically **drops sets and reps** to facilitate safer athletic recovery
 
-## ⏳ Pending Task  
+### 6. Security & Payload Validation Layer
 
-Collaborative Filtering: Advanced recommendation engine based on similar user profiles.  
+- **Middleware Armor:** Secured the system ingest point with `validateWorkout.js` in Node.js.
+- **Data Sanitization:** Intercepts incoming requests to block NoSQL injection vectors, verify datatypes, and prevent structural anomalies (such as negative rep tracking or corrupted object fields).
 
-## 📊 Task Status Summary  
+---
 
-| Task | Category | Status |
-|------|----------|--------|
-| Node-Python Bridge Architecture | Orchestration | ✅ Completed |
-| User Classification Logic | Intelligence | ✅ Completed |
-| Flask Microservice Setup | Backend/ML | ✅ Completed |
-| NLP Intent Recognition | AI Model | ✅ Completed |
-| Adaptive Difficulty Scaling | AI Model | ✅ Completed |
-| Security Validation Middleware | System Integration | ✅ Completed |
-| Bridge Fault Tolerance (Retry) | Orchestration | ✅ Completed |
-| NLP Stop-Word & Fallback Logic | AI Model | ✅ Completed |
-| Recommendation Engine | AI Model | ❌ Pending |
+## 📊 Core Milestone Summary
 
-## 🧱 Tech Stack  
+| Module Component | Functional Category | Status |
+| :--- | :--- | :---: |
+| Node-Python Bridge Routing | Architecture / Orchestration | 🟢 Completed |
+| User Categorization Logic | Intelligence Layer | 🟢 Completed |
+| Persistent Flask Deployment | Systems Architecture | 🟢 Completed |
+| NLP Intent Classification | Natural Language Processing | 🟢 Completed |
+| Adaptive Volume Regulation | Self-Correcting Feedback Loops | 🟢 Completed |
+| Payload Sanitization Middleware | System Integrity & Security | 🟢 Completed |
+| Asynchronous Bridge Fault Tolerance | Resilience & Reliability | 🟢 Completed |
+| Text Vectorization Stop-Word Refinements | Core AI Optimization | 🟢 Completed |
+| KNN Collaborative Profile Filtering | Advanced Recommendation Engine | 🟢 Completed |
+| Data-Driven Macro Meal Planner | Automated Personal Nutrition | 🟢 Completed |
 
-Backend: Node.js, Express.js, Axios  
-AI/ML: Python, Flask, Scikit-learn, NumPy, Pandas  
-Database: MongoDB Atlas, Mongoose  
-Tools: Postman, PowerShell (Testing), Git/GitHub  
+---
 
-## 📍 Notes  
+## 🧱 Tech Stack
 
-This module serves as the central nervous system of the application. It now possesses Adaptive Capabilities, meaning the system evolves based on user performance, mimicking a real-life coach. The architecture is fully resilient, capable of self-healing dropped connections and politely handling out-of-bounds user inputs.
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend Orchestration** | Node.js, Express.js, Axios |
+| **Intelligence & Analytics** | Python, Flask, Scikit-learn, NumPy, Pandas, Joblib |
+| **Database** | MongoDB Atlas, Mongoose |
+| **Dev & Testing** | Postman, PowerShell CLI, Git / GitHub |
+
+---
+
+## 🛠️ Execution & Model Retraining Guide
+
+### 1. Retraining the ML Layer Models
+
+Whenever `dataset.csv` or `user_profiles_demo.csv` receive updates, regenerate the production pickle files:
+
+```bash
+cd ML_Layer
+python train_model.py
+```
+
+**Expected terminal output:**
+
+```
+🔄 Starting Dual ETL Pipeline...
+📥 Extracting NLP data from dataset.csv...
+⚙️  Transforming NLP text data...
+🧠 Training Decision Tree Classifier...
+📦 Pickling NLP models...
+📥 Extracting User data from user_profiles_demo.csv...
+⚙️  Transforming User metrics...
+🧠 Training NearestNeighbors Recommender...
+📦 Pickling KNN models...
+✅ Dual ETL Process Complete! All 4 .pkl files are ready for production.
+```
+
+### 2. Spinning Up the Service
+
+Launch the engine locally to host the internal APIs on Port 5001:
+
+```bash
+python app.py
+```
+
+---
+
+## 📍 Architecture Notes
+
+This module serves as the **central nervous system** of the BeFit application. It possesses full adaptive capabilities — the system evolves based on user performance data, mimicking a real-life coach. The architecture is fully resilient, capable of self-healing dropped connections and gracefully handling out-of-bounds user inputs without crashing.

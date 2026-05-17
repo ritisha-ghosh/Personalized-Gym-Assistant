@@ -77,8 +77,8 @@ const GoalComparisonCard = () => {
 
   if (loading) {
     return (
-      <div className={`p-5 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
-        <p className={isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-900'}>
+      <div className={`p-5 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-transparent border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
+        <p className={isDarkMode ? 'text-white' : 'text-slate-900'}>
           Loading AI Goal Comparison...
         </p>
       </div>
@@ -86,7 +86,7 @@ const GoalComparisonCard = () => {
   }
 
   return (
-    <div className={`p-5 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
+    <div className={`p-5 rounded-2xl shadow-sm border backdrop-blur-md ${isDarkMode ? 'bg-transparent border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <h2 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
         AI Goal Comparison
       </h2>

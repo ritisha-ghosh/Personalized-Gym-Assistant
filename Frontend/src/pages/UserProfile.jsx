@@ -27,8 +27,15 @@ const UserProfile = () => {
     experience: '',
     goal: '',
     dietType: '',
+    activityLevel: '',
     bio: '',
-    injury: 'none'
+    injury: 'none',
+    noOnion: false,
+    noGarlic: false,
+    glutenFree: false,
+    lactoseFree: false,
+    nutAllergy: false,
+    sugarFree: false
   });
 
   const [profileImage, setProfileImage] = useState(null);
@@ -100,8 +107,15 @@ const UserProfile = () => {
           experience: data.experience || '',
           goal: data.goal || '',
           dietType: data.dietType || '',
+          activityLevel: data.activityLevel || '',
           bio: data.bio || '',
-          injury: data.injury || 'none'
+          injury: data.injury || 'none',
+          noOnion: data.noOnion === true || data.noOnion === 'true',
+          noGarlic: data.noGarlic === true || data.noGarlic === 'true',
+          glutenFree: data.glutenFree === true || data.glutenFree === 'true',
+          lactoseFree: data.lactoseFree === true || data.lactoseFree === 'true',
+          nutAllergy: data.nutAllergy === true || data.nutAllergy === 'true',
+          sugarFree: data.sugarFree === true || data.sugarFree === 'true'
         });
 
         setProfileImage(data.profileImage || null);
@@ -119,8 +133,8 @@ const UserProfile = () => {
 
   // Handle input changes
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   // Save profile to backend
@@ -144,6 +158,13 @@ const UserProfile = () => {
       if (formData.experience) formDataToSend.append('experience', formData.experience);
       if (formData.goal) formDataToSend.append('goal', formData.goal);
       if (formData.dietType) formDataToSend.append('dietType', formData.dietType);
+      if (formData.activityLevel) formDataToSend.append('activityLevel', formData.activityLevel);
+      formDataToSend.append('noOnion', formData.noOnion);
+      formDataToSend.append('noGarlic', formData.noGarlic);
+      formDataToSend.append('glutenFree', formData.glutenFree);
+      formDataToSend.append('lactoseFree', formData.lactoseFree);
+      formDataToSend.append('nutAllergy', formData.nutAllergy);
+      formDataToSend.append('sugarFree', formData.sugarFree);
       if (formData.bio) formDataToSend.append('bio', formData.bio);
       formDataToSend.append('injury', isInjuryActive ? formData.injury : 'none');
       
@@ -162,6 +183,7 @@ const UserProfile = () => {
       updateUser({
         experience: updatedUser.experience,
         goal: updatedUser.goal,
+        activityLevel: updatedUser.activityLevel,
         age: updatedUser.age,
         weight: updatedUser.weight,
         height: updatedUser.height,
@@ -169,6 +191,12 @@ const UserProfile = () => {
         bio: updatedUser.bio,
         injury: updatedUser.injury,
         dietType: updatedUser.dietType,
+        noOnion: updatedUser.noOnion,
+        noGarlic: updatedUser.noGarlic,
+        glutenFree: updatedUser.glutenFree,
+        lactoseFree: updatedUser.lactoseFree,
+        nutAllergy: updatedUser.nutAllergy,
+        sugarFree: updatedUser.sugarFree,
         profileImage: updatedUser.profileImage
       });
 
@@ -177,7 +205,7 @@ const UserProfile = () => {
         refreshToken: localStorage.getItem('refreshToken') 
       });
 
-      setSaveStatus('✓ Profile updated successfully!');
+      setSaveStatus('✓ Profile updated successfully !');
       setIsEditMode(false);
       setProfileImageFile(null);
       
@@ -351,9 +379,25 @@ const UserProfile = () => {
                 {user?.email || "Member"}
               </p>
               {formData.dietType && (
-                <p className={`font-medium text-xs mt-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
-                  <span className="text-teal-500 font-bold">Diet :</span> {formData.dietType.charAt(0).toUpperCase() + formData.dietType.slice(1)}
-                </p>
+                <div className={`font-medium text-xs mt-2 flex flex-wrap items-center gap-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
+                  <span><span className="text-teal-500 font-bold">Diet :</span> {formData.dietType.charAt(0).toUpperCase() + formData.dietType.slice(1)}</span>
+                  {(() => {
+                    const activeExclusions = [
+                      { key: 'noOnion', label: 'No Onion' },
+                      { key: 'noGarlic', label: 'No Garlic' },
+                      { key: 'glutenFree', label: 'Gluten Free' },
+                      { key: 'lactoseFree', label: 'Lactose Free' },
+                      { key: 'nutAllergy', label: 'Nut Allergy' },
+                      { key: 'sugarFree', label: 'Sugar Free' }
+                    ].filter(ex => formData[ex.key]);
+                    
+                    return activeExclusions.map(ex => (
+                      <span key={ex.key} className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600'}`}>
+                        {ex.label}
+                      </span>
+                    ));
+                  })()}
+                </div>
               )}
               {formData.goal && (
                 <p className={`font-medium text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
@@ -473,6 +517,22 @@ const UserProfile = () => {
                     <option value="advanced">Advanced</option>
                   </select>
                 </div>
+                <div className="space-y-2">
+                  <label className={`text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Daily Activity</label>
+                  <select
+                    name="activityLevel"
+                    value={formData.activityLevel}
+                    onChange={handleInputChange}
+                    className={inputStyles}
+                  >
+                    <option value="">Select Activity</option>
+                    <option value="sedentary">Sedentary (Office Job)</option>
+                    <option value="light">Lightly Active</option>
+                    <option value="moderate">Moderately Active</option>
+                    <option value="active">Very Active</option>
+                    <option value="very_active">Extremely Active</option>
+                  </select>
+                </div>
               </div>
             </section>
 
@@ -510,6 +570,31 @@ const UserProfile = () => {
                     <option value="vegetarian">Vegetarian</option>
                     <option value="non-vegetarian">Non-Vegetarian</option>
                   </select>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <label className={`text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Dietary Exclusions</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+                    {[
+                      { name: 'noOnion', label: 'No Onion' },
+                      { name: 'noGarlic', label: 'No Garlic' },
+                      { name: 'glutenFree', label: 'Gluten Free' },
+                      { name: 'lactoseFree', label: 'Lactose Free' },
+                      { name: 'nutAllergy', label: 'Nut Allergy' },
+                      { name: 'sugarFree', label: 'Sugar Free' }
+                    ].map(exclusion => (
+                      <label key={exclusion.name} className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name={exclusion.name}
+                          checked={formData[exclusion.name]}
+                          onChange={handleInputChange}
+                          className="sr-only peer"
+                        />
+                        <div className={`w-9 h-5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${isDarkMode ? 'bg-slate-600 peer-checked:bg-teal-500' : 'bg-slate-200 peer-checked:bg-teal-500'}`}></div>
+                        <span className={`ml-2 text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{exclusion.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             </section>
@@ -668,6 +753,24 @@ const UserProfile = () => {
                     <div className="bg-gradient-to-br from-[#10b981]/5 to-[#10b981]/10 p-4 rounded-xl border border-[#10b981]/20">
                       <p className="text-xs font-bold text-[#10b981] uppercase">Diet Type</p>
                       <p className={`text-lg font-bold mt-2 capitalize ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formData.dietType}</p>
+                      {(() => {
+                        const activeExclusions = [
+                          { key: 'noOnion', label: 'No Onion' },
+                          { key: 'noGarlic', label: 'No Garlic' },
+                          { key: 'glutenFree', label: 'Gluten Free' },
+                          { key: 'lactoseFree', label: 'Lactose Free' },
+                          { key: 'nutAllergy', label: 'Nut Allergy' },
+                          { key: 'sugarFree', label: 'Sugar Free' }
+                        ].filter(ex => formData[ex.key]);
+                        
+                        return activeExclusions.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {activeExclusions.map(ex => (
+                              <span key={ex.key} className={`px-2 py-1 text-[10px] font-bold rounded-md ${isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600'}`}>{ex.label}</span>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>

@@ -1,16 +1,21 @@
-from flask import Flask, request, jsonify # type: ignore
-from flask_cors import CORS # type: ignore
-import joblib # type: ignore
+# app.py
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import joblib
+import pandas as pd
+import random
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
-CORS(app) # Allows the backend to talk to this server
+CORS(app)
 
 # =================================================
 # 🔹 CUSTOM EXCEPTION HANDLING 
 # =================================================
 
 class APIError(Exception):
-    """Custom Exception class for meaningful error messages."""
     def __init__(self, message, status_code=400):
         super().__init__()
         self.message = message
@@ -18,16 +23,13 @@ class APIError(Exception):
 
 @app.errorhandler(APIError)
 def handle_api_error(error):
-    """Catches APIError and returns clean JSON to React."""
-    response = jsonify({
+    return jsonify({
         "status": "error",
         "message": error.message
-    })
-    return response, error.status_code
+    }), error.status_code
 
 @app.errorhandler(Exception)
 def handle_general_exception(e):
-    """Catches unexpected crashes (Internal Server Errors)."""
     return jsonify({
         "status": "fail",
         "message": "An internal server error occurred.",
@@ -35,265 +37,323 @@ def handle_general_exception(e):
     }), 500
 
 # =================================================
-# 🔹 UPDATED LOGIC WITH PREVENTING INITIAL LATENCY SPIKES IN STARTUP TIME OF FLASK
+# 🔹 ML ENGINE INITIALIZATION
 # =================================================
 
-# --- 1. THE INTELLIGENCE (Loading Trained Model) ---
-
-# Global variables for the ML model
 vectorizer = None
 model = None
 knn_model = None
 df_users = None
+df_diet = None
 
 def initialize_ml_engine():
-    """Instantly loads the pickled ML models to prevent first-hit latency."""
-    global vectorizer, model, knn_model, df_users
+    global vectorizer, model, knn_model, df_users, df_diet
+    load_errors = []
     try:
-        vectorizer = joblib.load('vectorizer.pkl')
-        model = joblib.load('model.pkl')
-        knn_model = joblib.load('knn_model.pkl')
-        df_users = joblib.load('df_users.pkl')
-        print("✅ ML Engine loaded all NLP and KNN Pickle files successfully.")
+        vectorizer = joblib.load(os.path.join(BASE_DIR, 'vectorizer.pkl'))
+        print("✅ NLP vectorizer loaded.")
     except Exception as e:
-        print(f"❌ CRITICAL ERROR: Could not load Pickles. Did you run train_model.py? Error: {e}")
+        vectorizer = None
+        load_errors.append(f"vectorizer.pkl: {e}")
 
-# --- 2. THE ENDPOINT ---
+    try:
+        model = joblib.load(os.path.join(BASE_DIR, 'model.pkl'))
+        print("✅ NLP classifier model loaded.")
+    except Exception as e:
+        model = None
+        load_errors.append(f"model.pkl: {e}")
+
+    try:
+        knn_model = joblib.load(os.path.join(BASE_DIR, 'knn_model.pkl'))
+        print("✅ KNN recommendation model loaded.")
+    except Exception as e:
+        knn_model = None
+        load_errors.append(f"knn_model.pkl: {e}")
+
+    try:
+        df_users = joblib.load(os.path.join(BASE_DIR, 'df_users.pkl'))
+        if df_users is not None and 'recommended_plan_id' not in df_users.columns:
+            df_users['recommended_plan_id'] = df_users.index + 1
+        print("✅ User recommendation dataset loaded from df_users.pkl.")
+    except Exception as e:
+        df_users = None
+        load_errors.append(f"df_users.pkl: {e}")
+        try:
+            df_users = pd.read_csv(os.path.join(BASE_DIR, 'user_profiles_demo.csv'), encoding='latin1')
+            df_users['recommended_plan_id'] = df_users.index + 1
+            print("✅ User recommendation dataset loaded from user_profiles_demo.csv.")
+        except Exception as csv_err:
+            df_users = None
+            load_errors.append(f"user_profiles_demo.csv: {csv_err}")
+
+    try:
+        df_diet = pd.read_csv(os.path.join(BASE_DIR, 'diet_dataset.csv'), encoding='latin1')
+        print("🥗 Diet Dataset loaded successfully.")
+    except Exception as e:
+        df_diet = None
+        load_errors.append(f"diet_dataset.csv: {e}")
+
+    if load_errors:
+        print("⚠️ ML Engine loaded with warnings:")
+        for err in load_errors:
+            print(f"  - {err}")
+
+# =================================================
+# 🔹 1. SMART CHATBOT (UPGRADED WITH CONTEXT & DIETS)
+# =================================================
+
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
     if not data or 'query' not in data:
         raise APIError("Please provide a search query.")
     
-    user_query = data.get('query', '')
+    # Check if query is enriched object from Node or simple string
+    raw_input = data.get('query')
+    context_muscles = []
     
-    # 1. Vectorize the user's input using the Pickled vocabulary
+    if isinstance(raw_input, dict):
+        user_query = raw_input.get('userQuery', '')
+        context_muscles = [m.lower() for m in raw_input.get('recentActivity', [])]
+    else:
+        user_query = str(raw_input)
+
+    # NLP Processing
     text_vec = vectorizer.transform([user_query])
     
-    # Out-of-Vocabulary Guardrail: Check if the vector is empty (unrecognized words)
     if text_vec.nnz == 0:
         return jsonify({
             "status": "success",
             "intent": "unknown",
             "confidence": "low",
-            "message": "I'm still learning! I mostly understand fitness, workouts, and diet queries right now. Could you rephrase that?"
+            "personalized_message": "I'm still learning! I mostly understand fitness, workouts, and diet right now."
         }), 200
     
-    # 2. Predict the intent and get the confidence probability
     predicted_intent = model.predict(text_vec)[0]
     probabilities = model.predict_proba(text_vec)[0]
     confidence_score = max(probabilities)
 
-    # 3. NLP Fallback Logic
-    if confidence_score >= 0.2:
-        intent = predicted_intent
-        confidence = "high"
-        message = "Intent processed successfully."
-    else:
-        intent = "unknown"
-        confidence = "low"
-        message = "I'm still learning! I mostly understand fitness, workouts, and diet queries right now. Could you rephrase that?"
+    # Default logic
+    intent = predicted_intent if confidence_score >= 0.2 else "unknown"
     
+    # 🧠 PRO MODE: CONTEXTUAL RESPONSE GENERATION
+    personalized_msg = "How can I help you with your fitness journey today?"
+    
+    if intent == "workout_recommendation":
+        if any(m in ["quads", "hamstrings", "legs"] for m in context_muscles):
+            personalized_msg = "Since you hit legs recently, your quads and hamstrings need recovery. Let's focus on Upper Body (Chest/Back) or light mobility today."
+        elif "chest" in context_muscles:
+            personalized_msg = "I noticed you did a chest workout recently. Today would be a great day for a 'Pull' session focusing on Back and Biceps."
+        else:
+            personalized_msg = "You're fresh! A full-body session or high-intensity interval training would be perfect for your current energy levels."
+
+    # NEW: Smart Diet Generation
+    elif intent in ["diet_info", "diet_plan"]:
+        if df_diet is not None and not df_diet.empty:
+            user_message_lower = user_query.lower()
+            filtered_diet = df_diet.copy()
+            
+            # 1. Filter by Diet Type
+            if 'keto' in user_message_lower:
+                filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Keto', case=False, na=False)]
+            elif 'vegan' in user_message_lower or 'vegetarian' in user_message_lower:
+                filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Vegan|Vegetarian', case=False, na=False)]
+                
+            # 2. Filter by Goal
+            if 'loss' in user_message_lower or 'cut' in user_message_lower:
+                filtered_diet = filtered_diet[filtered_diet['Focus Goal'].str.contains('Loss', case=False, na=False)]
+            elif 'gain' in user_message_lower or 'bulk' in user_message_lower:
+                filtered_diet = filtered_diet[filtered_diet['Focus Goal'].str.contains('Gain|Muscle', case=False, na=False)]
+
+            # 3. Fallback
+            if filtered_diet.empty:
+                filtered_diet = df_diet
+
+            # 4. Generate the Menu
+            rec = filtered_diet.sample(1).iloc[0]
+            personalized_msg = (
+                f"Here is a suggested full-day meal plan optimized for {rec['Focus Goal']}:\n"
+                f"🍳 Breakfast: {rec['Breakfast Suggestion']} ({rec['Breakfast Calories (kcal)']} kcal)\n"
+                f"🥗 Lunch: {rec['Lunch Suggestion']} ({rec['Lunch Calories (kcal)']} kcal)\n"
+                f"⚡ Pre-Workout: {rec['Pre-Workout Food']} ({rec['Pre-Workout Calories (kcal)']} kcal)\n"
+                f"🍛 Dinner: {rec['Dinner Suggestion']} ({rec['Dinner Calories (kcal)']} kcal)"
+            )
+        else:
+            personalized_msg = "Nutrition is 70% of the game. Are you looking for a meal plan for weight loss or muscle gain?"
+
     return jsonify({
         "status": "success",
         "intent": intent,
-        "confidence": confidence,
-        "message": message
+        "confidence": "high" if confidence_score >= 0.2 else "low",
+        "personalized_message": personalized_msg,
+        "context_detected": list(set(context_muscles))
     }), 200
 
+# =================================================
+# 🔹 2. ADAPTIVE ENGINE (DIFFICULTY SCALING)
+# =================================================
 
-# --- 3. THE ADAPTIVE ENGINE (New Logic) ---
 @app.route('/scale-difficulty', methods=['POST'])
 def scale_difficulty():
     data = request.json
     current_plan = data.get('plan', {})
-    avg_difficulty = data.get('average_difficulty', 5) # Default to 5 (Moderate)
+    avg_difficulty = data.get('average_difficulty', 5)
 
-    # VALIDATION: Custom Check
-    if avg_difficulty is None:
-        raise APIError("average_difficulty is missing.", status_code=400)
-    
-    if not (1 <= int(avg_difficulty) <= 10):
-        raise APIError("Difficulty must be between 1 and 10.") #checking the avg_difficulty value appropriate or not
+    if avg_difficulty is None or not (1 <= int(avg_difficulty) <= 10):
+        raise APIError("Difficulty must be between 1 and 10.")
 
-    # LOGIC: How to adapt based on feedback
-    # If user says "Easy" (< 4), we Make it Harder
     if avg_difficulty < 4:
-        action = "increase_intensity"
-        scaling_factor = 1.1 # 10% increase
-        msg = "Plan adapted: Increased volume due to low difficulty rating."
-        
-    # If user says "Hard" (> 8), we Make it Easier
+        action, factor, msg = "increase_intensity", 1.1, "Plan adapted: Increased volume due to low difficulty."
     elif avg_difficulty > 8:
-        action = "decrease_intensity"
-        scaling_factor = 0.9 # 10% decrease
-        msg = "Plan adapted: Reduced volume to prevent burnout."
-            
+        action, factor, msg = "decrease_intensity", 0.9, "Plan adapted: Reduced volume to prevent burnout."
     else:
-        return jsonify({"status": "no_change", "plan": current_plan, "message": "Current difficulty is optimal."})
+        return jsonify({"status": "no_change", "plan": current_plan, "message": "Optimal intensity."})
 
-    # Apply changes to exercises
     updated_exercises = []
-    for exercise in current_plan.get('exercises', []):
-            
-        # Modify Sets & Reps logic
-        new_sets = exercise['sets']
-        new_reps = exercise['reps']
-
+    for ex in current_plan.get('exercises', []):
+        new_sets, new_reps = ex['sets'], ex['reps']
         if action == "increase_intensity":
-            new_reps += 2  # Add 2 reps
-            # Cap sets at 5 to avoid overtraining
-            if new_sets < 5: 
-                new_sets += 1
-            
-        elif action == "decrease_intensity":
-            new_reps = max(5, new_reps - 2) # Don't go below 5 reps
-            new_sets = max(2, new_sets - 1) # Don't go below 2 sets
+            new_reps += 2
+            if new_sets < 5: new_sets += 1
+        else:
+            new_reps = max(5, new_reps - 2)
+            new_sets = max(2, new_sets - 1)
 
         updated_exercises.append({
-            "name": exercise['name'],
+            "name": ex['name'],
             "sets": int(new_sets),
             "reps": int(new_reps),
-            "restSeconds": exercise.get('restSeconds', 60)
+            "restSeconds": ex.get('restSeconds', 60)
         })
 
-    # Return new plan structure
     new_plan = current_plan.copy()
     new_plan['exercises'] = updated_exercises
     new_plan['title'] = f"{current_plan.get('title', 'Workout')} (Adapted)"
 
-    return jsonify({
-        "status": "success",
-        "action": action,
-        "plan": new_plan,
-        "message": msg
-    })
-
-
+    return jsonify({"status": "success", "action": action, "plan": new_plan, "message": msg})
 
 # =================================================
-# 🔹 4. DIET PLAN ENGINE 
+# 🔹 3. DIET RECOMMENDATION ENGINE (DATA-DRIVEN)
 # =================================================
 
-# --- STATIC RECIPE DATA ---
-RECIPES = [
-    { "name": "Paneer Stir Fry", "vegetarian": True, "ingredients": ["paneer", "capsicum", "tomato"], "calories": 420, "type": "Dinner" },
-    { "name": "Veg Curry with Onion", "vegetarian": True, "ingredients": ["onion", "potato"], "calories": 380, "type": "Lunch" },
-    { "name": "Dal Tadka", "vegetarian": True, "ingredients": ["lentils", "garlic"], "calories": 350, "type": "Lunch" },
-    { "name": "Chicken Salad", "vegetarian": False, "ingredients": ["chicken"], "calories": 450, "type": "Lunch" },
-    { "name": "Greek Yogurt with Berries", "vegetarian": True, "ingredients": ["yogurt", "berries"], "calories": 300, "type": "Breakfast" },
-    { "name": "Oatmeal with Almonds", "vegetarian": True, "ingredients": ["oats", "almonds", "milk"], "calories": 350, "type": "Breakfast" },
-    { "name": "Scrambled Eggs on Toast", "vegetarian": False, "ingredients": ["eggs", "bread"], "calories": 400, "type": "Breakfast", "contains_gluten": True },
-    { "name": "Grilled Salmon", "vegetarian": False, "ingredients": ["salmon", "broccoli"], "calories": 500, "type": "Dinner" },
-    { "name": "Quinoa Salad", "vegetarian": True, "ingredients": ["quinoa", "cucumber", "tomato"], "calories": 320, "type": "Dinner" },
-    { "name": "Apple with Peanut Butter", "vegetarian": True, "ingredients": ["apple", "peanut butter"], "calories": 200, "type": "Pre-Workout" },
-    { "name": "Protein Shake", "vegetarian": True, "ingredients": ["protein powder", "milk"], "calories": 250, "type": "Pre-Workout" },
-    { "name": "Banana and Walnuts", "vegetarian": True, "ingredients": ["banana", "walnuts"], "calories": 180, "type": "Pre-Workout" },
-    { "name": "Chicken Wrap", "vegetarian": False, "ingredients": ["chicken", "tortilla"], "calories": 450, "type": "Lunch", "contains_gluten": True },
-    { "name": "Tofu Stir Fry", "vegetarian": True, "ingredients": ["tofu", "capsicum", "soy sauce"], "calories": 380, "type": "Dinner", "contains_gluten": True },
-]
-
-# --- DIET FILTER LOGIC ---
-def filter_diet_recipes(diet_type, no_onion=False, no_garlic=False, gluten_free=False):
-    filtered = []
-    for recipe in RECIPES:
-        if diet_type == "vegetarian" and not recipe["vegetarian"]:
-            continue
-        ingredients = [i.lower() for i in recipe["ingredients"]]
-        if no_onion and "onion" in ingredients:
-            continue
-        if no_garlic and "garlic" in ingredients:
-            continue
-        if gluten_free and recipe.get("contains_gluten", False):
-            continue
-        filtered.append(recipe)
-    return filtered
-
-# --- DIET RECOMMENDATION ENDPOINT ---
 @app.route('/diet-recommendation', methods=['POST'])
 def diet_recommendation():
     data = request.json
-    valid_diets = ["vegetarian", "non-vegetarian"]
-    diet_type = data.get("dietType", "vegetarian")
-    if diet_type.lower() not in valid_diets:
-        raise APIError(f"Invalid diet type. Please choose from {valid_diets}.")
-
-    filtered_recipes = filter_diet_recipes(
-        diet_type=diet_type.lower(),
-        no_onion=data.get("noOnion", False),
-        no_garlic=data.get("noGarlic", False),
-        gluten_free=data.get("glutenFree", False)
-    )
-
-    import random
+    diet_type = data.get("dietType", "").lower()
     
-    # Categorize filtered recipes
-    breakfasts = [r for r in filtered_recipes if r["type"] == "Breakfast"]
-    lunches = [r for r in filtered_recipes if r["type"] == "Lunch"]
-    pre_workouts = [r for r in filtered_recipes if r["type"] == "Pre-Workout"]
-    dinners = [r for r in filtered_recipes if r["type"] == "Dinner"]
+    if df_diet is None or df_diet.empty:
+        return jsonify({
+            "status": "fallback",
+            "message": "Diet database is temporarily unavailable. Returning default meal templates.",
+            "weekly_plan": [
+                {"day": day, "meals": [
+                    {"type": "Breakfast", "food": "Oatmeal with fruits", "cal": "350 kcal"},
+                    {"type": "Lunch", "food": "Grilled vegetables and quinoa", "cal": "500 kcal"},
+                    {"type": "Pre-Workout", "food": "Banana and almonds", "cal": "200 kcal"},
+                    {"type": "Dinner", "food": "Lentil soup and salad", "cal": "450 kcal"}
+                ]} for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+            ]
+        }), 200
 
-    # Generate 7-day plan
+    filtered = df_diet.copy()
+    
+    # Filter for vegetarian/vegan if requested
+    if diet_type and "non-veg" not in diet_type:
+        filtered = filtered[filtered['Diet Type'].str.contains(diet_type, case=False, na=False)]
+        
+    if filtered.empty:
+        filtered = df_diet # Fallback if filter is too strict
+
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     weekly_plan = []
     
     for day in days:
-        day_meals = []
-        if breakfasts: day_meals.append({"type": "Breakfast", "food": random.choice(breakfasts)["name"], "cal": f"{random.choice(breakfasts)['calories']} kcal", "time": "08:00 AM"})
-        if lunches: day_meals.append({"type": "Lunch", "food": random.choice(lunches)["name"], "cal": f"{random.choice(lunches)['calories']} kcal", "time": "01:30 PM"})
-        if pre_workouts: day_meals.append({"type": "Pre-Workout", "food": random.choice(pre_workouts)["name"], "cal": f"{random.choice(pre_workouts)['calories']} kcal", "time": "04:30 PM"})
-        if dinners: day_meals.append({"type": "Dinner", "food": random.choice(dinners)["name"], "cal": f"{random.choice(dinners)['calories']} kcal", "time": "08:00 PM"})
+        choice = filtered.sample(1).iloc[0]
+        day_meals = [
+            {"type": "Breakfast", "food": choice['Breakfast Suggestion'], "cal": f"{choice['Breakfast Calories (kcal)']} kcal"},
+            {"type": "Lunch", "food": choice['Lunch Suggestion'], "cal": f"{choice['Lunch Calories (kcal)']} kcal"},
+            {"type": "Pre-Workout", "food": choice['Pre-Workout Food'], "cal": f"{choice['Pre-Workout Calories (kcal)']} kcal"},
+            {"type": "Dinner", "food": choice['Dinner Suggestion'], "cal": f"{choice['Dinner Calories (kcal)']} kcal"}
+        ]
         weekly_plan.append({"day": day, "meals": day_meals})
 
-    return jsonify({
-        "status": "success",
-        "weekly_plan": weekly_plan
-    }), 200
+    return jsonify({"status": "success", "weekly_plan": weekly_plan}), 200
 
 # =================================================
-# 🔹 5. COLLABORATIVE FILTERING & SMART COACH 
+# 🔹 4. SMART COACH (KNN RECOVERY)
 # =================================================
+
 @app.route('/recommend-plan', methods=['POST'])
 def recommend_plan():
     data = request.json
-    
-    # Extract user stats & Week 8 fatigue array
+    if knn_model is None or df_users is None:
+        return jsonify({
+            "status": "fallback",
+            "message": "ML recommendation engine is temporarily unavailable. Returning default plan variant.",
+            "recommended_plan_id": "1",
+            "fatigued_muscles_avoided": data.get('exhausted_muscles', [])
+        }), 200
     try:
-        age = float(data.get('age'))
-        weight = float(data.get('weight_kg'))
-        exp = float(data.get('experience_level'))
-        goal = float(data.get('goal_type'))
+        target_user = [[float(data['age']), float(data['weight_kg']), float(data['experience_level']), float(data['goal_type'])]]
         exhausted_muscles = data.get('exhausted_muscles', [])
-    except (TypeError, ValueError):
-        raise APIError("Missing or invalid user metrics for recommendation.")
+    except:
+        raise APIError("Invalid user metrics.")
 
-    # 1. Format the target user's stats into a vector
-    target_user = [[age, weight, exp, goal]]
-    
-    # 2. Find the mathematically closest user profile (Nearest Neighbor)
-    distances, indices = knn_model.kneighbors(target_user)
-    closest_user_index = indices[0][0]
-    
-    # 3. Retrieve the plan that worked for the similar user
-    recommended_plan_id = df_users.iloc[closest_user_index]['recommended_plan_id']
-    
-    # 4. SMART COACH LOGIC: Modify response if fatigue is detected
+    selected_row = None
+    recommended_plan_id = "1"
+    exercise_suggestion = ""
+    response_status = "success"
     msg = "Collaborative filtering successful."
-    if len(exhausted_muscles) > 0:
-        fatigue_str = ", ".join(exhausted_muscles)
-        msg += f" 🛡️ Smart Coach Active: Detected recent activity in [{fatigue_str}]. Recommended plan has been dynamically filtered to prevent overtraining."
+
+    if knn_model is not None and df_users is not None:
+        distances, indices = knn_model.kneighbors(target_user)
+        selected_row = df_users.iloc[indices[0][0]]
+    elif df_users is not None:
+        filtered = df_users.copy()
+        profile_map = {1: 'Beginner', 2: 'Intermediate', 3: 'Advanced'}
+        goal_map = {1: 'Fat Loss', 2: 'Muscle Gain', 3: 'Maintenance'}
+
+        profile_filter = profile_map.get(int(float(data.get('experience_level', 2))), '')
+        goal_filter = goal_map.get(int(float(data.get('goal_type', 3))), '')
+
+        if profile_filter and 'Profile Level' in filtered.columns:
+            filtered = filtered[filtered['Profile Level'].str.contains(profile_filter, case=False, na=False)]
+        if goal_filter and 'Focus Goal' in filtered.columns:
+            filtered = filtered[filtered['Focus Goal'].str.contains(goal_filter, case=False, na=False)]
+
+        if filtered.empty:
+            filtered = df_users
+
+        selected_row = filtered.sample(1).iloc[0]
+        response_status = "fallback"
+        msg = "Fallback recommendation generated from ML dataset."
+    else:
+        return jsonify({
+            "status": "fallback",
+            "message": "ML recommendation engine is temporarily unavailable. Returning default plan variant.",
+            "recommended_plan_id": "1",
+            "fatigued_muscles_avoided": data.get('exhausted_muscles', [])
+        }), 200
+
+    recommended_plan_id = selected_row.get('recommended_plan_id', 1)
+    exercise_suggestion = selected_row.get('Exercise Suggestion', '') if 'Exercise Suggestion' in selected_row else ''
+    exercise_suggestion = exercise_suggestion if isinstance(exercise_suggestion, str) else ''
+
+    if exhausted_muscles:
+        msg += f" 🛡️ Smart Coach Active: Detected fatigue in [{', '.join(exhausted_muscles)}]."
 
     return jsonify({
-        "status": "success",
+        "status": response_status,
         "message": msg,
         "recommended_plan_id": str(recommended_plan_id),
+        "exercise_suggestion": exercise_suggestion,
+        "plan_meta": {
+            "focus_goal": selected_row.get('Focus Goal', ''),
+            "profile_level": selected_row.get('Profile Level', '')
+        },
         "fatigued_muscles_avoided": exhausted_muscles
     }), 200
-    
 
 if __name__ == '__main__':
-    # Initialize ML before starting the server
     initialize_ml_engine()
-    print("🧠 AI Brain is active on port 5001...")
-    app.run(port=5001, debug=False) # Disable debug for faster performance
-    
+    app.run(port=5001, debug=False)

@@ -106,15 +106,15 @@ html.dark-mode {
 }
 
 .dark-mode .text-slate-600 {
-  color: var(--text-dark-secondary) !important;
+  color: var(--text-dark-primary) !important;
 }
 
 .dark-mode .text-slate-500 {
-  color: var(--text-dark-tertiary) !important;
+  color: var(--text-dark-primary) !important;
 }
 
 .dark-mode .text-slate-400 {
-  color: var(--text-dark-tertiary) !important;
+  color: var(--text-dark-primary) !important;
 }
 
 .dark-mode .text-slate-300 {
@@ -130,19 +130,19 @@ html.dark-mode {
 }
 
 .dark-mode .text-gray-700 {
-  color: var(--text-dark-secondary) !important;
+  color: var(--text-dark-primary) !important;
 }
 
 .dark-mode .text-gray-600 {
-  color: var(--text-dark-secondary) !important;
+  color: var(--text-dark-primary) !important;
 }
 
 .dark-mode .text-gray-500 {
-  color: var(--text-dark-tertiary) !important;
+  color: var(--text-dark-primary) !important;
 }
 
 .dark-mode .text-gray-400 {
-  color: var(--text-dark-tertiary) !important;
+  color: var(--text-dark-primary) !important;
 }
 
 /* ===== INPUT FIELDS & FORMS ===== */
@@ -345,9 +345,9 @@ html.dark-mode {
 /* ===== STAT CARDS ===== */
 .dark-mode [class*="stat-card"],
 .dark-mode [class*="card"] {
-  background-color: var(--secondary-dark) !important;
+  background-color: transparent !important;
   border-color: var(--border-dark) !important;
-  color: var(--text-dark-primary);
+  color: var(--text-dark-primary) !important;
 }
 
 /* ===== TRANSITIONS ===== */

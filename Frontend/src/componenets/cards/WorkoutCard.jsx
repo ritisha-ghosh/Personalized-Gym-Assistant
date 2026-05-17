@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom"; // Added for navigation
 import ProgressRing from "../common/ProgressRing";
 import { DarkModeContext } from "../../context/DarkModeContext";
 
-const WorkoutCard = () => {
+const WorkoutCard = ({ workout }) => {
   const { isDarkMode } = useContext(DarkModeContext);
   const navigate = useNavigate(); // Initialize navigation
+  const isCompleted = workout?.completed;
 
   return (
     <div
@@ -34,40 +35,45 @@ const WorkoutCard = () => {
           <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest ${isDarkMode ? 'bg-teal-500/40 text-teal-300' : 'bg-pink-50/80 text-pink-500'}`}>
             Intense
           </span>
-          <span className={`text-sm font-medium ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-400'}`}>
+          <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-400'}`}>
             Hypertrophy Session
           </span>
         </div>
 
         {/* Title */}
         <h3 className={`mb-2 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-          Push Day – Chest &amp; Shoulders
+          {workout?.title || "No Workout Available"}
         </h3>
 
         {/* Description */}
-        <p className={`mb-6 max-w-xl leading-relaxed ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>
-          Bench Press, OHP, Incline Flyes, Lateral Raises.
-          Focus on controlled tempo and full range of motion.
+        <p className={`mb-6 max-w-xl leading-relaxed ${isDarkMode ? 'text-white' : 'text-slate-500'}`}>
+         {workout?.goal || "Your next recommended workout will appear here."}
         </p>
 
         {/* Actions */}
         <div className="flex flex-wrap gap-4">
           <button
-            onClick={() => navigate('/workouts')} // Connects to workouts page
-            className={`
-              flex items-center gap-2
-              rounded-xl
-              px-8 py-3.5
-              font-bold
-              text-white
-              shadow-lg
-              transition-all
-              hover:-translate-y-0.5 active:translate-y-0
-              ${isDarkMode ? 'bg-teal-500 shadow-teal-500/30' : 'bg-pink-500 shadow-pink-500/30'}
-            `}
-          >
-            Start Session
-          </button>
+  onClick={() => !isCompleted && navigate('/workouts')}
+  disabled={isCompleted}
+  className={`
+    flex items-center gap-2
+    rounded-xl
+    px-8 py-3.5
+    font-bold
+    text-white
+    shadow-lg
+    transition-all
+    ${
+      isCompleted
+        ? "bg-green-500 cursor-default"
+        : isDarkMode
+          ? "bg-teal-500 shadow-teal-500/30 hover:-translate-y-0.5 active:translate-y-0"
+          : "bg-pink-500 shadow-pink-500/30 hover:-translate-y-0.5 active:translate-y-0"
+    }
+  `}
+>
+  {isCompleted ? "Completed ✓" : "Start Session"}
+</button>
 
           {/* VIEW ROUTINE BUTTON COMMENTED OUT
           <button
@@ -91,14 +97,15 @@ const WorkoutCard = () => {
 
       {/* Right Progress */}
       <div className="flex flex-col items-center">
-        <ProgressRing percent={60} />
-        <span className={`mt-2 text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-          60%
-        </span>
-        <span className={`text-[10px] font-black uppercase tracking-widest ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-400'}`}>
-          Complete
-        </span>
-      </div>
+  <ProgressRing percent={workout?.progress || 0} />
+<span
+  className={`mt-2 text-2xl font-bold ${
+    isDarkMode ? "text-white" : "text-slate-900"
+  }`}
+>
+  {workout?.progress || 0}%
+</span>
+</div>
     </div>
   );
 };
