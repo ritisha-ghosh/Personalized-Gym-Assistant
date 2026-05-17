@@ -81,7 +81,7 @@ const WeeklyConsistency = () => {
         backdrop-blur-md
         ${
           isDarkMode
-            ? "bg-[#1e293b]/60 border-[#334155]/60"
+            ? "bg-transparent border-[#334155]/60"
             : "bg-white/60 border-slate-100/60"
         }
       `}
@@ -117,7 +117,7 @@ const WeeklyConsistency = () => {
         ))}
       </div>
 
-      <p className="mt-6 text-sm font-medium text-slate-500">
+      <p className={`mt-6 text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-500'}`}>
         {completedCount} workouts completed this week.
       </p>
     </div>

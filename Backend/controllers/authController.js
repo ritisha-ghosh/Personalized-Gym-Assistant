@@ -173,20 +173,6 @@ exports.verifyOtpAndRegister = async (req, res) => {
       noGarlic: noGarlic ?? false
     });
 
-<<<<<<< HEAD
-    await Otp.deleteOne({ email }); // Clear the OTP upon successful usage
-
-    const accessToken = generateAccessToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
-    await User.findByIdAndUpdate(user._id, { refreshToken: refreshToken });
-=======
-    try {
-      await regenerateUserPlans(user);
-    } catch (planError) {
-      console.error("Plan generation failed during signup:", planError);
-    }
->>>>>>> 9e01a854b00c675904c5776f718f6fcf52c99b56
-
     res.status(201).json({
       success: true,
       message: "User registered successfully",

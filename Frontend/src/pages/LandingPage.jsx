@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
 import { DarkModeContext } from '../context/DarkModeContext';
+import logoImg from '../assets/logo.png';
 
 const LandingPage = () => {
   const currentYear = new Date().getFullYear();
@@ -58,18 +59,16 @@ const LandingPage = () => {
       <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b ${isDarkMode ? 'bg-[#0f172a]/80 border-[#334155]' : 'bg-white/80 border-gray-100'}`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-105 bg-[#00c4b4] shadow-md shadow-[#00c4b4]/30">
-              <span className="text-3xl font-normal">⚡</span>
-            </div>
-            <h2 className="text-3xl font-bold tracking-wide drop-shadow-md transition-all bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
-              <span className={`bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C] [-webkit-text-stroke:0.1px_black]'}`}>Be</span>
-              <span className={`bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.1px_black]'}`}>Fit</span>
+            <img src={logoImg} alt="BeFit Logo" className="w-16 h-16 object-contain transition-transform group-hover:scale-105" />
+            <h2 className="text-3xl font-bold tracking-wide transition-all !bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+              <span className={`!bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C] [-webkit-text-stroke:0.5px_black]'}`}>Be</span>
+              <span className={`!bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.5px_black]'}`}>Fit</span>
             </h2>
           </Link>
           
-          <nav className={`hidden md:flex items-center gap-10 bg-transparent ${isDarkMode ? 'text-[#cbd5e1]' : 'text-[#142E5C]'}`}>
+          <nav className={`hidden md:flex items-center gap-10 !bg-transparent ${isDarkMode ? 'text-[#cbd5e1]' : 'text-[#142E5C]'}`}>
             {['Features',  'Pricing'].map((item) => (
-              <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '-')}`} className={`text-sm font-bold transition-colors ${isDarkMode ? 'text-[#cbd5e1] hover:text-[#00c4b4] hover:bg-transparent' : 'text-[#142E5C] hover:text-[#00c4b4] hover:bg-transparent'}`}>
+              <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '-')}`} className={`text-sm font-bold transition-colors ${isDarkMode ? 'text-[#cbd5e1] hover:text-[#00c4b4] hover:!bg-transparent' : 'text-[#142E5C] hover:text-[#00c4b4] hover:!bg-transparent'}`}>
                 {item}
               </a>
             ))}
@@ -78,7 +77,7 @@ const LandingPage = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={toggleDarkMode}
-              className={`p-2 rounded-lg transition-all bg-transparent ${isDarkMode ? 'text-[#00c4b4] hover:bg-[#1e293b]/40' : 'text-slate-600 hover:bg-slate-100'}`}
+              className={`p-2 rounded-lg transition-all !bg-transparent ${isDarkMode ? 'text-[#00c4b4] hover:bg-[#1e293b]/40' : 'text-slate-600 hover:bg-slate-100'}`}
               title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -229,12 +228,10 @@ const LandingPage = () => {
             {/* Left: BeFit */}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-normal text-2xl bg-[#00c4b4] shadow-md shadow-[#00c4b4]/30">
-                  ⚡
-                </div>
-                <h2 className="text-3xl font-bold tracking-wide drop-shadow-md transition-all bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
-                  <span className={`bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C] [-webkit-text-stroke:0.1px_black]'}`}>Be</span>
-                  <span className={`bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.1px_black]'}`}>Fit</span>
+                <img src={logoImg} alt="BeFit Logo" className="w-16 h-16 object-contain" />
+                <h2 className="text-3xl font-bold tracking-wide transition-all !bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+                  <span className={`!bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C] [-webkit-text-stroke:0.5px_black]'}`}>Be</span>
+                  <span className={`!bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.5px_black]'}`}>Fit</span>
                 </h2>
               </div>
               <p className={`text-sm leading-relaxed max-w-sm ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'}`}>

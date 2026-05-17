@@ -197,6 +197,30 @@ const getAiMessage = () => {
         {`
           @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
           body { font-family: 'Libre Baskerville', serif; }
+          
+          /* Responsive fixes to prevent card text overflow on small screens */
+          .cards-responsive-wrapper {
+            min-width: 0;
+          }
+          .cards-responsive-wrapper > div {
+            min-width: 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+          }
+          @media (max-width: 640px) {
+            .cards-responsive-wrapper [class*="text-2xl"],
+            .cards-responsive-wrapper [class*="text-3xl"],
+            .cards-responsive-wrapper [class*="text-4xl"],
+            .cards-responsive-wrapper [class*="text-5xl"] {
+              font-size: 1.15rem !important;
+              line-height: 1.5rem !important;
+              white-space: normal !important;
+              word-break: break-word;
+            }
+            .cards-responsive-wrapper [class*="whitespace-nowrap"] {
+              white-space: normal !important;
+            }
+          }
         `}
       </style>
       <div className={`space-y-6 sm:space-y-8 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
@@ -219,7 +243,7 @@ const getAiMessage = () => {
 
         {/* Stats - Responsive grid (Filtered) */}
         {filteredStats.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 cards-responsive-wrapper">
             {filteredStats.map((stat) => (
               <StatCard
                 key={stat.id}
@@ -234,7 +258,7 @@ const getAiMessage = () => {
         )}
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 cards-responsive-wrapper">
           
           {/* Left Column */}
           <div className="space-y-6 lg:col-span-8">
@@ -276,8 +300,8 @@ const getAiMessage = () => {
         {searchQuery && 
         filteredStats.length === 0 && 
         !shouldShow(["workout", "weight", "consistency", "trainer", "leaderboard"]) && (
-            <div className="text-center py-20 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-            <p className="text-slate-500">No results found for "{searchQuery}".</p>
+            <div className={`text-center py-20 rounded-xl border border-dashed ${isDarkMode ? 'bg-transparent border-slate-600 text-white' : 'bg-slate-50 border-slate-300'}`}>
+            <p className={isDarkMode ? 'text-white' : 'text-slate-500'}>No results found for "{searchQuery}".</p>
             <button 
                 onClick={() => window.history.back()}
                 className="mt-2 text-[#df20af] font-bold hover:underline transition-transform active:scale-95 inline-block"

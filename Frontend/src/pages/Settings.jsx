@@ -21,9 +21,9 @@ import {
   Lock
 } from 'lucide-react';
 
-const Settings = () => { // Renamed from Settings to Settings
-  const navigate = useNavigate(); // Assuming this is used for navigation
-  const { user, logout, setUser } = useContext(AuthContext); // Destructure setUser here
+const Settings = () => { 
+  const navigate = useNavigate(); 
+  const { user, logout, setUser } = useContext(AuthContext); 
   const { isDarkMode, setDarkMode } = useContext(DarkModeContext);
   const [activeTab, setActiveTab] = useState('account');
   const [isLoading, setIsLoading] = useState(false);
@@ -47,8 +47,7 @@ const Settings = () => { // Renamed from Settings to Settings
     theme: isDarkMode ? 'Dark' : 'Light',
     emailNotifs: true,
     pushNotifs: true,
-    marketingEmails: false,
-    twoFactor: true,
+    marketingEmails: false
   });
 
   useEffect(() => {
@@ -62,8 +61,7 @@ const Settings = () => { // Renamed from Settings to Settings
           ...prev,
           firstName: firstName || '',
           lastName: lastName || '',
-          email: userData.email || '',
-          twoFactor: userData.isTwoFactorEnabled || false
+          email: userData.email || ''
         }));
       } catch (error) {
         console.error("Failed to fetch user data", error);
@@ -272,8 +270,9 @@ const Settings = () => { // Renamed from Settings to Settings
         <div className="flex flex-col lg:flex-row gap-8">
           
           <div className="w-full lg:w-64 flex-shrink-0">
-            <div className={`rounded-2xl shadow-sm border overflow-hidden sticky top-24 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
-              <nav className="flex flex-col p-2">
+            {/* UPDATED: Made background purely transparent and removed the border in dark mode for a seamless look */}
+            <div className={`rounded-2xl overflow-hidden sticky top-24 ${isDarkMode ? 'bg-transparent border-transparent shadow-none' : 'bg-white border border-slate-100 shadow-sm'}`}>
+              <nav className="flex flex-col p-2 bg-transparent">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -281,7 +280,7 @@ const Settings = () => { // Renamed from Settings to Settings
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                       activeTab === tab.id 
                         ? 'bg-[#00c4b4]/10 text-[#00c4b4]' 
-                        : (isDarkMode ? 'text-slate-400 hover:bg-[#334155] hover:text-slate-200 active:scale-95' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 active:scale-95')
+                    : (isDarkMode ? 'bg-transparent text-slate-400 hover:bg-[#334155] hover:text-slate-200 active:scale-95' : 'bg-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-700 active:scale-95')
                     }`}
                   >
                     <tab.icon size={18} />
@@ -289,11 +288,12 @@ const Settings = () => { // Renamed from Settings to Settings
                   </button>
                 ))}
               </nav>
-              <div className={`border-t p-2 mt-2 ${isDarkMode ? 'border-[#334155]' : 'border-slate-100'}`}>
+              {/* Also updated the border of the sign-out separator to be more subtle in dark mode */}
+              <div className={`border-t p-2 mt-2 ${isDarkMode ? 'border-slate-800' : 'border-slate-100'}`}>
                 <Link to="/" className={`flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all active:scale-95 ${
                   isDarkMode 
-                    ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300' 
-                    : 'text-red-500 hover:bg-red-50'
+                    ? 'bg-transparent text-red-400 hover:bg-red-500/10 hover:text-red-300' 
+                    : 'bg-transparent text-red-500 hover:bg-red-50'
                 }`}>
                   <LogOut size={18} />
                   Sign Out
@@ -306,7 +306,7 @@ const Settings = () => { // Renamed from Settings to Settings
             
             {activeTab === 'account' && (
               <div className="space-y-6 animate-fade-in">
-                <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                <div className={`p-8 rounded-[2rem] shadow-sm border ${isDarkMode ? 'bg-transparent border-[#334155]' : 'bg-white border-slate-100'}`}>
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg font-bold">Personal Information</h2>
                     <button
@@ -325,7 +325,7 @@ const Settings = () => { // Renamed from Settings to Settings
                           name="firstName"
                           value={formData.firstName}
                           onChange={handleChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
+                          className={`w-full rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}
                         />
                       </div>
                       <div className="space-y-2">
@@ -334,20 +334,20 @@ const Settings = () => { // Renamed from Settings to Settings
                           name="lastName"
                           value={formData.lastName}
                           onChange={handleChange}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
+                          className={`w-full rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Email Address</label>
                         <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                          <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`} size={18} />
                           <input 
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
                             disabled
                             title="Email address cannot be changed"
-                            className="w-full pl-11 bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-500 cursor-not-allowed outline-none transition-all"
+                            className={`w-full pl-11 rounded-xl px-4 py-3 text-sm font-bold cursor-not-allowed outline-none transition-all ${isDarkMode ? 'bg-[#1e293b] border border-[#334155] text-slate-400' : 'bg-slate-100 border border-slate-200 text-slate-500'}`}
                           />
                         </div>
                       </div>
@@ -361,7 +361,7 @@ const Settings = () => { // Renamed from Settings to Settings
                       <div className="md:col-span-2 flex justify-end gap-3 pt-4">
                         <button 
                           onClick={() => setIsEditMode(false)}
-                          className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all text-sm active:scale-95"
+                      className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm active:scale-95 ${isDarkMode ? 'bg-transparent text-slate-400 hover:bg-[#334155] hover:text-white' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}
                         >
                           Cancel
                         </button>
@@ -376,17 +376,17 @@ const Settings = () => { // Renamed from Settings to Settings
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-slate-50 p-4 rounded-xl">
+                      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-50'}`}>
                         <p className="text-xs font-bold text-slate-500 uppercase">First Name</p>
-                        <p className="text-lg font-bold text-slate-900 mt-2">{formData.firstName || 'Not set'}</p>
+                        <p className={`text-lg font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formData.firstName || 'Not set'}</p>
                       </div>
-                      <div className="bg-slate-50 p-4 rounded-xl">
+                      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-50'}`}>
                         <p className="text-xs font-bold text-slate-500 uppercase">Last Name</p>
-                        <p className="text-lg font-bold text-slate-900 mt-2">{formData.lastName || 'Not set'}</p>
+                        <p className={`text-lg font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formData.lastName || 'Not set'}</p>
                       </div>
-                      <div className="md:col-span-2 bg-slate-50 p-4 rounded-xl">
+                      <div className={`md:col-span-2 p-4 rounded-xl ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-50'}`}>
                         <p className="text-xs font-bold text-slate-500 uppercase">Email Address</p>
-                        <p className="text-lg font-bold text-slate-900 mt-2">{formData.email || 'Not set'}</p>
+                        <p className={`text-lg font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formData.email || 'Not set'}</p>
                       </div>
                     </div>
                   )}
@@ -404,7 +404,7 @@ const Settings = () => { // Renamed from Settings to Settings
             )}
 
             {activeTab === 'preferences' && (
-              <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 animate-fade-in space-y-8">
+              <div className={`p-8 rounded-[2rem] shadow-sm border animate-fade-in space-y-8 ${isDarkMode ? 'bg-transparent border-[#334155]' : 'bg-white border-slate-100'}`}>
                 
                 <div className="flex items-center justify-between pb-6 border-b border-slate-100">
                   <div className="flex gap-4">
@@ -544,11 +544,11 @@ const Settings = () => { // Renamed from Settings to Settings
                 </div>
 
               </div>
-            )} */}
+            )} */ }
 
             {activeTab === 'security' && (
               <div className="space-y-6 animate-fade-in">
-                <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                <div className={`p-8 rounded-[2rem] shadow-sm border ${isDarkMode ? 'bg-transparent border-[#334155]' : 'bg-white border-slate-100'}`}>
                   <h2 className="text-lg font-bold mb-6">Change Password</h2>
                   
                   <div className="space-y-4">
@@ -560,39 +560,39 @@ const Settings = () => { // Renamed from Settings to Settings
                         </Link>
                       </div>
                       <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 ${isDarkMode ? 'text-slate-300' : 'text-slate-400'}`} size={18} />
                         <input 
                           type="password"
                           name="currentPassword"
                           value={formData.currentPassword}
                           onChange={handleChange}
-                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
+                          className={`w-full pl-11 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white placeholder:text-slate-400' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">New Password</label>
                       <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 ${isDarkMode ? 'text-slate-300' : 'text-slate-400'}`} size={18} />
                         <input 
                           type="password"
                           name="newPassword"
                           value={formData.newPassword}
                           onChange={handleChange}
-                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
+                          className={`w-full pl-11 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white placeholder:text-slate-400' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Confirm Password</label>
                       <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 ${isDarkMode ? 'text-slate-300' : 'text-slate-400'}`} size={18} />
                         <input 
                           type="password"
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleChange}
-                          className="w-full pl-11 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all"
+                          className={`w-full pl-11 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white placeholder:text-slate-400' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}
                         />
                       </div>
                     </div>
@@ -604,7 +604,7 @@ const Settings = () => { // Renamed from Settings to Settings
                     </div>
                   )}
 
-                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-100">
+                  <div className={`flex justify-end gap-3 mt-6 pt-6 border-t ${isDarkMode ? 'border-[#334155]' : 'border-slate-100'}`}>
                     <button 
                       onClick={handleChangePassword}
                       disabled={isLoading}
@@ -614,54 +614,16 @@ const Settings = () => { // Renamed from Settings to Settings
                     </button>
                   </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Two-Step Verification</h3>
-                <p className="text-xs text-slate-500 mt-1">Require an OTP verification when logging in.</p>
-              </div>
-              <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                <input 
-                  type="checkbox" 
-                  name="twoFactor" 
-                  id="twoFactor" 
-                  checked={formData.twoFactor}
-                  onChange={async () => {
-                    const newValue = !formData.twoFactor;
-                    setFormData(prev => ({ ...prev, twoFactor: newValue }));
-                    try {
-                      const formDataToSend = new FormData();
-                      formDataToSend.append('isTwoFactorEnabled', newValue);
-                      await api.put('/users/profile', formDataToSend, {
-                        headers: { 'Content-Type': 'multipart/form-data' }
-                      });
-                      setSaveStatus('Two-Step Verification updated!');
-                      setTimeout(() => setSaveStatus(''), 3000);
-                    } catch (error) {
-                      setSaveStatus('Error updating Two-Step Verification');
-                      setFormData(prev => ({ ...prev, twoFactor: !newValue }));
-                    }
-                  }}
-                  className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 ease-in-out"
-                  style={formData.twoFactor ? { right: 0, borderColor: '#00c4b4' } : { right: '50%', borderColor: '#e2e8f0' }}
-                />
-                <label 
-                  htmlFor="twoFactor" 
-                  className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.twoFactor ? 'bg-[#00c4b4]' : 'bg-slate-200'}`}
-                ></label>
-              </div>
-            </div>
-          </div>
                 </div>
 
-                <div className="bg-red-50 p-8 rounded-[2rem] border border-red-100">
+                <div className={`p-8 rounded-[2rem] border ${isDarkMode ? 'bg-transparent border-red-500/30' : 'bg-red-50 border-red-100'}`}>
                   <h2 className="text-lg font-bold text-red-600 mb-2">Danger Zone</h2>
                   <p className="text-sm text-red-400 mb-6">Once you delete your account, there is no going back. Please be certain.</p>
                   
                   <button 
                     onClick={handleDeleteAccount}
                     disabled={isLoading}
-                    className="flex items-center gap-2 bg-white border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-6 py-3 rounded-xl font-bold transition-all shadow-sm hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70"
+                    className="flex items-center gap-2 bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-6 py-3 rounded-xl font-bold transition-all shadow-sm hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70"
                   >
                     <Trash2 size={18} />
                     Delete Account
@@ -692,9 +654,9 @@ const Settings = () => { // Renamed from Settings to Settings
 
         {isDeleteModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in" style={{ fontFamily: "'Libre Baskerville', serif" }}>
-            <div className="bg-white p-8 rounded-2xl shadow-lg max-w-sm w-full">
+            <div className={`p-8 rounded-2xl shadow-lg max-w-sm w-full ${isDarkMode ? 'bg-[#1e293b] border border-[#334155]' : 'bg-white'}`}>
               <h2 className="text-lg font-bold text-red-600">Confirm Account Deletion</h2>
-              <p className="text-sm text-slate-500 mt-2 mb-4">
+              <p className={`text-sm mt-2 mb-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                 This action is irreversible. To confirm, please enter your password.
               </p>
               <input
@@ -702,7 +664,7 @@ const Settings = () => { // Renamed from Settings to Settings
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
                 placeholder="Enter your password"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all"
+                className={`w-full rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white placeholder:text-slate-400' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}
               />
               {saveStatus.includes('Error') && (
                 <p className="text-red-500 text-xs mt-2 font-bold">{saveStatus}</p>
@@ -710,14 +672,14 @@ const Settings = () => { // Renamed from Settings to Settings
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={() => setIsDeleteModalOpen(false)}
-                  className="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all text-sm active:scale-95"
+                  className={`px-6 py-2.5 rounded-xl font-bold transition-all text-sm active:scale-95 ${isDarkMode ? 'bg-transparent text-slate-400 hover:bg-[#334155] hover:text-white' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDeleteAccount}
                   disabled={isLoading}
-                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-red-600/20 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 text-sm"
+                  className="flex items-center gap-2 bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-red-500/20 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 text-sm"
                 >
                   {isLoading ? 'Deleting...' : 'Delete Account'}
                 </button>

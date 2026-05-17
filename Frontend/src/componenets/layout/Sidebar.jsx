@@ -2,6 +2,7 @@ import { Apple, Dumbbell, LayoutDashboard, LineChartIcon, LogOut, MessageSquare,
 import { Link, useLocation } from "react-router-dom";
 import { useContext } from "react";
 import { DarkModeContext } from "../../context/DarkModeContext";
+import logoImg from "../../assets/logo.png";
 
 const Sidebar = ({ onClose }) => {
   const location = useLocation();
@@ -31,12 +32,10 @@ const Sidebar = ({ onClose }) => {
 
       {/* Logo */}
       <div className="p-4 sm:p-6 flex items-center gap-3 flex-shrink-0">
-        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0 transition-transform hover:scale-105 bg-[#00c4b4] shadow-md shadow-[#00c4b4]/30">
-          <span className="text-2xl sm:text-3xl font-normal">⚡</span>
-        </div>
-        <span className="text-3xl font-bold tracking-wide drop-shadow-md truncate transition-all bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
-          <span className={`bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C] [-webkit-text-stroke:0.1px_black]'}`}>Be</span>
-          <span className={`bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.1px_black]'}`}>Fit</span>
+        <img src={logoImg} alt="BeFit Logo" className="w-14 h-14 sm:w-16 sm:h-16 object-contain flex-shrink-0" />
+        <span className="text-3xl font-bold tracking-wide truncate transition-all !bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+          <span className={`!bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C] [-webkit-text-stroke:0.5px_black]'}`}>Be</span>
+          <span className={`!bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.5px_black]'}`}>Fit</span>
         </span>
       </div>
 
