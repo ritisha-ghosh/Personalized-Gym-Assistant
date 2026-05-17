@@ -4,6 +4,9 @@ from flask_cors import CORS
 import joblib
 import pandas as pd
 import random
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 CORS(app)
@@ -47,35 +50,44 @@ def initialize_ml_engine():
     global vectorizer, model, knn_model, df_users, df_diet
     load_errors = []
     try:
-        vectorizer = joblib.load('vectorizer.pkl')
+        vectorizer = joblib.load(os.path.join(BASE_DIR, 'vectorizer.pkl'))
         print("✅ NLP vectorizer loaded.")
     except Exception as e:
         vectorizer = None
         load_errors.append(f"vectorizer.pkl: {e}")
 
     try:
-        model = joblib.load('model.pkl')
+        model = joblib.load(os.path.join(BASE_DIR, 'model.pkl'))
         print("✅ NLP classifier model loaded.")
     except Exception as e:
         model = None
         load_errors.append(f"model.pkl: {e}")
 
     try:
-        knn_model = joblib.load('knn_model.pkl')
+        knn_model = joblib.load(os.path.join(BASE_DIR, 'knn_model.pkl'))
         print("✅ KNN recommendation model loaded.")
     except Exception as e:
         knn_model = None
         load_errors.append(f"knn_model.pkl: {e}")
 
     try:
-        df_users = joblib.load('df_users.pkl')
-        print("✅ User recommendation dataset loaded.")
+        df_users = joblib.load(os.path.join(BASE_DIR, 'df_users.pkl'))
+        if df_users is not None and 'recommended_plan_id' not in df_users.columns:
+            df_users['recommended_plan_id'] = df_users.index + 1
+        print("✅ User recommendation dataset loaded from df_users.pkl.")
     except Exception as e:
         df_users = None
         load_errors.append(f"df_users.pkl: {e}")
+        try:
+            df_users = pd.read_csv(os.path.join(BASE_DIR, 'user_profiles_demo.csv'), encoding='latin1')
+            df_users['recommended_plan_id'] = df_users.index + 1
+            print("✅ User recommendation dataset loaded from user_profiles_demo.csv.")
+        except Exception as csv_err:
+            df_users = None
+            load_errors.append(f"user_profiles_demo.csv: {csv_err}")
 
     try:
-        df_diet = pd.read_csv('diet_dataset.csv', encoding='latin1')
+        df_diet = pd.read_csv(os.path.join(BASE_DIR, 'diet_dataset.csv'), encoding='latin1')
         print("🥗 Diet Dataset loaded successfully.")
     except Exception as e:
         df_diet = None
@@ -287,17 +299,58 @@ def recommend_plan():
     except:
         raise APIError("Invalid user metrics.")
 
-    distances, indices = knn_model.kneighbors(target_user)
-    recommended_plan_id = df_users.iloc[indices[0][0]]['recommended_plan_id']
-    
+    selected_row = None
+    recommended_plan_id = "1"
+    exercise_suggestion = ""
+    response_status = "success"
     msg = "Collaborative filtering successful."
+
+    if knn_model is not None and df_users is not None:
+        distances, indices = knn_model.kneighbors(target_user)
+        selected_row = df_users.iloc[indices[0][0]]
+    elif df_users is not None:
+        filtered = df_users.copy()
+        profile_map = {1: 'Beginner', 2: 'Intermediate', 3: 'Advanced'}
+        goal_map = {1: 'Fat Loss', 2: 'Muscle Gain', 3: 'Maintenance'}
+
+        profile_filter = profile_map.get(int(float(data.get('experience_level', 2))), '')
+        goal_filter = goal_map.get(int(float(data.get('goal_type', 3))), '')
+
+        if profile_filter and 'Profile Level' in filtered.columns:
+            filtered = filtered[filtered['Profile Level'].str.contains(profile_filter, case=False, na=False)]
+        if goal_filter and 'Focus Goal' in filtered.columns:
+            filtered = filtered[filtered['Focus Goal'].str.contains(goal_filter, case=False, na=False)]
+
+        if filtered.empty:
+            filtered = df_users
+
+        selected_row = filtered.sample(1).iloc[0]
+        response_status = "fallback"
+        msg = "Fallback recommendation generated from ML dataset."
+    else:
+        return jsonify({
+            "status": "fallback",
+            "message": "ML recommendation engine is temporarily unavailable. Returning default plan variant.",
+            "recommended_plan_id": "1",
+            "fatigued_muscles_avoided": data.get('exhausted_muscles', [])
+        }), 200
+
+    recommended_plan_id = selected_row.get('recommended_plan_id', 1)
+    exercise_suggestion = selected_row.get('Exercise Suggestion', '') if 'Exercise Suggestion' in selected_row else ''
+    exercise_suggestion = exercise_suggestion if isinstance(exercise_suggestion, str) else ''
+
     if exhausted_muscles:
         msg += f" 🛡️ Smart Coach Active: Detected fatigue in [{', '.join(exhausted_muscles)}]."
 
     return jsonify({
-        "status": "success",
+        "status": response_status,
         "message": msg,
         "recommended_plan_id": str(recommended_plan_id),
+        "exercise_suggestion": exercise_suggestion,
+        "plan_meta": {
+            "focus_goal": selected_row.get('Focus Goal', ''),
+            "profile_level": selected_row.get('Profile Level', '')
+        },
         "fatigued_muscles_avoided": exhausted_muscles
     }), 200
 
