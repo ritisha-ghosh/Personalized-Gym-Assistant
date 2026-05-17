@@ -63,6 +63,15 @@ const normalizeDietType = (dietType) => {
   return 'vegetarian';
 };
 
+const getMondayStart = (date = new Date()) => {
+  const result = new Date(date);
+  result.setHours(0, 0, 0, 0);
+  const day = result.getDay();
+  const diff = (day + 6) % 7; // Monday = 0, Sunday = 6
+  result.setDate(result.getDate() - diff);
+  return result;
+};
+
 const getMealDescription = (food, preferences, dietType) => {
   let updated = food;
   const type = normalizeDietType(dietType);
@@ -395,7 +404,8 @@ const buildWeeklyWorkoutPlanFromSuggestion = (user, suggestion) => {
   const planTemplate = days.map((day, idx) => {
     const pattern = dayPatterns[idx];
     const isRestDay = pattern === 'rest';
-    const title = isRestDay ? `${day} Active Recovery` : `${day} ${pattern === 'fullBody' ? 'Full Body' : pattern.charAt(0).toUpperCase() + pattern.slice(1)} Workout`;
+    const patternLabel = pattern === 'fullBody' ? 'Full Body' : pattern.charAt(0).toUpperCase() + pattern.slice(1);
+    const title = isRestDay ? 'Active Recovery' : `${patternLabel} Workout`;
     const exercises = isRestDay ? [] : buildDayExercises(pattern, idx);
     const notePrefix = isRestDay ? 'Rest and recovery day.' : 'ML workout suggestion:';
 
@@ -408,18 +418,19 @@ const buildWeeklyWorkoutPlanFromSuggestion = (user, suggestion) => {
     };
   });
 
+  const weekStart = getMondayStart();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   return planTemplate.map((item, idx) => {
-    const date = new Date(today);
+    const date = new Date(weekStart);
     date.setDate(date.getDate() + idx);
     const isoDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
     return {
       date: isoDate,
       dayName: date.toLocaleDateString('en-US', { weekday: 'long' }),
-      isToday: idx === 0,
+      isToday: isoDate === today.toISOString().slice(0, 10),
       dayIndex: idx,
       ...item,
       completed: false,
@@ -573,18 +584,19 @@ const buildWeeklyWorkoutPlan = (user, recommendationId) => {
     };
   });
 
+  const weekStart = getMondayStart();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   return plan.map((item, idx) => {
-    const date = new Date(today);
+    const date = new Date(weekStart);
     date.setDate(date.getDate() + idx);
     const isoDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
     return {
       date: isoDate,
       dayName: date.toLocaleDateString('en-US', { weekday: 'long' }),
-      isToday: idx === 0,
+      isToday: isoDate === today.toISOString().slice(0, 10),
       dayIndex: idx,
       ...item,
       completed: false,
