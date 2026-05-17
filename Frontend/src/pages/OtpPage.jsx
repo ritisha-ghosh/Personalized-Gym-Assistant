@@ -7,9 +7,11 @@ const OtpPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email;
+  const { userData, isRegistration, isLogin, isForgotPassword } = location.state || {};
   const { isDarkMode } = useContext(DarkModeContext); // Use Dark Mode Context
 
   const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -31,12 +33,34 @@ const OtpPage = () => {
       return;
     }
 
+    if (isForgotPassword && !newPassword) {
+      setError('Please enter a new password.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await api.post('/auth/verify-otp', { email, otp });
+      let response;
+      if (isRegistration) {
+        response = await api.post('/auth/verify-otp', { email, otp, userData });
+      } else if (isLogin) {
+        response = await api.post('/auth/verify-login-otp', { email, otp });
+      } else if (isForgotPassword) {
+        response = await api.post('/auth/reset-password', { email, otp, newPassword });
+      } else {
+        response = await api.post('/auth/verify-otp', { email, otp });
+      }
+
       if (response.data) {
         setSuccess(response.data.message);
+        if (response.data.token) {
+          localStorage.setItem('token', response.data.token);
+          if (response.data.refreshToken) {
+            localStorage.setItem('refreshToken', response.data.refreshToken);
+          }
+        }
         setTimeout(() => {
-          navigate('/login');
+          navigate(isLogin || isRegistration ? '/dashboard' : '/login');
         }, 3000);
       }
     } catch (err) {
@@ -45,6 +69,16 @@ const OtpPage = () => {
       setLoading(false);
     }
   };
+
+  let title = "Verify Your Email";
+  let description = `An OTP has been sent to ${email}. Please enter it below.`;
+  if (isLogin) {
+    title = "Two-Step Verification";
+    description = `To secure your account, please enter the OTP sent to ${email}.`;
+  } else if (isForgotPassword) {
+    title = "Reset Password";
+    description = `Enter the OTP sent to ${email} along with your new password.`;
+  }
 
   return (
     // Updated container background for dark mode
@@ -69,9 +103,9 @@ const OtpPage = () => {
       <div className={`w-full max-w-md p-8 space-y-6 rounded-2xl shadow-lg ${isDarkMode ? 'bg-[#1e293b] border border-[#334155]' : 'bg-white'}`}>
         <div className="text-center">
           {/* Updated text colors for dark mode */}
-          <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Verify Your Email</h2>
+          <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>{title}</h2>
           <p className={`text-sm mt-2 ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-500'}`}>
-            An OTP has been sent to <strong className={isDarkMode ? 'text-white' : 'text-slate-800'}>{email}</strong>. Please enter it below.
+            {description}
           </p>
         </div>
 
@@ -108,6 +142,24 @@ const OtpPage = () => {
             />
           </div>
 
+        {isForgotPassword && (
+          <div>
+            <label htmlFor="newPassword" className="block text-sm font-medium sr-only">
+              New Password
+            </label>
+            <input
+              id="newPassword"
+              name="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              className={`w-full px-4 py-3 border rounded-xl outline-none transition-all focus:border-teal-500 mt-4 ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white' : 'bg-slate-50/50 border-slate-200 text-slate-900'}`}
+              placeholder="Enter New Password"
+            />
+          </div>
+        )}
+
           <div>
             <button
               type="submit"
@@ -118,13 +170,13 @@ const OtpPage = () => {
                   : 'bg-[#db2777] hover:bg-[#be185d] text-white'
               }`}
             >
-              {loading ? 'Verifying...' : 'Verify & Register'}
+              {loading ? 'Verifying...' : (isForgotPassword ? 'Reset Password' : (isLogin ? 'Verify & Login' : 'Verify & Register'))}
             </button>
           </div>
         </form>
         <p className={`text-center text-sm ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-500'}`}>
-          <Link to="/register" className={`font-medium hover:underline ${isDarkMode ? 'text-white' : 'text-slate-600'}`}>
-            &larr; Back to registration
+          <Link to={isLogin || isForgotPassword ? "/login" : "/register"} className={`font-medium hover:underline ${isDarkMode ? 'text-white' : 'text-slate-600'}`}>
+            &larr; Back to {isLogin || isForgotPassword ? "login" : "registration"}
           </Link>
         </p>
       </div>

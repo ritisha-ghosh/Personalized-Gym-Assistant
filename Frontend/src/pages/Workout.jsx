@@ -184,7 +184,7 @@ const Workout = () => {
       
       // Mark as completed
       setIsWorkoutDoneToday(true);
-      setFeedbackModal({ show: true, type: 'success', message: 'Workout Logged Successfully! Great Job.' });
+      setFeedbackModal({ show: true, type: 'success', message: 'Workout Logged Successfully ! Great Job.' });
       
     } catch (error) {
       console.error("Workout log error:", error);

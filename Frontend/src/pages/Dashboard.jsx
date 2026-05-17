@@ -49,18 +49,27 @@ const logs = logsResponse.data;
 const now = new Date();
 const startOfWeek = new Date(now);
 
-const day = startOfWeek.getDay();
-const diff = day === 0 ? 6 : day - 1;
-
-startOfWeek.setDate(startOfWeek.getDate() - diff);
+// Use a rolling 7-day window to perfectly match the Weekly Consistency tracker
+startOfWeek.setDate(startOfWeek.getDate() - 6);
 startOfWeek.setHours(0, 0, 0, 0);
 
 const thisWeekLogs = logs.filter((log) => {
-  const logDate = new Date(log.createdAt);
-  return logDate >= startOfWeek;
+  const logDate = new Date(log.date || log.createdAt);
+  return log.status === "active" && logDate >= startOfWeek;
 });
 
-setWeeklyWorkoutCount(thisWeekLogs.length);
+const uniqueWorkoutDatesThisWeek = new Set(
+  thisWeekLogs.map((log) => {
+    // Extract the raw date to prevent browser timezone shifts from merging days
+    if (log.date) {
+      return log.date.split('T')[0]; 
+    }
+    const d = new Date(log.date || log.createdAt);
+    return d.toDateString();
+  })
+);
+
+setWeeklyWorkoutCount(uniqueWorkoutDatesThisWeek.size);
 
 const weeklyPlanResponse = await api.get("/workouts/weekly-plan");
 const weeklyPlan = weeklyPlanResponse.data.weekPlan;
@@ -71,9 +80,26 @@ console.log("Weekly plan:", weeklyPlan);
 const todayWorkout = weeklyPlan.find(day => day.isToday);
 
 if (todayWorkout) {
+  let progressPercentage = 0;
+  
+  if (todayWorkout.completed) {
+    progressPercentage = 100;
+  } else if (user?.id && todayWorkout.date) {
+    const saved = localStorage.getItem(`workout_completed_${user.id}_${todayWorkout.date}`);
+    if (saved) {
+      try {
+        const completedExerciseIds = JSON.parse(saved);
+        const totalExercises = todayWorkout.type === 'rest' ? 1 : Math.max(todayWorkout.exercises?.length || 1, 1);
+        progressPercentage = Math.round((completedExerciseIds.length / totalExercises) * 100);
+      } catch (e) {
+        console.error("Error parsing saved workout progress:", e);
+      }
+    }
+  }
+
   setRecommendedWorkout({
     ...todayWorkout,
-    progress: todayWorkout.completed ? 100 : 0
+    progress: progressPercentage
   });
 }
 
@@ -110,7 +136,7 @@ const getAiMessage = () => {
     return `Great start! ${weeklyWorkoutCount} workouts this week.`;
   }
 
-  return `Amazing! ${weeklyWorkoutCount} workouts this week. Keep it up!`;
+  return `Amazing ! ${weeklyWorkoutCount} workouts this week. Keep it up !`;
 };
 
   // 3. Helper to check if a component should be visible
@@ -180,7 +206,7 @@ const getAiMessage = () => {
             {getGreeting()}, {user?.name || "User"}.
           </h1>
           <p className={`mt-1 text-sm sm:text-base font-medium ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>
-  AI Trainer: {getAiMessage()}
+  AI Trainer : {getAiMessage()}
 </p>
           
           {/* Search Result Indicator */}

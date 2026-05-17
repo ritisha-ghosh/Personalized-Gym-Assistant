@@ -48,7 +48,7 @@ const RegisterPage = () => {
       const response = await api.post('/auth/send-otp', payload);
       
       if (response.data) {
-        navigate('/verify-otp', { state: { email: formData.email } });
+        navigate('/verify-otp', { state: { email: formData.email, userData: payload, isRegistration: true } });
       }
     } catch (err) {
       console.error(err);
@@ -111,6 +111,7 @@ const RegisterPage = () => {
     <div className={`flex min-h-screen ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-white'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <style>
         {`
+          @import url('https://fonts.googleapis.com/css2?family=Goblin+One&display=swap');
           /* Global Scrollbar Styles */
           ::-webkit-scrollbar {
             width: 6px;
@@ -129,10 +130,13 @@ const RegisterPage = () => {
       <div className={`hidden lg:flex w-1/3 p-12 flex-col justify-between relative overflow-hidden ${isDarkMode ? 'bg-[#1e293b] border-r border-[#334155]' : 'bg-[#e0f7f1]'}`}>
         <div>
           <Link to="/" className="flex items-center gap-2 mb-16 hover:opacity-80 transition-opacity w-fit">
-            <div className="w-8 h-8 bg-[#00c4b4] rounded-md flex items-center justify-center rotate-45">
-              <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white bg-[#00c4b4] shadow-md shadow-[#00c4b4]/30">
+              <span className="text-2xl font-normal">⚡</span>
             </div>
-            <span className="text-xl font-bold text-slate-800 tracking-tight">BeFit</span>
+            <span className="text-3xl font-bold tracking-wide drop-shadow-md transition-all bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+              <span className={`bg-transparent ${isDarkMode ? 'text-white' : 'text-slate-800 [-webkit-text-stroke:0.1px_black]'}`}>Be</span>
+              <span className={`bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.1px_black]'}`}>Fit</span>
+            </span>
           </Link>
 
           <div className="relative z-10">
@@ -168,10 +172,13 @@ const RegisterPage = () => {
           {/* Logo - Only visible on mobile */}
           <div className="lg:hidden">
             <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity w-fit">
-              <div className="w-8 h-8 bg-[#00c4b4] rounded-md flex items-center justify-center rotate-45">
-                <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white bg-[#00c4b4] shadow-md shadow-[#00c4b4]/30">
+                <span className="text-2xl font-normal">⚡</span>
               </div>
-              <span className="text-xl font-bold text-slate-800 tracking-tight">BeFit</span>
+              <span className="text-3xl font-bold tracking-wide drop-shadow-md transition-all bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+                <span className={`bg-transparent ${isDarkMode ? 'text-white' : 'text-slate-800 [-webkit-text-stroke:0.1px_black]'}`}>Be</span>
+                <span className={`bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.1px_black]'}`}>Fit</span>
+              </span>
             </Link>
           </div>
           <p className="text-sm text-slate-500 lg:w-full lg:text-right">

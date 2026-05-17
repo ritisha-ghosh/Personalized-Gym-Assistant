@@ -88,10 +88,10 @@ const OurStory = () => {
       <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b pt-2 pb-2 ${isDarkMode ? 'bg-[#0f172a]/80 border-[#334155]' : 'bg-slate-50/80 border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-8 lg:px-16 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-105 ${isDarkMode ? 'bg-[#00c4b4]' : 'bg-teal-500'}`}>
-              <span className="text-2xl font-bold">⚡</span>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-105 bg-[#00c4b4] shadow-md shadow-[#00c4b4]/30">
+              <span className="text-3xl font-normal">⚡</span>
             </div>
-            <h2 className={`text-xl font-black tracking-tight hover:text-teal-500 transition-colors ${isDarkMode ? 'text-[#00c4b4]' : 'text-[#142E5C]'}`}>Back to Home Page</h2>
+            <h2 className={`text-xl font-light tracking-wide hover:text-teal-500 transition-colors ${isDarkMode ? 'text-[#00c4b4]' : 'text-[#142E5C]'}`}>Back to Home Page</h2>
           </Link>
           
           <div className="flex items-center gap-4">

@@ -21,6 +21,7 @@ const LandingPage = () => {
         {`
           @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
           @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0');
+          @import url('https://fonts.googleapis.com/css2?family=Goblin+One&display=swap');
           
           body { font-family: 'Libre Baskerville', serif; }
           .font-body { font-family: 'Libre Baskerville', serif; }
@@ -57,10 +58,13 @@ const LandingPage = () => {
       <header className={`sticky top-0 z-50 w-full backdrop-blur-md border-b ${isDarkMode ? 'bg-[#0f172a]/80 border-[#334155]' : 'bg-white/80 border-gray-100'}`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-105 ${isDarkMode ? 'bg-[#00c4b4]' : 'bg-teal-500'}`}>
-              <span className="text-2xl font-bold">⚡</span>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-transform group-hover:scale-105 bg-[#00c4b4] shadow-md shadow-[#00c4b4]/30">
+              <span className="text-3xl font-normal">⚡</span>
             </div>
-            <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-[#00c4b4]' : 'text-[#142E5C]'}`}>BeFit</h2>
+            <h2 className="text-3xl font-bold tracking-wide drop-shadow-md transition-all bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+              <span className={`bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C] [-webkit-text-stroke:0.1px_black]'}`}>Be</span>
+              <span className={`bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.1px_black]'}`}>Fit</span>
+            </h2>
           </Link>
           
           <nav className={`hidden md:flex items-center gap-10 bg-transparent ${isDarkMode ? 'text-[#cbd5e1]' : 'text-[#142E5C]'}`}>
@@ -225,10 +229,13 @@ const LandingPage = () => {
             {/* Left: BeFit */}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center text-white">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-normal text-2xl bg-[#00c4b4] shadow-md shadow-[#00c4b4]/30">
                   ⚡
                 </div>
-                <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-[#00c4b4]' : 'text-[#142E5C]'}`}>BeFit</h2>
+                <h2 className="text-3xl font-bold tracking-wide drop-shadow-md transition-all bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+                  <span className={`bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C] [-webkit-text-stroke:0.1px_black]'}`}>Be</span>
+                  <span className={`bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.1px_black]'}`}>Fit</span>
+                </h2>
               </div>
               <p className={`text-sm leading-relaxed max-w-sm ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'}`}>
                 The future of performance coaching. AI-driven, human-centered, results-oriented.

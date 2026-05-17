@@ -62,7 +62,8 @@ const Settings = () => { // Renamed from Settings to Settings
           ...prev,
           firstName: firstName || '',
           lastName: lastName || '',
-          email: userData.email || ''
+          email: userData.email || '',
+          twoFactor: userData.isTwoFactorEnabled || false
         }));
       } catch (error) {
         console.error("Failed to fetch user data", error);
@@ -110,7 +111,7 @@ const Settings = () => { // Renamed from Settings to Settings
         }));
       }
 
-      setSaveStatus('Account information updated successfully!');
+      setSaveStatus('Account information updated successfully !');
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (error) {
       setSaveStatus('Error updating account information: ' + (error.response?.data?.message || 'Unknown error'));
@@ -612,6 +613,45 @@ const Settings = () => { // Renamed from Settings to Settings
                       {isLoading ? '...' : 'Update Password'}
                     </button>
                   </div>
+
+          <div className="mt-8 pt-6 border-t border-slate-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Two-Step Verification</h3>
+                <p className="text-xs text-slate-500 mt-1">Require an OTP verification when logging in.</p>
+              </div>
+              <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input 
+                  type="checkbox" 
+                  name="twoFactor" 
+                  id="twoFactor" 
+                  checked={formData.twoFactor}
+                  onChange={async () => {
+                    const newValue = !formData.twoFactor;
+                    setFormData(prev => ({ ...prev, twoFactor: newValue }));
+                    try {
+                      const formDataToSend = new FormData();
+                      formDataToSend.append('isTwoFactorEnabled', newValue);
+                      await api.put('/users/profile', formDataToSend, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                      });
+                      setSaveStatus('Two-Step Verification updated!');
+                      setTimeout(() => setSaveStatus(''), 3000);
+                    } catch (error) {
+                      setSaveStatus('Error updating Two-Step Verification');
+                      setFormData(prev => ({ ...prev, twoFactor: !newValue }));
+                    }
+                  }}
+                  className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 ease-in-out"
+                  style={formData.twoFactor ? { right: 0, borderColor: '#00c4b4' } : { right: '50%', borderColor: '#e2e8f0' }}
+                />
+                <label 
+                  htmlFor="twoFactor" 
+                  className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer transition-colors duration-300 ease-in-out ${formData.twoFactor ? 'bg-[#00c4b4]' : 'bg-slate-200'}`}
+                ></label>
+              </div>
+            </div>
+          </div>
                 </div>
 
                 <div className="bg-red-50 p-8 rounded-[2rem] border border-red-100">

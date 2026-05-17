@@ -46,6 +46,7 @@ const LoginPage = () => {
     <div className={`relative min-h-screen flex flex-col overflow-hidden ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-slate-50'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <style>
         {`
+          @import url('https://fonts.googleapis.com/css2?family=Goblin+One&display=swap');
           /* Global Scrollbar Styles */
           ::-webkit-scrollbar {
             width: 6px;
@@ -68,11 +69,14 @@ const LoginPage = () => {
       <header className="w-full flex items-center justify-between px-8 py-5 z-10">
         {/* LOGO AS PICTURE */}
         <Link to="/" className="flex items-center gap-2 mb-16 hover:opacity-80 transition-opacity w-fit">
-                    <div className="w-8 h-8 bg-[#00c4b4] rounded-md flex items-center justify-center rotate-45">
-                      <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
-                    </div>
-                    <span className="text-xl font-bold text-slate-800 tracking-tight">BeFit</span>
-                  </Link>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white bg-[#00c4b4] shadow-md shadow-[#00c4b4]/30">
+            <span className="text-2xl font-normal">⚡</span>
+          </div>
+          <span className="text-3xl font-bold tracking-wide drop-shadow-md transition-all bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+            <span className={`bg-transparent ${isDarkMode ? 'text-white' : 'text-slate-800 [-webkit-text-stroke:0.1px_black]'}`}>Be</span>
+            <span className={`bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.1px_black]'}`}>Fit</span>
+          </span>
+        </Link>
 
         <div className="flex items-center gap-4">
           <span className={`hidden sm:block text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>New to here?</span>
