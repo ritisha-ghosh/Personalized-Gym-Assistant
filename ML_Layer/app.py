@@ -118,6 +118,10 @@ def predict():
         context_muscles = [m.lower() for m in raw_input.get('recentActivity', [])]
     else:
         user_query = str(raw_input)
+        
+    user_context = data.get('user_context', {})
+    diet_type_ctx = user_context.get('dietType', user_context.get('diet_type', '')).lower()
+    goal_ctx = user_context.get('goal', '').lower()
 
     text_vec = vectorizer.transform([user_query])
     
@@ -155,14 +159,19 @@ def predict():
             
             if 'keto' in user_message_lower:
                 filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Keto', case=False, na=False)]
-            elif 'vegan' in user_message_lower or 'vegetarian' in user_message_lower:
-                filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Vegan|Vegetarian', case=False, na=False)]
-                # 🛑 THE FIX: Explicitly destroy the "Non-Vegetarian" substring match and Eggs!
-                filtered_diet = filtered_diet[~filtered_diet['Diet Type'].str.contains('Non-Veg|Egg', case=False, na=False)]
+            elif 'vegan' in user_message_lower or 'vegetarian' in user_message_lower or 'veg' in diet_type_ctx:
+                # If user explicitly asked for meat, or their profile allows meat
+                if 'non-veg' in user_message_lower or 'non-veg' in diet_type_ctx:
+                    filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Non-Veg', case=False, na=False)]
+                else:
+                    filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Vegan|Vegetarian', case=False, na=False)]
+                    filtered_diet = filtered_diet[~filtered_diet['Diet Type'].str.contains('Non-Veg|Egg', case=False, na=False)]
+            elif 'non-veg' in diet_type_ctx:
+                filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Non-Veg', case=False, na=False)]
                 
-            if 'loss' in user_message_lower or 'cut' in user_message_lower:
+            if 'loss' in user_message_lower or 'cut' in user_message_lower or 'loss' in goal_ctx:
                 filtered_diet = filtered_diet[filtered_diet['Focus Goal'].str.contains('Loss', case=False, na=False)]
-            elif 'gain' in user_message_lower or 'bulk' in user_message_lower:
+            elif 'gain' in user_message_lower or 'bulk' in user_message_lower or 'gain' in goal_ctx or 'muscle' in goal_ctx:
                 filtered_diet = filtered_diet[filtered_diet['Focus Goal'].str.contains('Gain|Muscle', case=False, na=False)]
 
             if filtered_diet.empty:
@@ -237,7 +246,11 @@ def scale_difficulty():
 @app.route('/diet-recommendation', methods=['POST'])
 def diet_recommendation():
     data = request.json
-    diet_type = data.get("dietType", "").lower()
+    
+    # Catch payload shape differences (dietType vs diet_type vs nested inside a user object)
+    diet_type = data.get("dietType", data.get("diet_type", "")).lower()
+    if not diet_type and "user" in data:
+        diet_type = data.get("user", {}).get("dietType", data.get("user", {}).get("diet_type", "")).lower()
     
     if df_diet is None or df_diet.empty:
         raise APIError("Diet database is currently unavailable.")
@@ -284,13 +297,29 @@ def recommend_plan():
         level_map = {"beginner": 1.0, "intermediate": 2.0, "advanced": 0.0}
         goal_map = {"loss": 1.0, "gain": 0.0, "muscle": 0.0, "maintain": 2.0}
         
-        age = float(data.get('age', 22))
-        weight = float(data.get('weight_kg', 70))
+        # Flatten payload if nested inside "user"
+        user_obj = data.get("user", {})
         
-        exp_raw = str(data.get('experience_level', '1')).lower()
+        # Robust key extraction (handles flat payload, nested user object, and old keys)
+        age_raw = data.get('age', user_obj.get('age', 22))
+        age = float(age_raw)
+        
+        weight_raw = data.get('weight', data.get('weight_kg', user_obj.get('weight', user_obj.get('weight_kg', 70))))
+        weight = float(weight_raw)
+        
+        exp_raw = str(data.get('experience', data.get('experience_level', user_obj.get('experience', user_obj.get('experience_level', '1'))))).lower()
         exp = level_map.get(exp_raw, float(exp_raw) if exp_raw.replace('.','',1).isdigit() else 1.0)
         
-        goal_raw = str(data.get('goal_type', '1')).lower()
+        goal_raw = str(data.get('goal', data.get('goal_type', user_obj.get('goal', user_obj.get('goal_type', '1'))))).lower()
+        
+        # Normalize goal strings (e.g., 'muscle gain' -> 'gain', 'fat loss' -> 'loss')
+        if 'loss' in goal_raw or 'cut' in goal_raw:
+            goal_raw = 'loss'
+        elif 'gain' in goal_raw or 'bulk' in goal_raw or 'muscle' in goal_raw:
+            goal_raw = 'gain'
+        elif 'maintain' in goal_raw or 'maintenance' in goal_raw:
+            goal_raw = 'maintain'
+            
         goal = goal_map.get(goal_raw, float(goal_raw) if goal_raw.replace('.','',1).isdigit() else 1.0)
         
         target_user = [[age, weight, exp, goal]]
