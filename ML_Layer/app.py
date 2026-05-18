@@ -4,6 +4,7 @@ from flask_cors import CORS
 import joblib
 import pandas as pd
 import random
+import os  # Added to resolve path conflicts
 
 app = Flask(__name__)
 CORS(app)
@@ -34,7 +35,7 @@ def handle_general_exception(e):
     }), 500
 
 # =================================================
-# 🔹 ML ENGINE INITIALIZATION
+# 🔹 ML ENGINE INITIALIZATION (MERGE CONFLICT RESOLVED)
 # =================================================
 
 vectorizer = None
@@ -45,17 +46,59 @@ df_diet = None
 
 def initialize_ml_engine():
     global vectorizer, model, knn_model, df_users, df_diet
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    load_errors = []
+
     try:
-        vectorizer = joblib.load('vectorizer.pkl')
-        model = joblib.load('model.pkl')
-        knn_model = joblib.load('knn_model.pkl')
-        df_users = joblib.load('df_users.pkl')
-        print("✅ ML Engine loaded all NLP and KNN Pickle files successfully.")
-        
-        df_diet = pd.read_csv('diet_dataset.csv', encoding='latin1')
+        vectorizer = joblib.load(os.path.join(BASE_DIR, 'vectorizer.pkl'))
+        print("✅ NLP vectorizer loaded.")
+    except Exception as e:
+        vectorizer = None
+        load_errors.append(f"vectorizer.pkl: {e}")
+
+    try:
+        model = joblib.load(os.path.join(BASE_DIR, 'model.pkl'))
+        print("✅ NLP classifier model loaded.")
+    except Exception as e:
+        model = None
+        load_errors.append(f"model.pkl: {e}")
+
+    try:
+        knn_model = joblib.load(os.path.join(BASE_DIR, 'knn_model.pkl'))
+        print("✅ KNN recommendation model loaded.")
+    except Exception as e:
+        knn_model = None
+        load_errors.append(f"knn_model.pkl: {e}")
+
+    try:
+        df_users = joblib.load(os.path.join(BASE_DIR, 'df_users.pkl'))
+        if df_users is not None and 'recommended_plan_id' not in df_users.columns:
+            df_users['recommended_plan_id'] = df_users.index + 1
+        print("✅ User recommendation dataset loaded from df_users.pkl.")
+    except Exception as e:
+        df_users = None
+        load_errors.append(f"df_users.pkl: {e}")
+        try:
+            df_users = pd.read_csv(os.path.join(BASE_DIR, 'user_profiles_demo.csv'), encoding='latin1')
+            df_users['recommended_plan_id'] = df_users.index + 1
+            print("✅ User recommendation dataset loaded from user_profiles_demo.csv.")
+        except Exception as csv_err:
+            df_users = None
+            load_errors.append(f"user_profiles_demo.csv: {csv_err}")
+
+    try:
+        df_diet = pd.read_csv(os.path.join(BASE_DIR, 'diet_dataset.csv'), encoding='latin1')
         print("🥗 Diet Dataset loaded successfully.")
     except Exception as e:
-        print(f"❌ CRITICAL ERROR: Could not load data files. Error: {e}")
+        df_diet = None
+        load_errors.append(f"diet_dataset.csv: {e}")
+
+    if load_errors:
+        print("⚠️ ML Engine loaded with warnings:")
+        for err in load_errors:
+            print(f"  - {err}")
+    else:
+        print("✅ ML Engine fully initialized with zero errors.")
 
 # =================================================
 # 🔹 1. SMART CHATBOT (FIXED WORKOUT & DIET POOLS)
