@@ -33,7 +33,7 @@ git merge
 
 git checkout -b Ritisha
 git add .
-git commit -m "Register Schema Fix"
+git commit -m "Update"
 git push -u origin Ritisha
 
 # Frontend And Backend run

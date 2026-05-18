@@ -50,24 +50,28 @@ const Workout = () => {
         const response = await api.get('/workouts/weekly-plan');
         console.log(`✅ Received workout plan - Experience used: ${response.data.user?.experienceLevel}`);
         
-        setWeekPlan(response.data.weekPlan || []);
+        const receivedPlan = response.data.weekPlan || [];
+        setWeekPlan(receivedPlan);
         setCurrentUserExperience(response.data.user?.experienceLevel);
         setUserGoal(response.data.user?.goal);
         setUserInjury(response.data.user?.injury);
         setUserWeight(response.data.user?.weight);
-        
-        // If today is completed, mark all exercises as completed
-        if (response.data.weekPlan[0]?.completed) {
+
+        const currentPlan = receivedPlan.find((day) => day.isToday) || receivedPlan[0];
+        if (currentPlan?.completed) {
           setIsWorkoutDoneToday(true);
-          setcompletedExerciseIds(
-            response.data.weekPlan[0].exercises.map((_, idx) => idx)
-          );
-        } else if (response.data.weekPlan.length > 0 && user?.id) {
-          const saved = localStorage.getItem(`workout_completed_${user.id}_${response.data.weekPlan[0].date}`);
-          if (saved) {
-             setcompletedExerciseIds(JSON.parse(saved));
+          setcompletedExerciseIds(currentPlan.exercises.map((_, idx) => idx));
+        } else if (currentPlan) {
+          setIsWorkoutDoneToday(false);
+          if (user?.id) {
+            const saved = localStorage.getItem(`workout_completed_${user.id}_${currentPlan.date}`);
+            if (saved) {
+              setcompletedExerciseIds(JSON.parse(saved));
+            } else {
+              setcompletedExerciseIds([]);
+            }
           } else {
-             setcompletedExerciseIds([]);
+            setcompletedExerciseIds([]);
           }
         }
 
@@ -91,7 +95,10 @@ const Workout = () => {
   // Save checkbox state to localStorage
   useEffect(() => {
     if (weekPlan.length > 0 && user?.id && !isWorkoutDoneToday) {
-       localStorage.setItem(`workout_completed_${user.id}_${weekPlan[0].date}`, JSON.stringify(completedExerciseIds));
+       const currentPlan = weekPlan.find((day) => day.isToday) || weekPlan[0];
+       if (currentPlan) {
+         localStorage.setItem(`workout_completed_${user.id}_${currentPlan.date}`, JSON.stringify(completedExerciseIds));
+       }
     }
   }, [completedExerciseIds, weekPlan, user?.id, isWorkoutDoneToday]);
 
@@ -104,24 +111,29 @@ const Workout = () => {
       const response = await api.get('/workouts/weekly-plan');
       console.log(`✅ Refreshed workout plan - Experience used: ${response.data.user?.experienceLevel}`);
       
-      setWeekPlan(response.data.weekPlan || []);
+      const receivedPlan = response.data.weekPlan || [];
+      setWeekPlan(receivedPlan);
       setCurrentUserExperience(response.data.user?.experienceLevel);
       setUserGoal(response.data.user?.goal);
       setUserInjury(response.data.user?.injury);
       setUserWeight(response.data.user?.weight);
-      
-      if (response.data.weekPlan[0]?.completed) {
+
+      const currentPlan = receivedPlan.find((day) => day.isToday) || receivedPlan[0];
+      if (currentPlan?.completed) {
         setIsWorkoutDoneToday(true);
-        setcompletedExerciseIds(
-          response.data.weekPlan[0].exercises.map((_, idx) => idx)
-        );
-      } else if (response.data.weekPlan.length > 0 && user?.id) {
-          const saved = localStorage.getItem(`workout_completed_${user.id}_${response.data.weekPlan[0].date}`);
+        setcompletedExerciseIds(currentPlan.exercises.map((_, idx) => idx));
+      } else if (currentPlan) {
+        setIsWorkoutDoneToday(false);
+        if (user?.id) {
+          const saved = localStorage.getItem(`workout_completed_${user.id}_${currentPlan.date}`);
           if (saved) {
-             setcompletedExerciseIds(JSON.parse(saved));
+            setcompletedExerciseIds(JSON.parse(saved));
           } else {
-             setcompletedExerciseIds([]);
+            setcompletedExerciseIds([]);
           }
+        } else {
+          setcompletedExerciseIds([]);
+        }
       }
       
       setFeedbackModal({ show: true, type: 'success', message: `Workouts refreshed! Experience Level: ${response.data.user?.experienceLevel}` });
@@ -169,7 +181,8 @@ const Workout = () => {
 
   // Handle complete workout for today
   const handleCompleteWorkout = async () => {
-    if (isWorkoutDoneToday || completedExerciseIds.length !== weekPlan[0]?.exercises?.length) return;
+    const todayPlanToUse = weekPlan.find((day) => day.isToday) || weekPlan[0];
+    if (isWorkoutDoneToday || completedExerciseIds.length !== todayPlanToUse?.exercises?.length) return;
 
     try {
       const logData = {
@@ -199,13 +212,10 @@ const Workout = () => {
     setModalLoading(false);
   };
 
-  // Calculate progress for today
-  const todayProgressPercentage = weekPlan.length > 0 && weekPlan[0]
-    ? Math.round((completedExerciseIds.length / (weekPlan[0].type === 'rest' ? 1 : Math.max(weekPlan[0].exercises?.length || 1, 1))) * 100)
+  const todayPlan = weekPlan.find((day) => day.isToday) || (weekPlan.length > 0 ? weekPlan[0] : null);
+  const todayProgressPercentage = todayPlan
+    ? Math.round((completedExerciseIds.length / (todayPlan.type === 'rest' ? 1 : Math.max(todayPlan.exercises?.length || 1, 1))) * 100)
     : 0;
-
-  // Get today's plan
-  const todayPlan = weekPlan.length > 0 ? weekPlan[0] : null;
 
   if (loading) {
     return (
