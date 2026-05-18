@@ -52,14 +52,13 @@ def initialize_ml_engine():
         df_users = joblib.load('df_users.pkl')
         print("✅ ML Engine loaded all NLP and KNN Pickle files successfully.")
         
-        # Load the new diet dataset directly into memory
         df_diet = pd.read_csv('diet_dataset.csv', encoding='latin1')
         print("🥗 Diet Dataset loaded successfully.")
     except Exception as e:
         print(f"❌ CRITICAL ERROR: Could not load data files. Error: {e}")
 
 # =================================================
-# 🔹 1. SMART CHATBOT (UPGRADED WITH CONTEXT & DIETS)
+# 🔹 1. SMART CHATBOT (FIXED WORKOUT & DIET POOLS)
 # =================================================
 
 @app.route('/predict', methods=['POST'])
@@ -68,7 +67,6 @@ def predict():
     if not data or 'query' not in data:
         raise APIError("Please provide a search query.")
     
-    # Check if query is enriched object from Node or simple string
     raw_input = data.get('query')
     context_muscles = []
     
@@ -78,7 +76,6 @@ def predict():
     else:
         user_query = str(raw_input)
 
-    # NLP Processing
     text_vec = vectorizer.transform([user_query])
     
     if text_vec.nnz == 0:
@@ -93,43 +90,41 @@ def predict():
     probabilities = model.predict_proba(text_vec)[0]
     confidence_score = max(probabilities)
 
-    # Default logic
     intent = predicted_intent if confidence_score >= 0.2 else "unknown"
     
-    # 🧠 PRO MODE: CONTEXTUAL RESPONSE GENERATION
-    personalized_msg = "How can I help you with your fitness journey today?"
-    
+    if intent == "unknown":
+        personalized_msg = "I'm not quite sure I understand. I'm trained specifically to help you with workout plans, diet recommendations, and logging your gym progress. What fitness goal can I help you with?"
+    else:
+        personalized_msg = "How can I help you with your fitness journey today?"
+        
     if intent == "workout_recommendation":
         if any(m in ["quads", "hamstrings", "legs"] for m in context_muscles):
-            personalized_msg = "Since you hit legs recently, your quads and hamstrings need recovery. Let's focus on Upper Body (Chest/Back) or light mobility today."
+            personalized_msg = "Since you hit legs recently, your quads and hamstrings need recovery. Let's focus on Upper Body (Chest/Back) or light mobility options."
         elif "chest" in context_muscles:
-            personalized_msg = "I noticed you did a chest workout recently. Today would be a great day for a 'Pull' session focusing on Back and Biceps."
+            personalized_msg = "I noticed you did a chest workout recently. A 'Pull' session focusing on Back and Biceps is a highly recommended strategy."
         else:
-            personalized_msg = "You're fresh! A full-body session or high-intensity interval training would be perfect for your current energy levels."
+            personalized_msg = "You're fresh! A full-body session or high-intensity interval training session matches your current recovery metrics perfectly."
 
-    # NEW: Smart Diet Generation
     elif intent in ["diet_info", "diet_plan"]:
         if df_diet is not None and not df_diet.empty:
             user_message_lower = user_query.lower()
             filtered_diet = df_diet.copy()
             
-            # 1. Filter by Diet Type
             if 'keto' in user_message_lower:
                 filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Keto', case=False, na=False)]
             elif 'vegan' in user_message_lower or 'vegetarian' in user_message_lower:
                 filtered_diet = filtered_diet[filtered_diet['Diet Type'].str.contains('Vegan|Vegetarian', case=False, na=False)]
+                # 🛑 THE FIX: Explicitly destroy the "Non-Vegetarian" substring match and Eggs!
+                filtered_diet = filtered_diet[~filtered_diet['Diet Type'].str.contains('Non-Veg|Egg', case=False, na=False)]
                 
-            # 2. Filter by Goal
             if 'loss' in user_message_lower or 'cut' in user_message_lower:
                 filtered_diet = filtered_diet[filtered_diet['Focus Goal'].str.contains('Loss', case=False, na=False)]
             elif 'gain' in user_message_lower or 'bulk' in user_message_lower:
                 filtered_diet = filtered_diet[filtered_diet['Focus Goal'].str.contains('Gain|Muscle', case=False, na=False)]
 
-            # 3. Fallback
             if filtered_diet.empty:
                 filtered_diet = df_diet
 
-            # 4. Generate the Menu
             rec = filtered_diet.sample(1).iloc[0]
             personalized_msg = (
                 f"Here is a suggested full-day meal plan optimized for {rec['Focus Goal']}:\n"
@@ -193,7 +188,7 @@ def scale_difficulty():
     return jsonify({"status": "success", "action": action, "plan": new_plan, "message": msg})
 
 # =================================================
-# 🔹 3. DIET RECOMMENDATION ENGINE (DATA-DRIVEN)
+# 🔹 3. DIET RECOMMENDATION ENGINE (FIXED EGGETARIAN & CHICKEN LEAKS)
 # =================================================
 
 @app.route('/diet-recommendation', methods=['POST'])
@@ -206,12 +201,18 @@ def diet_recommendation():
 
     filtered = df_diet.copy()
     
-    # Filter for vegetarian/vegan if requested
-    if diet_type and "non-veg" not in diet_type:
-        filtered = filtered[filtered['Diet Type'].str.contains(diet_type, case=False, na=False)]
+    if diet_type:
+        # If they specifically want meat, allow it
+        if "non-veg" in diet_type:
+            filtered = filtered[filtered['Diet Type'].str.contains('Non-Veg', case=False, na=False)]
+        # If they want Veg/Vegan, engage the strict filters
+        elif "veg" in diet_type:
+            filtered = filtered[filtered['Diet Type'].str.contains('Veg', case=False, na=False)]
+            # 🛑 THE FIX: Drop the "Non-Veg" substring matches and Eggs immediately
+            filtered = filtered[~filtered['Diet Type'].str.contains('Non-Veg|Egg', case=False, na=False)]
         
     if filtered.empty:
-        filtered = df_diet # Fallback if filter is too strict
+        filtered = df_diet 
 
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     weekly_plan = []
@@ -229,17 +230,30 @@ def diet_recommendation():
     return jsonify({"status": "success", "weekly_plan": weekly_plan}), 200
 
 # =================================================
-# 🔹 4. SMART COACH (KNN RECOVERY)
+# 🔹 4. SMART COACH (FIXED STR-TO-FLOAT PARSING BUGS)
 # =================================================
 
 @app.route('/recommend-plan', methods=['POST'])
 def recommend_plan():
     data = request.json
     try:
-        target_user = [[float(data['age']), float(data['weight_kg']), float(data['experience_level']), float(data['goal_type'])]]
+        # 🧠 FIX: Map literal text values to matched LabelEncoder integers safely
+        level_map = {"beginner": 1.0, "intermediate": 2.0, "advanced": 0.0}
+        goal_map = {"loss": 1.0, "gain": 0.0, "muscle": 0.0, "maintain": 2.0}
+        
+        age = float(data.get('age', 22))
+        weight = float(data.get('weight_kg', 70))
+        
+        exp_raw = str(data.get('experience_level', '1')).lower()
+        exp = level_map.get(exp_raw, float(exp_raw) if exp_raw.replace('.','',1).isdigit() else 1.0)
+        
+        goal_raw = str(data.get('goal_type', '1')).lower()
+        goal = goal_map.get(goal_raw, float(goal_raw) if goal_raw.replace('.','',1).isdigit() else 1.0)
+        
+        target_user = [[age, weight, exp, goal]]
         exhausted_muscles = data.get('exhausted_muscles', [])
-    except:
-        raise APIError("Invalid user metrics.")
+    except Exception as e:
+        raise APIError(f"Metrics engine transformation crash: {str(e)}")
 
     distances, indices = knn_model.kneighbors(target_user)
     recommended_plan_id = df_users.iloc[indices[0][0]]['recommended_plan_id']
