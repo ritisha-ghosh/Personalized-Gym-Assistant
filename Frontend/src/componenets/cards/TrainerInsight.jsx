@@ -17,7 +17,7 @@ Consider a whey shake before your Push session to maximize recovery.`,
         border
         p-6
         backdrop-blur-md
-        ${isDarkMode ? 'bg-teal-500/20 border-teal-500/30' : 'bg-teal-50/60 border-teal-100/60'}
+        ${isDarkMode ? 'bg-transparent border-teal-500/30' : 'bg-teal-50/60 border-teal-100/60'}
       `}
       style={{ fontFamily: "'Libre Baskerville', serif" }}
     >
@@ -39,10 +39,10 @@ Consider a whey shake before your Push session to maximize recovery.`,
 
         {/* Text */}
         <div>
-          <h4 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-teal-600">
+          <h4 className={`mb-1 text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-white' : 'text-teal-600'}`}>
             {title}
           </h4>
-          <p className="text-sm font-medium leading-relaxed text-slate-600">
+          <p className={`text-sm font-medium leading-relaxed ${isDarkMode ? 'text-white' : 'text-slate-600'}`}>
             {message}
           </p>
         </div>

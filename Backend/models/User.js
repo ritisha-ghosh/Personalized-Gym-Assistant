@@ -104,6 +104,21 @@ const userSchema = new mongoose.Schema({
     default: false
   },
 
+  lactoseFree: {
+    type: Boolean,
+    default: false
+  },
+
+  nutAllergy: {
+    type: Boolean,
+    default: false
+  },
+
+  sugarFree: {
+    type: Boolean,
+    default: false
+  },
+
   // -------------------------
   // 👤 PROFILE DATA
   // -------------------------

@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { regenerateUserPlans } = require("../services/userPlanService");
 console.log("AUTH CONTROLLER LOADED");
+
 const generateAccessToken = (userId) => {
   return jwt.sign(
     { id: userId },
@@ -19,104 +20,33 @@ const generateRefreshToken = (userId) => {
   );
 };
 
-// exports.signup = async (req, res) => {
-//   try {
-//     const {
-//       name,
-//       email,
-//       password,
-//       age,
-//       weight,
-//       gender,
-//       height,
-//       goal,
-//       injury,
-//       experience,
-//       dietType,
-//       noOnion,
-//       noGarlic
-//     } = req.body;
-
-//     if (!name || !email || !password) {
-//       return res.status(400).json({ message: "Name, email, password required" });
-//     }
-
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
-
-//     const salt = await bcrypt.genSalt(10);
-//     const hashedPassword = await bcrypt.hash(password, salt);
-
-//     const user = await User.create({
-//       name,
-//       email,
-//       password: hashedPassword,
-//       age,
-//       weight,
-//       height,
-//       gender,
-//       goal,
-//       injury,
-//       experience,
-//       dietType,
-//       noOnion,
-//       noGarlic
-//     });
-
-//     res.status(201).json({
-//       message: "User registered successfully",
-//       userId: user._id
-//     });
-
-//   } catch (error) {
-//     console.error("Signup error:", error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-exports.sendOtpForSignup = async (req, res) => {
+exports.register = async (req, res) => {
   try {
-    const { email } = req.body;
+    // Support both direct object and nested 'userData' object payloads
+    const data = req.body.userData || req.body;
+    const { email } = data;
 
-    if (!email) {
-      return res.status(400).json({ message: "Email required" });
-    }
-
-    // TODO: generate OTP + send email
-    const otp = Math.floor(100000 + Math.random() * 900000);
-
-    console.log("OTP sent:", otp);
-
-    return res.json({
-      message: "OTP sent successfully",
-      otp // remove in production
-    });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-exports.signup = async (req, res) => {
-  try {
     const {
       name,
-      email,
       password,
       age,
       weight,
       gender,
       height,
+      fitnessGoal, // mapped from frontend payload
       goal,
+      injuryStatus, // mapped from frontend payload
       injury,
       experience,
       activityLevel,
       dietType,
       noOnion,
-      noGarlic
-    } = req.body;
+      noGarlic,
+      glutenFree,
+      lactoseFree,
+      nutAllergy,
+      sugarFree
+    } = data;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -132,7 +62,7 @@ exports.signup = async (req, res) => {
     }
 
     // 🔐 Normalize inputs (CRITICAL FIX - Added fallbacks to map to strict schema)
-    let normalizedGoal = goal?.toLowerCase().trim();
+    let normalizedGoal = (fitnessGoal || goal)?.toLowerCase().trim();
     if (normalizedGoal === 'weight loss') normalizedGoal = 'fat loss';
     if (normalizedGoal === 'endurance') normalizedGoal = 'maintenance';
 
@@ -164,25 +94,33 @@ exports.signup = async (req, res) => {
 
       gender: normalizedGender,
       goal: normalizedGoal,
-      injury,
+      injury: injuryStatus || injury,
 
       experience: normalizedExperience,
 
       activityLevel: normalizedActivityLevel,
       dietType: normalizedDietType || "vegetarian",
       noOnion: noOnion ?? false,
-      noGarlic: noGarlic ?? false
+      noGarlic: noGarlic ?? false,
+      glutenFree: glutenFree ?? false,
+      lactoseFree: lactoseFree ?? false,
+      nutAllergy: nutAllergy ?? false,
+      sugarFree: sugarFree ?? false
     });
 
-    try {
-      await regenerateUserPlans(user);
-    } catch (planError) {
-      console.error("Plan generation failed during signup:", planError);
-    }
+    // FIX: Added token generation which was missing for successful registration.
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Store refresh token in DB
+    await User.findByIdAndUpdate(user._id, { refreshToken: refreshToken });
 
     res.status(201).json({
+      success: true,
       message: "User registered successfully",
-      userId: user._id
+      token: accessToken,
+      refreshToken,
+      user: { id: user._id, name: user.name, email: user.email }
     });
 
   } catch (error) {
@@ -200,7 +138,6 @@ exports.signup = async (req, res) => {
     });
   }
 };
-
 
 exports.login = async (req, res) => {
   try {
@@ -229,7 +166,9 @@ exports.login = async (req, res) => {
     await User.findByIdAndUpdate(user._id, { refreshToken: refreshToken });
 
     res.json({
+      success: true,
       message: "Login successful",
+      token: accessToken, // for backward compatibility with frontend
       accessToken,
       refreshToken,
       user: {
@@ -281,6 +220,6 @@ exports.refreshAccessToken = async (req, res) => {
   }
 };
 console.log("EXPORT CHECK:", {
-  sendOtpForSignup: typeof exports.sendOtpForSignup,
+  register: typeof exports.register,
   login: typeof exports.login
 });

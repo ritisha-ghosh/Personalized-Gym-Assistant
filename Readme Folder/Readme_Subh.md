@@ -202,6 +202,7 @@ Completed final ETL pipeline by cleaning the external dataset, mapping exercises
 | Conduct "Stress Tests" | ✅ Completed |
 |Tagged all exercises with muscle group metadata (e.g., chest, triceps, quads) to enable future Muscle Recovery Tracker logic for intelligent workout filtering.|  ✅ Completed |
 | Final ETL for external dataset (Muscle Tags + GIF URLs) | ✅ Completed |
+| Established backend ↔ ML connection and integrated dynamic frontend data (removed static placeholders) | ✅ Completed |
 
 ---
 

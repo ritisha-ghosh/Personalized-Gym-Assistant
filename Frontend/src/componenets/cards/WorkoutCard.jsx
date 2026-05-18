@@ -35,7 +35,7 @@ const WorkoutCard = ({ workout }) => {
           <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest ${isDarkMode ? 'bg-teal-500/40 text-teal-300' : 'bg-pink-50/80 text-pink-500'}`}>
             Intense
           </span>
-          <span className={`text-sm font-medium ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-400'}`}>
+          <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-400'}`}>
             Hypertrophy Session
           </span>
         </div>
@@ -46,7 +46,7 @@ const WorkoutCard = ({ workout }) => {
         </h3>
 
         {/* Description */}
-        <p className={`mb-6 max-w-xl leading-relaxed ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>
+        <p className={`mb-6 max-w-xl leading-relaxed ${isDarkMode ? 'text-white' : 'text-slate-500'}`}>
          {workout?.goal || "Your next recommended workout will appear here."}
         </p>
 

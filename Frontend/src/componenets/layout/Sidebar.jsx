@@ -2,6 +2,7 @@ import { Apple, Dumbbell, LayoutDashboard, LineChartIcon, LogOut, MessageSquare,
 import { Link, useLocation } from "react-router-dom";
 import { useContext } from "react";
 import { DarkModeContext } from "../../context/DarkModeContext";
+import logoImg from "../../assets/logo.png";
 
 const Sidebar = ({ onClose }) => {
   const location = useLocation();
@@ -23,25 +24,18 @@ const Sidebar = ({ onClose }) => {
 
   return (
     <aside className="h-screen w-64 bg-blue-100 border-r border-slate-200 flex flex-col overflow-hidden">
+      <style>
+        {`
+          @import url('https://fonts.googleapis.com/css2?family=Goblin+One&display=swap');
+        `}
+      </style>
 
       {/* Logo */}
       <div className="p-4 sm:p-6 flex items-center gap-3 flex-shrink-0">
-        <div className="w-9 h-9 sm:w-10 sm:h-10 bg-teal-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-500/20 flex-shrink-0">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            className="w-5 h-5 sm:w-6 sm:h-6"
-          >
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-          </svg>
-        </div>
-        <span className={`text-lg sm:text-xl font-bold tracking-tight truncate ${isDarkMode ? 'text-white' : 'text-[#0f172a]'}`}>
-          BeFit
+        <img src={logoImg} alt="BeFit Logo" className="w-14 h-14 sm:w-16 sm:h-16 object-contain flex-shrink-0" />
+        <span className="text-3xl font-bold tracking-wide truncate transition-all !bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+          <span className={`!bg-transparent ${isDarkMode ? 'text-white' : 'text-[#142E5C] [-webkit-text-stroke:0.5px_black]'}`}>Be</span>
+          <span className={`!bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.5px_black]'}`}>Fit</span>
         </span>
       </div>
 

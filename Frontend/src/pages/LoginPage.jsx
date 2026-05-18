@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext'; // Access global login function
 import api from '../services/api'; // Corrected import path for consistency
 import { DarkModeContext } from '../context/DarkModeContext'; // Imported context
+import logoImg from '../assets/logo.png';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -46,6 +47,7 @@ const LoginPage = () => {
     <div className={`relative min-h-screen flex flex-col overflow-hidden ${isDarkMode ? 'dark-mode bg-[#0f172a]' : 'bg-slate-50'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
       <style>
         {`
+          @import url('https://fonts.googleapis.com/css2?family=Goblin+One&display=swap');
           /* Global Scrollbar Styles */
           ::-webkit-scrollbar {
             width: 6px;
@@ -68,11 +70,12 @@ const LoginPage = () => {
       <header className="w-full flex items-center justify-between px-8 py-5 z-10">
         {/* LOGO AS PICTURE */}
         <Link to="/" className="flex items-center gap-2 mb-16 hover:opacity-80 transition-opacity w-fit">
-                    <div className="w-8 h-8 bg-[#00c4b4] rounded-md flex items-center justify-center rotate-45">
-                      <div className="w-3 h-3 bg-white rounded-sm -rotate-45"></div>
-                    </div>
-                    <span className="text-xl font-bold text-slate-800 tracking-tight">BeFit</span>
-                  </Link>
+          <img src={logoImg} alt="BeFit Logo" className="w-16 h-16 object-contain" />
+          <span className="text-3xl font-bold tracking-wide transition-all !bg-transparent" style={{ fontFamily: "'Goblin One', cursive" }}>
+            <span className={`!bg-transparent ${isDarkMode ? 'text-white' : 'text-slate-800 [-webkit-text-stroke:0.5px_black]'}`}>Be</span>
+            <span className={`!bg-transparent ${isDarkMode ? 'text-[#00b0a7]' : 'text-[#009c8f] [-webkit-text-stroke:0.5px_black]'}`}>Fit</span>
+          </span>
+        </Link>
 
         <div className="flex items-center gap-4">
           <span className={`hidden sm:block text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>New to here?</span>
@@ -124,9 +127,9 @@ const LoginPage = () => {
             <div>
               <div className="flex justify-between mb-2">
                 <label className={`text-sm font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>Password</label>
-                <Link to="/forgot-password" className="text-xs font-bold text-pink-500 hover:text-pink-600">
+                <span className="text-xs font-bold text-pink-500 hover:text-pink-600 cursor-pointer" onClick={(e) => e.preventDefault()}>
                   Forgot Password?
-                </Link>
+                </span>
               </div>
               <div className="relative">
                 {/* Added z-10 and adjusted text color for dark mode visibility */}

@@ -205,7 +205,7 @@ const UserProfile = () => {
         refreshToken: localStorage.getItem('refreshToken') 
       });
 
-      setSaveStatus('✓ Profile updated successfully!');
+      setSaveStatus('✓ Profile updated successfully !');
       setIsEditMode(false);
       setProfileImageFile(null);
       
@@ -316,6 +316,16 @@ const UserProfile = () => {
           .icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
           @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
           .modal-content { animation: modalSlideIn 0.3s ease-out; }
+          
+          /* Hide number input arrows (spinners) */
+          input[type="number"]::-webkit-inner-spin-button,
+          input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+          input[type="number"] {
+            -moz-appearance: textfield;
+          }
         `}
       </style>
 
@@ -497,7 +507,7 @@ const UserProfile = () => {
                     onChange={handleInputChange}
                     className={inputStyles}
                   >
-                    <option value="">Select Gender</option>
+                    <option value="" disabled>Select Gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="other">Other</option>
@@ -511,7 +521,7 @@ const UserProfile = () => {
                     onChange={handleInputChange}
                     className={inputStyles}
                   >
-                    <option value="">Select Level</option>
+                    <option value="" disabled>Select Level</option>
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
                     <option value="advanced">Advanced</option>
@@ -525,7 +535,7 @@ const UserProfile = () => {
                     onChange={handleInputChange}
                     className={inputStyles}
                   >
-                    <option value="">Select Activity</option>
+                    <option value="" disabled>Select Activity</option>
                     <option value="sedentary">Sedentary (Office Job)</option>
                     <option value="light">Lightly Active</option>
                     <option value="moderate">Moderately Active</option>
@@ -552,7 +562,7 @@ const UserProfile = () => {
                     onChange={handleInputChange}
                     className={inputStyles}
                   >
-                    <option value="">Select Goal</option>
+                    <option value="" disabled>Select Goal</option>
                     <option value="muscle gain">Muscle Gain</option>
                     <option value="fat loss">Fat Loss</option>
                     <option value="maintenance">Maintenance</option>
@@ -566,7 +576,7 @@ const UserProfile = () => {
                     onChange={handleInputChange}
                     className={inputStyles}
                   >
-                    <option value="">Select Diet Type</option>
+                    <option value="" disabled>Select Diet Type</option>
                     <option value="vegetarian">Vegetarian</option>
                     <option value="non-vegetarian">Non-Vegetarian</option>
                   </select>

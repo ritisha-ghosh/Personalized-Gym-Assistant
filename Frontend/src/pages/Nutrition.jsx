@@ -54,6 +54,9 @@ const Neutrations = () => {
           noOnion: userData.noOnion,
           noGarlic: userData.noGarlic,
           glutenFree: userData.glutenFree,
+          lactoseFree: userData.lactoseFree,
+          nutAllergy: userData.nutAllergy,
+          sugarFree: userData.sugarFree,
           goal: userData.goal,
           weight: userData.weight
         });
@@ -193,6 +196,9 @@ const Neutrations = () => {
                   {userDietData.noOnion && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>No Onion</p>}
                   {userDietData.noGarlic && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>No Garlic</p>}
                   {userDietData.glutenFree && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Gluten-Free</p>}
+                  {userDietData.lactoseFree && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Lactose-Free</p>}
+                  {userDietData.nutAllergy && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Nut Allergy</p>}
+                  {userDietData.sugarFree && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Sugar-Free</p>}
                 </>
               )}
             </div>
@@ -246,7 +252,7 @@ const Neutrations = () => {
                 </div>
                 <button
                   onClick={() => handleDeleteNote(note._id)}
-                  className="text-red-500 hover:text-red-700 transition active:scale-90 p-2 flex-shrink-0"
+                  className="flex items-center justify-center bg-transparent text-red-500 hover:text-red-600 transition-all active:scale-90 p-2 rounded-xl flex-shrink-0"
                 >
                   <Trash2 size={18} />
                 </button>
