@@ -56,11 +56,11 @@ This project was engineered by a specialized full-stack development team from th
 
 | Team Member | Domain Contributions | Key Responsibilities |
 | :--- | :--- | :--- |
-| **Pritam Chakraborty**<br>*(Project Lead)* | **ML (45%)** <br> **Frontend (30%)** <br> **Backend (25%)** | **Orchestration & ML Core:** Built the Node-Python microservice bridge, expanded NLP datasets, and engineered strict ML data sandboxing. **Frontend:** Full-stack dynamic data wiring and OTP Auth. |
-| **Shreya Sarkar** | **Backend (40%)** <br> **Frontend (25%)** | **Infrastructure & Analytics:** Engineered the Express/Mongo architecture, advanced JWT/Redis security, and 48-hour aggregation pipelines. **Frontend:** Built all Recharts data visualization dashboards. |
-| **Subham Roy** | **Backend (35%)** <br> **ML (30%)** | **Math Engines & Data:** Programmed the Harris-Benedict BMR/TDEE math engines, Decision Tree feedback loops, and executed the ETL data mapping for the ML models. |
-| **Debanka Samanta** | **Frontend (30%)** <br> **ML (25%)** | **Execution UI & Optimization:** Built the interactive Live Workout UI and integrated Web Speech API voice coaching. **ML:** Optimized Flask microservice latency (<200ms) and error handling. |
-| **Ritisha Ghosh** | **Frontend (15%)** | **Documentation & UI Integrity:** Authored comprehensive frontend documentation and handled Register schema UI structure and validation fixes. |
+| **Pritam Chakraborty**<br>*(Project Lead)* | **ML (60%)** <br> **Backend (10%)** | **ML Lead & Orchestration:** Engineered the core machine learning models, expanded NLP datasets, implemented strict data sandboxing, and built the Node-Python microservice bridge. |
+| **Shreya Sarkar** | **Backend (60%)** <br> **Frontend (10%)** | **Backend Lead & Analytics:** Architected the Express/Mongo infrastructure, advanced JWT/Redis security, 48-hour aggregation pipelines, and core Recharts data visualization. |
+| **Ritisha Ghosh** | **Frontend (50%)** <br> **Backend (5%)** | **Frontend Lead:** Engineered the core React UI architecture, dark mode, dynamic API data fetching, and handled comprehensive project documentation. |
+| **Debanka Samanta** | **Frontend (40%)** <br> **ML (10%)** | **Execution UI:** Built the interactive Live Workout UI, integrated Web Speech API voice coaching, enforced frontend boundaries, and optimized Flask microservice latency. |
+| **Subham Roy** | **ML (30%)** <br> **Backend (25%)** | **Math Engines & Data:** Programmed the Harris-Benedict BMR/TDEE math engines, Decision Tree feedback loops, and executed the ETL data mapping for the ML models. |
 
 > **Note:** The architecture utilizes a hybrid approach, separating deterministic business logic (Node.js) from probabilistic machine learning operations (Python Flask) to ensure maximum scalability and fault tolerance.
 
