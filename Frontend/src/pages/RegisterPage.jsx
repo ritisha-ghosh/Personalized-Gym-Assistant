@@ -11,6 +11,7 @@ const RegisterPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [backendError, setBackendError] = useState('');
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   
   const [experience, setExperience] = useState('Beginner');
   const [exclusions, setExclusions] = useState([]);
@@ -39,16 +40,21 @@ const RegisterPage = () => {
       goal: formData.fitnessGoal,
       experience: experience,
       dietType: formData.dietType,
-      noOnion: exclusions.includes("No Garlic / Onion"),
-      noGarlic: exclusions.includes("No Garlic / Onion"),
+      noOnion: exclusions.includes("No Onion"),
+      noGarlic: exclusions.includes("No Garlic"),
+      glutenFree: exclusions.includes("Gluten Free"),
+      lactoseFree: exclusions.includes("Lactose Free"),
+      nutAllergy: exclusions.includes("Nut Allergy"),
+      sugarFree: exclusions.includes("Sugar Free"),
       activityLevel: formData.activityLevel,
       injury: formData.injuryStatus
     };
 
     try {
       const response = await api.post('/auth/signup', payload);
-      if (response.data) {
-        navigate('/verify-otp', { state: { email: formData.email, userData: payload, isRegistration: true } });
+      if (response.data.success) {
+        // Show the success popup instead of default alert
+        setShowSuccessPopup(true);
       }
     } catch (err) {
       console.error(err);
@@ -59,7 +65,8 @@ const RegisterPage = () => {
   };
 
   const exclusionOptions = [
-    "No Garlic / Onion",
+    "No Onion",
+    "No Garlic",
     "Gluten Free",
     "Lactose Free",
     "Nut Allergy",
@@ -74,9 +81,9 @@ const RegisterPage = () => {
     weight: '',
     height: '',
     gender: '',
-    fitnessGoal: 'fat loss',
-    dietType: 'non-vegetarian',
-    activityLevel: 'moderate',
+    fitnessGoal: '',
+    dietType: '',
+    activityLevel: '',
     injuryStatus: ''
   });
 
@@ -123,6 +130,16 @@ const RegisterPage = () => {
           ::-webkit-scrollbar-thumb {
             background-color: ${isDarkMode ? '#334155' : '#94a3b8'};
             border-radius: 20px;
+          }
+          
+          /* Hide number input arrows (spinners) */
+          input[type="number"]::-webkit-inner-spin-button,
+          input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+          input[type="number"] {
+            -moz-appearance: textfield;
           }
         `}
       </style>
@@ -297,31 +314,43 @@ const RegisterPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Gender</label>
-                  <select 
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
-                  >
-                    <option value="" disabled>Select</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  <div className="relative">
+                    <select 
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      required
+                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                    >
+                      <option value="" disabled>Select</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Fitness Goal</label>
-                  <select 
-                    name="fitnessGoal"
-                    value={formData.fitnessGoal}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
-                  >
-                    <option value="fat loss">Fat Loss</option>
-                    <option value="muscle gain">Muscle Gain</option>
-                    <option value="maintenance">Maintenance</option>
-                  </select>
+                  <div className="relative">
+                    <select 
+                      name="fitnessGoal"
+                      value={formData.fitnessGoal}
+                      onChange={handleInputChange}
+                      required
+                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                    >
+                      <option value="" disabled>Select Goal</option>
+                      <option value="fat loss">Fat Loss</option>
+                      <option value="muscle gain">Muscle Gain</option>
+                      <option value="maintenance">Maintenance</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -363,31 +392,43 @@ const RegisterPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Diet Type</label>
-                  <select 
-                    name="dietType"
-                    value={formData.dietType}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
-                  >
-                    <option value="" disabled>Select Diet</option>
-                    <option value="non-vegetarian">Non-Vegetarian (Omnivore)</option>
-                    <option value="vegetarian">Vegetarian</option>
-                  </select>
+                  <div className="relative">
+                    <select 
+                      name="dietType"
+                      value={formData.dietType}
+                      onChange={handleInputChange}
+                      required
+                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                    >
+                      <option value="" disabled>Select Diet</option>
+                      <option value="non-vegetarian">Non-Vegetarian (Omnivore)</option>
+                      <option value="vegetarian">Vegetarian</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Daily Activity</label>
-                  <select 
-                    name="activityLevel"
-                    value={formData.activityLevel}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white outline-none focus:border-teal-500 appearance-none text-slate-700"
-                  >
-                    <option value="sedentary">Sedentary (Office Job)</option>
-                    <option value="light">Lightly Active</option>
-                    <option value="moderate">Moderately Active</option>
-                    <option value="active">Very Active</option>
-                  </select>
+                  <div className="relative">
+                    <select 
+                      name="activityLevel"
+                      value={formData.activityLevel}
+                      onChange={handleInputChange}
+                      required
+                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                    >
+                      <option value="" disabled>Select Activity</option>
+                      <option value="sedentary">Sedentary (Office Job)</option>
+                      <option value="light">Lightly Active</option>
+                      <option value="moderate">Moderately Active</option>
+                      <option value="active">Very Active</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -446,6 +487,29 @@ const RegisterPage = () => {
           </form>
         </div>
       </div>
+
+      {/* Success Popup Modal */}
+      {showSuccessPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all" style={{ fontFamily: "'Libre Baskerville', serif" }}>
+          <div className={`w-full max-w-sm p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center transform transition-all ${isDarkMode ? 'bg-[#1e293b] border border-[#334155]' : 'bg-white'}`}>
+            <div className="w-20 h-20 bg-teal-100 text-teal-500 rounded-full flex items-center justify-center mb-6 shadow-inner">
+              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className={`text-2xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Registration Successful!</h3>
+            <p className={`text-sm mb-8 leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              Welcome to BeFit! Your account has been successfully created. Please log in to start your personalized fitness journey.
+            </p>
+            <button
+              onClick={() => navigate('/login')}
+              className="w-full bg-[#00c4b4] hover:bg-[#00a89f] text-white font-bold py-4 rounded-xl shadow-lg shadow-teal-500/30 transition-transform active:scale-95"
+            >
+              Log In Now
+            </button>
+          </div>
+        </div>
+      )}
     </div >
   );
 };

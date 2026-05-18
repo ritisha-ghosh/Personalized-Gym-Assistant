@@ -555,9 +555,9 @@ const Settings = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Current Password</label>
-                        <Link to="/forgot-password" className="text-xs font-bold text-[#00c4b4] hover:underline">
+                        <span className="text-xs font-bold text-[#00c4b4] hover:underline cursor-pointer" onClick={(e) => e.preventDefault()}>
                           Forgot Password?
-                        </Link>
+                        </span>
                       </div>
                       <div className="relative">
                         <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 ${isDarkMode ? 'text-slate-300' : 'text-slate-400'}`} size={18} />
