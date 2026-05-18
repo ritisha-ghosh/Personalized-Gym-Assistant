@@ -625,7 +625,7 @@ const generateAndSaveWorkoutPlan = async (user) => {
   };
 
   const updatedPlan = await WorkoutPlan.findOneAndUpdate(filter, payload, {
-    new: true,
+    new: true, 
     upsert: true,
     setDefaultsOnInsert: true
   });
