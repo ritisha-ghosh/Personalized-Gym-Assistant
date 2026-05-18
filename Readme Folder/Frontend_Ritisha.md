@@ -54,7 +54,9 @@ python app.py
 
 # 1. Link your project to the specific repository (only if you haven't done this yet)
 
-git remote add origin https://github.com/Pritam7Chakraborty/Personalized-Gym-Assistant.git
+git remote set-url origin https://github.com/Pritam7Chakraborty/Personalized-Gym-Assistant.git
+
+git remote set-url origin https://github.com/ritisha-ghosh/Personalized-Gym-Assistant.git
 
 # 2. Switch to the 'Ritisha' branch (or create it if it doesn't exist)
 
