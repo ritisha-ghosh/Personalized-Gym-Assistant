@@ -205,7 +205,7 @@ const UserProfile = () => {
         refreshToken: localStorage.getItem('refreshToken') 
       });
 
-      setSaveStatus('✓ Profile updated successfully!');
+      setSaveStatus('✓ Profile updated successfully !');
       setIsEditMode(false);
       setProfileImageFile(null);
       

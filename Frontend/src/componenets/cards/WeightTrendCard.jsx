@@ -14,7 +14,7 @@ const WeightTrendCard = () => {
         border
         w-full
         backdrop-blur-md
-        ${isDarkMode ? 'bg-[#1e293b]/60 border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}
+        ${isDarkMode ? 'bg-transparent border-[#334155]/60' : 'bg-white/60 border-slate-100/60'}
       `}
       style={{ fontFamily: "'Libre Baskerville', serif" }}
     >

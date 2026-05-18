@@ -197,7 +197,7 @@ const Workout = () => {
       
       // Mark as completed
       setIsWorkoutDoneToday(true);
-      setFeedbackModal({ show: true, type: 'success', message: 'Workout Logged Successfully! Great Job.' });
+      setFeedbackModal({ show: true, type: 'success', message: 'Workout Logged Successfully ! Great Job.' });
       
     } catch (error) {
       console.error("Workout log error:", error);
@@ -308,7 +308,7 @@ const Workout = () => {
                 </div>
                 <button
                   onClick={() => handleDeleteNote(note._id)}
-                  className="text-red-500 hover:text-red-700 transition active:scale-90 p-2 flex-shrink-0"
+                  className="flex items-center justify-center bg-transparent text-red-500 hover:text-red-600 transition-all active:scale-90 p-2 rounded-xl flex-shrink-0"
                 >
                   <Trash2 size={18} />
                 </button>
