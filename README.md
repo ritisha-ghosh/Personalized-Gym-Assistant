@@ -56,8 +56,8 @@ This project was engineered by a specialized full-stack development team from th
 
 | Team Member | Domain Contributions | Key Responsibilities |
 | :--- | :--- | :--- |
-| **Pritam Chakraborty**<br>*(Project Lead)* | **ML (60%)** <br> **Backend (10%)** | **ML Lead & Orchestration:** Engineered the core machine learning models, expanded NLP datasets, implemented strict data sandboxing, and built the Node-Python microservice bridge. |
-| **Shreya Sarkar** | **Backend (60%)** <br> **Frontend (15%)** | **Backend Lead & Analytics:** Architected the Express/Mongo infrastructure, advanced JWT/Redis security, 48-hour aggregation pipelines, and core Recharts data visualization. |
+| **Pritam Chakraborty**<br>*(Project Lead)* | **ML (60%)** <br> **Backend (40%)** | **ML Lead & Orchestration:** Engineered the core machine learning models, expanded NLP datasets, implemented strict data sandboxing, and built the Node-Python microservice bridge. |
+| **Shreya Sarkar** | **Backend (30%)** <br> **Frontend (15%)** | **Backend Lead & Analytics:** Architected the Express/Mongo infrastructure, advanced JWT/Redis security, 48-hour aggregation pipelines, and core Recharts data visualization. |
 | **Ritisha Ghosh** | **Frontend (50%)** <br> **Backend (5%)** | **Frontend Lead:** Engineered the core React UI architecture, dark mode, dynamic API data fetching, and handled comprehensive project documentation. |
 | **Debanka Samanta** | **Frontend (35%)** <br> **ML (10%)** | **Execution UI:** Built the interactive Live Workout UI, integrated Web Speech API voice coaching, enforced frontend boundaries, and optimized Flask microservice latency. |
 | **Subham Roy** | **ML (30%)** <br> **Backend (25%)** | **Math Engines & Data:** Programmed the Harris-Benedict BMR/TDEE math engines, Decision Tree feedback loops, and executed the ETL data mapping for the ML models. |
