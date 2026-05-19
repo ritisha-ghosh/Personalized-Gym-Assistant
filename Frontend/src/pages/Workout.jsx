@@ -50,7 +50,10 @@ const Workout = () => {
         const response = await api.get('/workouts/weekly-plan');
         console.log(`✅ Received workout plan - Experience used: ${response.data.user?.experienceLevel}`);
         
-        const receivedPlan = response.data.weekPlan || [];
+        const receivedPlan =
+  response.data.weeklyPlan ||
+  response.data.weekPlan ||
+  [];
         setWeekPlan(receivedPlan);
         setCurrentUserExperience(response.data.user?.experienceLevel);
         setUserGoal(response.data.user?.goal);
@@ -111,7 +114,7 @@ const Workout = () => {
       const response = await api.get('/workouts/weekly-plan');
       console.log(`✅ Refreshed workout plan - Experience used: ${response.data.user?.experienceLevel}`);
       
-      const receivedPlan = response.data.weekPlan || [];
+      const receivedPlan = response.data.weeklyPlan || response.data.workoutPlan?.weeklyPlan || [];
       setWeekPlan(receivedPlan);
       setCurrentUserExperience(response.data.user?.experienceLevel);
       setUserGoal(response.data.user?.goal);
