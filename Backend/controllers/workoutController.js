@@ -185,13 +185,9 @@ exports.generateSmartRecommendation = async (req, res) => {
     const goalMap = { "fat loss": 1, "muscle gain": 2, "maintenance": 3 };
 
     // 5. Hit the Python Microservice via Node Bridge
-    const aiResponse = await aiModelService.getCollaborativeRecommendation({
-      age: user.age || 25,
-      weight_kg: user.weight || 70,
-      experience_level: expMap[user.experience] || 1,
-      goal_type: goalMap[user.goal] || 1,
-      exhausted_muscles: exhaustedArray
-    });
+    const { getMLWorkoutRecommendation } = require("../services/userPlanService");
+
+const aiResponse = await getMLWorkoutRecommendation(user);
 
     res.status(200).json({
       message: "Smart Plan Generated successfully",
@@ -329,7 +325,7 @@ exports.getWeeklyPlan = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const savedPlan = await getOrCreateWorkoutPlan(user);
+    const savedPlan = await getOrCreateWorkoutPlan(userId);
     if (!savedPlan || !Array.isArray(savedPlan.weeklyPlan)) {
       return res.status(500).json({ message: "Failed to load workout plan" });
     }
@@ -365,7 +361,7 @@ exports.getWeeklyPlan = async (req, res) => {
         weight: user.weight,
         injury: user.injury
       },
-      weekPlan,
+      weeklyPlan: weekPlan,
       currentWeek: {
         startDate: weekPlan[0]?.date || today.toISOString().slice(0, 10),
         endDate: weekPlan[6]?.date || new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
