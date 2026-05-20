@@ -1,68 +1,83 @@
 query,intent
-what should i train today,workout_recommendation
-give me a gym routine,workout_recommendation
-suggest a leg day plan,workout_recommendation
-can you recommend a workout program,workout_recommendation
-what exercises should i do for chest,workout_recommendation
-i need a new fitness routine,workout_recommendation
-what's a good push day workout,workout_recommendation
-suggest a high intensity workout,workout_recommendation
-give me a full body split,workout_recommendation
-what should i workout right now,workout_recommendation
-i want to train upper body today,workout_recommendation
-recommend a dumbbell only routine,workout_recommendation
-what muscle group should i hit today,workout_recommendation
-give me a routine for muscle growth,workout_recommendation
-suggest a quick 30 minute home workout,workout_recommendation
-provide a back and biceps routine,workout_recommendation
-what's a good fat burning circuit,workout_recommendation
-i need an aggressive hypertrophy plan,workout_recommendation
-suggest a diet for weight loss,diet_plan
-keto diet meal plan,diet_plan
-vegan bodybuilding diet,diet_plan
-give me a meal plan for muscle gain,diet_plan
-what should i eat for bulk,diet_plan
-suggest a cutting diet,diet_plan
-i need a vegetarian bulking plan,diet_plan
-can you give me a daily macro menu,diet_plan
-provide a high protein diet sheet,diet_plan
-what is a good lean mass meal plan,diet_plan
-give me a weight loss recipe list,diet_plan
-i need a healthy full day meal plan,diet_plan
-suggest a low carb fat loss menu,diet_plan
-give me a balanced Indian diet chart,diet_plan
-provide a clean eating grocery list plan,diet_plan
-what should i eat for breakfast lunch and dinner to lose weight,diet_plan
-how much protein do i need,diet_info
-what should i eat post workout,diet_info
-calorie count for chicken breast and rice,diet_info
-healthy breakfast options for body composition,diet_info
-what is a good high protein snack,diet_info
-diet tips for lean muscle growth,diet_info
-are carbs bad for fat loss,diet_info
-how many calories should i eat to maintenance,diet_info
-tell me about healthy fats,diet_info
-what foods help with muscle recovery,diet_info
-is creatine safe to take daily,diet_info
-how much water should i drink while training,diet_info
-what are the best pre workout snacks,diet_info
-explain caloric deficit simply,diet_info
-how do macros affect body recomposition,diet_info
-track my workout for today,log_workout
-i want to log my sets,log_workout
-save my progress,log_workout
-record 3 sets of pushups,log_workout
-add 50kg bench press to my log,log_workout
-done with my gym session today,log_workout
-update my training journal,log_workout
-i did 4 sets of squats,log_workout
-record my exercise metrics,log_workout
-log 12 reps of pullups,log_workout
-save my bench press data,log_workout
-add today's activity to my profile,log_workout
-log my workout metrics,log_workout
-i want to enter my gym data,log_workout
-track my deadlift session,log_workout
-save this workout history,log_workout
-add 4 sets of 10 reps to my journal,log_workout
-register my exercise performance for tonight,log_workout
+"I want to lose weight",diet_plan
+"Give me a diet for muscle gain",diet_plan
+"I need a keto meal plan",diet_plan
+"What should a vegetarian eat for dinner?",diet_plan
+"Recommend a vegan diet",diet_plan
+"I want a meal plan to bulk up",diet_plan
+"Can you suggest a diet for cutting fat?",diet_plan
+"I need a high protein vegetarian diet",diet_plan
+"What is a good diet for a beginner?",diet_plan
+"Show me a non-veg meal plan",diet_plan
+"I need a dairy-free meal plan",diet_plan
+"Give me a diet with no onion or garlic",diet_plan
+"Suggest a 2000 calorie diet",diet_plan
+"What should I eat to get lean?",diet_plan
+"Meal plan for gaining mass",diet_plan
+"How many calories are in an egg?",diet_info
+"Is rice good for bulking?",diet_info
+"What is the best pre-workout meal?",diet_info
+"How much protein is in chicken breast?",diet_info
+"Are carbs bad for weight loss?",diet_info
+"What should I eat after a workout?",diet_info
+"Is whey protein necessary?",diet_info
+"Tell me the macros for a banana",diet_info
+"Are almonds good for fat loss?",diet_info
+"What is intermittent fasting?",diet_info
+"How many meals should I eat a day?",diet_info
+"Is oatmeal a good breakfast?",diet_info
+"Suggest a workout for beginners",workout_recommendation
+"I need a chest workout",workout_recommendation
+"What is a good leg day routine?",workout_recommendation
+"Give me a full body workout",workout_recommendation
+"Recommend a push day routine",workout_recommendation
+"What should I do for back and biceps?",workout_recommendation
+"Suggest an ab workout",workout_recommendation
+"I want to build my shoulders",workout_recommendation
+"Give me a 3-day split routine",workout_recommendation
+"What is a good workout for weight loss?",workout_recommendation
+"Recommend a hypertrophy program",workout_recommendation
+"I need a quick 20 minute home workout",workout_recommendation
+"What exercises grow the glutes?",workout_recommendation
+"Give me a dumbbell only workout",workout_recommendation
+"I want to increase my bench press",workout_recommendation
+"Log my bench press",log_workout
+"Record 3 sets of squats",log_workout
+"I just finished 30 minutes of cardio",log_workout
+"Track my workout",log_workout
+"Save my deadlift max",log_workout
+"I did 4 sets of 12 reps on cable flys",log_workout
+"Mark my pull workout as complete",log_workout
+"I ran for 5 miles today",log_workout
+"Log 50 pushups",log_workout
+"Track my leg day",log_workout
+"Record that I missed my workout today",log_workout
+"Save my new PR on squat",log_workout
+"I want to track my calories for today",log_workout
+"My knee hurts when I squat",injury_advice
+"I have asthma what should I do",injury_advice
+"Lower back pain after deadlifts",injury_advice
+"How to workout with a shoulder impingement",injury_advice
+"Modify my workout for an elbow injury",injury_advice
+"I sprained my ankle",injury_advice
+"Need exercises for a bad back",injury_advice
+"My wrists hurt when I do pushups",injury_advice
+"I have a torn ACL how do I train legs",injury_advice
+"What cardio is safe for bad knees?",injury_advice
+"I have high blood pressure what should I avoid?",injury_advice
+"Modify my plan for a rotator cuff tear",injury_advice
+"I am recovering from a broken arm",injury_advice
+"How to train around tennis elbow",injury_advice
+"Is it safe to lift with sciatica?",injury_advice
+"Alternative to squats for bad knees",injury_advice
+"I pulled my hamstring sprinting",injury_advice
+"My shin splints are flaring up",injury_advice
+"Modifications for a herniated disc",injury_advice
+"I have a heart condition what is safe?",injury_advice
+"How to rehab a rolled ankle",injury_advice
+"Neck pain after overhead press",injury_advice
+"I feel a sharp pain in my bicep tendon",injury_advice
+"What to do for hip flexor pain?",injury_advice
+"I have a slight groin pull",injury_advice
+"Is swimming good for joint pain?",injury_advice
+"How to train with plantar fasciitis",injury_advice
