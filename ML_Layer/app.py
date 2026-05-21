@@ -1,12 +1,19 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from groq import Groq
 import joblib
 import pandas as pd
 import random
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
+
+# Initialize Groq Cloud Client with your API Key
+groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 class APIError(Exception):
     def __init__(self, message, status_code=400):
@@ -29,15 +36,13 @@ def initialize_ml_engine():
     knn_model = joblib.load(os.path.join(BASE_DIR, 'knn_model.pkl'))
     df_users = joblib.load(os.path.join(BASE_DIR, 'df_users.pkl'))
     df_diet = pd.read_csv(os.path.join(BASE_DIR, 'diet_dataset.csv'), encoding='latin1')
-    print("✅ Week 9 Enterprise Medical ML Engine Online.")
+    print("✅ Week 9 Enterprise Medical & Groq Cloud RAG Engine Online.")
 
 
 # =================================================
 # 🔹 THE MEDICAL KNOWLEDGE GRAPH (SCALABLE ENGINE)
 # =================================================
 
-# Groups conditions into protocols. If you add new diseases to the CSV later, 
-# just add the keyword to one of these tuples!
 WORKOUT_PROTOCOLS = {
     ("asthma", "bronchitis", "sleep apnea"): "Respiratory Protocol: High-intensity cardio replaced with LISS (Low-Intensity Steady State) to manage oxygen thresholds.",
     ("knee", "acl", "patella", "meniscus", "leg fracture"): "Lower Body Rehab Protocol: Axial loading (Squats) replaced with Glute Bridges, Iso-Holds, and non-impact mobility.",
@@ -69,7 +74,6 @@ def apply_workout_mutator(disease, injury):
     combined_health_string = f"{disease} {injury}"
     mutations_applied = []
 
-    # Dynamically search the dictionary instead of using 100 if statements
     for keywords, protocol in WORKOUT_PROTOCOLS.items():
         if any(keyword in combined_health_string for keyword in keywords):
             mutations_applied.append(protocol)
@@ -105,7 +109,6 @@ def recommend_plan():
     distances, indices = knn_model.kneighbors(target_user)
     recommended_profile = df_users.iloc[indices[0][0]]
     
-    # Run the new dynamic mutator
     medical_mutations = apply_workout_mutator(disease, injury)
 
     msg = "Collaborative filtering successful."
@@ -123,6 +126,7 @@ def recommend_plan():
         }
     }), 200
 
+
 # =================================================
 # 🔹 2. MEDICAL DIET ENGINE (DYNAMIC LOOP)
 # =================================================
@@ -139,22 +143,17 @@ def diet_recommendation():
     filtered = df_diet.copy()
     medical_diet_flags = []
 
-    # Layer 1: Veg / Non-Veg Standard Filtering
     if "veg" in diet_type and "non" not in diet_type:
         filtered = filtered[filtered['Diet type'].str.contains('Veg', case=False, na=False)]
         filtered = filtered[~filtered['Diet type'].str.contains('Non-Veg', case=False, na=False)]
     elif "non" in diet_type:
         filtered = filtered[filtered['Diet type'].str.contains('Non', case=False, na=False)]
 
-    # Layer 2: Exact Dataset Matching (If the specific disease exists in CSV)
     if disease != 'none':
         disease_match = filtered[filtered['Disease'].str.contains(disease, case=False, na=False)]
         if not disease_match.empty:
             filtered = disease_match
-            medical_diet_flags.append(f"Exact CSV nutritional profile matched and applied for: {disease.title()}")
     
-    # Layer 3: Dynamic Rule-Based Medical Guardrails 
-    # (Scans the dictionary for any matched diseases or injuries)
     for keywords, protocol in DIET_PROTOCOLS.items():
         if any(keyword in combined_health_string for keyword in keywords):
             medical_diet_flags.append(protocol)
@@ -181,6 +180,7 @@ def diet_recommendation():
         "weekly_plan": weekly_plan
     }), 200
 
+
 # =================================================
 # 🔹 3. AUTONOMOUS FEEDBACK ENGINE
 # =================================================
@@ -205,6 +205,102 @@ def scale_difficulty():
         "new_difficulty_coefficient": coefficient,
         "message": f"Autonomous feedback loop adjusted user load coefficient to {coefficient}"
     })
+
+
+# =================================================
+# 🔹 4. SMART CLOUD RAG CHATBOT (GROQ LLAMA 3 ENGINE)
+# =================================================
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.json
+    if not data or 'query' not in data:
+        raise APIError("Please provide a search query.")
+    
+    raw_input = data.get('query')
+    user_obj = data.get('user', {}) 
+    
+    if isinstance(raw_input, dict):
+        user_query = str(raw_input.get('userQuery', ''))
+    else:
+        user_query = str(raw_input)
+        
+    text_vec = vectorizer.transform([user_query])
+    
+    if text_vec.nnz == 0:
+        intent = "unknown"
+    else:
+        predicted_intent = model.predict(text_vec)[0]
+        probabilities = model.predict_proba(text_vec)[0]
+        confidence_score = max(probabilities)
+        intent = predicted_intent if confidence_score >= 0.45 else "unknown"
+    
+    # Context Retrieval Pipeline
+    context_data = "No explicit dataset records match. Rely on general athletic guidance."
+    
+    if intent == "workout_recommendation":
+        age = float(user_obj.get('age', 22))
+        weight = float(user_obj.get('weight', 70))
+        target_user = [[age, weight, 1.0, 1.0]] 
+        distances, indices = knn_model.kneighbors(target_user)
+        routine = df_users.iloc[indices[0][0]]
+        context_data = f"BeFit Workout Log: Monday Split is {routine.get('Day 2 - Monday', 'Rest day scheduled')}. Tuesday Split is {routine.get('Day 3 - Tuesday', 'Rest day scheduled')}."
+        
+    elif intent == "diet_plan" or intent == "diet_info":
+        diet_type = str(user_obj.get('dietType', 'vegetarian')).lower()
+        filtered = df_diet[df_diet['Diet type'].str.contains(diet_type, case=False, na=False)]
+        choice = filtered.sample(1).iloc[0] if not filtered.empty else df_diet.sample(1).iloc[0]
+        context_data = f"BeFit Nutritional Matrix: Target Type: {diet_type}. Matched Breakfast: {choice.get('Breakfast_Monday', 'N/A')}. Matched Lunch: {choice.get('Lunch_Monday', 'N/A')}. Matched Pre-Workout: {choice.get('PreWorkout_Monday', 'N/A')}."
+        
+    elif intent == "user_profile" or intent == "injury_advice":
+        context_data = f"BeFit User Metadata Context: Profile Goal: {user_obj.get('goal', 'Unspecified')}. Mass Baseline: {user_obj.get('weight', '70')}kg. Pathological Flag: {user_obj.get('disease', 'none')}. Mechanical Limitation: {user_obj.get('injury', 'none')}."
+
+    # Build Strict Prompt Guardrails
+    system_prompt = f"""
+    You are the BeFit AI Fitness Coach. Speak in a friendly, conversational, and encouraging tone.
+    Here are the absolute facts retrieved from the internal BeFit database files:
+    [{context_data}]
+    
+    INSTRUCTIONS:
+    1. Answer the user's question directly using the provided facts above. 
+    2. If the facts contain specific workout exercises or food meals, state them explicitly to answer the question.
+    3. Keep your output highly concise and professional, wrapped within 2 to 3 sentences max.
+    4. Do not mention the word 'database' or 'context row' in your final response. Talk like an intuitive personal coach.
+    """
+
+    # Hit Lightning-Fast Groq Cloud API
+    try:
+        chat_completion = groq_client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": user_query
+                }
+            ],
+            model="llama-3.1-8b-instant", # 🔹 UPDATED TO THE ACTIVE MODEL
+            temperature=0.3, 
+            max_tokens=100    
+        )
+        personalized_msg = chat_completion.choices[0].message.content.strip()
+            
+    except Exception as e:
+        print("🔴 Groq Cloud API lag/error fallback active:", str(e))
+        # Deterministic architectural fallbacks if cloud request fails
+        if intent == "workout_recommendation":
+            personalized_msg = "I've fetched your core cluster split! Let's hit your target compounds on the routine dashboard."
+        elif intent == "diet_plan":
+             personalized_msg = "Your custom nutritional split is ready! Check out the macro tracker to confirm items matching your requirements."
+        else:
+            personalized_msg = "I've received your data point. Let's head over to the corresponding app segment to execute updates!"
+
+    return jsonify({
+        "status": "success",
+        "intent": intent,
+        "personalized_message": personalized_msg
+    }), 200
 
 if __name__ == '__main__':
     initialize_ml_engine()
