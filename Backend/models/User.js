@@ -59,10 +59,23 @@ const userSchema = new mongoose.Schema({
   lowercase: true,
   trim: true
 },
-  injury: {
-    type: String,
-    default: "none"
-  },
+injury: {
+  type: String,
+  default: "none",
+  trim: true,
+  lowercase: true
+},
+
+//For current recovery state
+medicalState: {
+  type: String,
+  enum: [
+    "healthy",
+    "acute injury",
+    "returning from injury"
+  ],
+  default: "healthy"
+},
 
   experience: {
     type: String,

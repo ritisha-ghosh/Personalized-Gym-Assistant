@@ -1,9 +1,9 @@
 const WorkoutPlan = require("../models/WorkoutPlan");
 const UserDietPlan = require("../models/UserDietPlan");
-const UserLog = require("../models/UserLog"); 
-const User = require("../models/User"); 
-const aiModelService = require("../services/aiModelService"); 
-const { applyWeeklyAdjustment } = require("../services/decisionTreeService"); 
+const UserLog = require("../models/UserLog");
+const User = require("../models/User");
+const aiModelService = require("../services/aiModelService");
+const { applyWeeklyAdjustment } = require("../services/decisionTreeService");
 const { getOrCreateWorkoutPlan } = require("../services/userPlanService");
 console.log("Workout controller loaded");
 
@@ -106,7 +106,7 @@ exports.weeklyPlanAdjustment = async (req, res) => {
     const avgDifficulty =
       difficultyLogs.length > 0
         ? difficultyLogs.reduce((sum, l) => sum + l.difficultyRating, 0) /
-          difficultyLogs.length
+        difficultyLogs.length
         : 5; // neutral fallback
 
     const plan = await WorkoutPlan.findOne({ user: userId });
@@ -114,24 +114,43 @@ exports.weeklyPlanAdjustment = async (req, res) => {
       return res.status(404).json({ message: "Workout plan not found" });
     }
 
-    const adjustment = applyWeeklyAdjustment({
+    const adjustment = await applyWeeklyAdjustment({
+
+      userId,
+
       goal: plan.goal,
+
       avgDifficulty,
+
       missedDays,
+
       hasInjuryOrSick
+
     });
 
-    // 🔧 APPLY ADJUSTMENT TO PLAN (exercise-level)
     plan.exercises = plan.exercises.map(ex => ({
+
       ...ex.toObject(),
+
       sets: Math.max(
         1,
-        Math.round(ex.sets * adjustment.volumeMultiplier)
+        Math.round(
+          ex.sets * adjustment.volumeMultiplier
+        )
       ),
+
+      reps: Math.max(
+        1,
+        Math.round(
+          ex.reps * adjustment.volumeMultiplier
+        )
+      ),
+
       restSeconds: Math.max(
         30,
         ex.restSeconds + adjustment.restAdjustment
       )
+
     }));
 
     plan.notes = `${plan.notes} | ${adjustment.notes}`.trim();
@@ -155,14 +174,14 @@ exports.weeklyPlanAdjustment = async (req, res) => {
 exports.generateSmartRecommendation = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     // 1. Fetch User Data to pass to the KNN model
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     // 2. Mongoose 48-Hour Lookback Query
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
-    
+
     const recentPlans = await WorkoutPlan.find({
       user: userId,
       createdAt: { $gte: fortyEightHoursAgo }
@@ -187,7 +206,33 @@ exports.generateSmartRecommendation = async (req, res) => {
     // 5. Hit the Python Microservice via Node Bridge
     const { getMLWorkoutRecommendation } = require("../services/userPlanService");
 
-const aiResponse = await getMLWorkoutRecommendation(user);
+    const aiResponse = await getMLWorkoutRecommendation({
+
+      age: user.age,
+
+      weight: user.weight,
+
+      height: user.height,
+
+      gender: user.gender,
+
+      goal: user.goal,
+
+      experience: user.experience,
+
+      injury: user.injury,
+
+      // ✅ NEW
+      medicalState: user.medicalState,
+
+      // ✅ NEW
+      exhaustedMuscles: exhaustedArray,
+
+      // ✅ NEW
+      fatigueDetected:
+        exhaustedArray.length > 0
+
+    });
 
     res.status(200).json({
       message: "Smart Plan Generated successfully",
@@ -277,42 +322,42 @@ exports.deleteCustomNote = async (req, res) => {
 };
 
 exports.logDietDay = async (req, res) => {
-    try {
-        const { date, completed } = req.body;
-        const userId = req.user.id;
+  try {
+    const { date, completed } = req.body;
+    const userId = req.user.id;
 
-        if (!date) {
-            return res.status(400).json({ message: "Date is required." });
-        }
-
-        const targetDate = new Date(date);
-        if (isNaN(targetDate)) {
-            return res.status(400).json({ message: "Invalid date format." });
-        }
-        
-        // Standardize the date to the beginning of the day in UTC to avoid timezone issues
-        targetDate.setUTCHours(0, 0, 0, 0);
-
-        const logQuery = {
-            user: userId,
-            status: 'diet_day_completed',
-            date: targetDate,
-        };
-
-        if (completed) {
-            // Use updateOne with upsert to create if not exists, or do nothing if it does.
-            await UserLog.updateOne(logQuery, { $set: logQuery }, { upsert: true });
-            res.status(200).json({ message: "Diet day marked as completed." });
-        } else {
-            // If unchecking, delete the log
-            await UserLog.deleteOne(logQuery);
-            res.status(200).json({ message: "Diet day completion status removed." });
-        }
-
-    } catch (error) {
-        console.error("LOG DIET DAY ERROR:", error);
-        res.status(500).json({ message: "Server error while logging diet day." });
+    if (!date) {
+      return res.status(400).json({ message: "Date is required." });
     }
+
+    const targetDate = new Date(date);
+    if (isNaN(targetDate)) {
+      return res.status(400).json({ message: "Invalid date format." });
+    }
+
+    // Standardize the date to the beginning of the day in UTC to avoid timezone issues
+    targetDate.setUTCHours(0, 0, 0, 0);
+
+    const logQuery = {
+      user: userId,
+      status: 'diet_day_completed',
+      date: targetDate,
+    };
+
+    if (completed) {
+      // Use updateOne with upsert to create if not exists, or do nothing if it does.
+      await UserLog.updateOne(logQuery, { $set: logQuery }, { upsert: true });
+      res.status(200).json({ message: "Diet day marked as completed." });
+    } else {
+      // If unchecking, delete the log
+      await UserLog.deleteOne(logQuery);
+      res.status(200).json({ message: "Diet day completion status removed." });
+    }
+
+  } catch (error) {
+    console.error("LOG DIET DAY ERROR:", error);
+    res.status(500).json({ message: "Server error while logging diet day." });
+  }
 };
 
 
@@ -359,7 +404,8 @@ exports.getWeeklyPlan = async (req, res) => {
         goal: user.goal,
         age: user.age,
         weight: user.weight,
-        injury: user.injury
+        injury: user.injury,
+        medicalState: user.medicalState
       },
       weeklyPlan: weekPlan,
       currentWeek: {
