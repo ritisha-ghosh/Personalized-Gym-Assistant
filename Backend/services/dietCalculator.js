@@ -52,12 +52,46 @@ const activityMultiplier = {
   very_active: 1.9,
 };
 
-const calculateTDEE = (bmr, activityLevel) => {
-  const multiplier = activityMultiplier[activityLevel] || 1.2;
+// ----------------------------
+// 🩺 MEDICAL STATE ADJUSTMENTS
+// ----------------------------
+const medicalStateMultiplier = {
+  healthy: 1.0,
 
-  const tdee = bmr * multiplier;
+  // During injury:
+  // activity sharply decreases
+  // metabolism slows slightly
+  "acute injury": 0.78,
 
-  // Prevent impossible calorie outputs
+  // User is slowly returning
+  // moderate movement resumes
+  "returning from injury": 0.9,
+};
+
+// ----------------------------
+// 🔥 DYNAMIC TDEE CALCULATION
+// ----------------------------
+const calculateTDEE = (
+  bmr,
+  activityLevel,
+  medicalState = "healthy"
+) => {
+
+  // Base activity multiplier
+  const baseMultiplier =
+    activityMultiplier[activityLevel] || 1.2;
+
+  // Medical recovery adjustment
+  const recoveryMultiplier =
+    medicalStateMultiplier[medicalState] || 1.0;
+
+  // Final adaptive multiplier
+  const finalMultiplier =
+    baseMultiplier * recoveryMultiplier;
+
+  const tdee = bmr * finalMultiplier;
+
+  // Prevent unrealistic outputs
   return Math.max(1000, Math.round(tdee));
 };
 
