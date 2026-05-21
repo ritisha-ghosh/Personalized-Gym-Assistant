@@ -1,6 +1,7 @@
 const axios = require('axios');
 const FLASK_RECOMMEND_URL = 'http://127.0.0.1:5001/recommend-plan';
 const FLASK_URL = 'http://127.0.0.1:5001/predict';
+const FLASK_SCALE_URL = 'http://127.0.0.1:5001/scale-difficulty'; // 🔹 ADDED FOR WEEK 9
 
 // Helper function to pause execution (wait before retrying)
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -44,11 +45,16 @@ const getAIResponse = async (userQuery, maxRetries = 3, delayMs = 1000) => {
 
 const getCollaborativeRecommendation = async (userStats) => {
   try {
+    // 🔹 FORMATTED EXACTLY FOR WEEK 9 PYTHON PAYLOAD
     const response = await axios.post(FLASK_RECOMMEND_URL, {
-      age: userStats.age,
-      weight_kg: userStats.weight_kg,
-      experience_level: userStats.experience_level,
-      goal_type: userStats.goal_type,
+      user: {
+        age: userStats.age,
+        weight: userStats.weight_kg || userStats.weight,
+        experience: userStats.experience_level || userStats.experience,
+        goal: userStats.goal_type || userStats.goal,
+        disease: userStats.disease || "none", // 🔹 INJECTED MEDICAL DATA
+        injury: userStats.injury || "none"    // 🔹 INJECTED MEDICAL DATA
+      },
       exhausted_muscles: userStats.exhausted_muscles || [] 
     });
     return response.data;
@@ -58,5 +64,18 @@ const getCollaborativeRecommendation = async (userStats) => {
   }
 };
 
-module.exports = { getAIResponse, getCollaborativeRecommendation };
+// 🔹 NEW FUNCTION FOR AUTONOMOUS FEEDBACK LOOP
+const scaleDifficulty = async (difficultyRating) => {
+  try {
+    const response = await axios.post(FLASK_SCALE_URL, {
+      average_difficulty: difficultyRating
+    });
+    return response.data;
+  } catch (error) {
+    console.error("AI Feedback Service Error:", error.message);
+    throw error;
+  }
+};
 
+// 🔹 EXPORT ALL THREE FUNCTIONS
+module.exports = { getAIResponse, getCollaborativeRecommendation, scaleDifficulty };

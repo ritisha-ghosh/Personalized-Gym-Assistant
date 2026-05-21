@@ -14,6 +14,21 @@ query,intent
 "Suggest a 2000 calorie diet",diet_plan
 "What should I eat to get lean?",diet_plan
 "Meal plan for gaining mass",diet_plan
+"I have diabetes what is a good diet",diet_plan
+"PCOS friendly meal plan",diet_plan
+"Diet for high blood pressure",diet_plan
+"What should I eat if I have high cholesterol?",diet_plan
+"Need a cheap diet plan",diet_plan
+"Budget friendly muscle gain diet",diet_plan
+"What should a student eat for protein?",diet_plan
+"Give me a 7 day meal plan",diet_plan
+"What is a good diet for a teenager?",diet_plan
+"I need to cut 10 pounds fast",diet_plan
+"Meal plan for a marathon runner",diet_plan
+"How to eat to build big arms",diet_plan
+"What should I eat to get a six pack?",diet_plan
+"Show me a low carb diet",diet_plan
+"I want to do intermittent fasting meals",diet_plan
 "How many calories are in an egg?",diet_info
 "Is rice good for bulking?",diet_info
 "What is the best pre-workout meal?",diet_info
@@ -26,6 +41,20 @@ query,intent
 "What is intermittent fasting?",diet_info
 "How many meals should I eat a day?",diet_info
 "Is oatmeal a good breakfast?",diet_info
+"Does creatine make you fat?",diet_info
+"Is it bad to eat before bed?",diet_info
+"How much water should I drink?",diet_info
+"Are egg yolks bad for you?",diet_info
+"What is a good source of healthy fats?",diet_info
+"Is peanut butter good for bulking?",diet_info
+"How many calories should I eat to lose weight?",diet_info
+"What are macros?",diet_info
+"Do I need to track calories?",diet_info
+"Is soy protein bad for men?",diet_info
+"What is the glycemic index?",diet_info
+"Are potatoes better than rice?",diet_info
+"Can I drink coffee before a workout?",diet_info
+"Is milk good for gaining weight?",diet_info
 "Suggest a workout for beginners",workout_recommendation
 "I need a chest workout",workout_recommendation
 "What is a good leg day routine?",workout_recommendation
@@ -41,6 +70,22 @@ query,intent
 "What exercises grow the glutes?",workout_recommendation
 "Give me a dumbbell only workout",workout_recommendation
 "I want to increase my bench press",workout_recommendation
+"Bro split vs PPL",workout_recommendation
+"Give me a 5 day workout split",workout_recommendation
+"How to get a bigger chest",workout_recommendation
+"What is the best back workout?",workout_recommendation
+"Exercises for wider shoulders",workout_recommendation
+"How to build big calves",workout_recommendation
+"Workout for a 40 year old man",workout_recommendation
+"Cardio routine for fat loss",workout_recommendation
+"HIIT workout suggestions",workout_recommendation
+"Give me a calisthenics routine",workout_recommendation
+"How to get better at pullups",workout_recommendation
+"Upper lower split routine",workout_recommendation
+"Bodyweight exercises for chest",workout_recommendation
+"I only have 30 minutes to workout",workout_recommendation
+"Suggest a routine for a woman",workout_recommendation
+"How to tone my arms",workout_recommendation
 "Log my bench press",log_workout
 "Record 3 sets of squats",log_workout
 "I just finished 30 minutes of cardio",log_workout
@@ -54,6 +99,18 @@ query,intent
 "Record that I missed my workout today",log_workout
 "Save my new PR on squat",log_workout
 "I want to track my calories for today",log_workout
+"Save my workout",log_workout
+"Record 100 kg deadlift",log_workout
+"I completed my push day",log_workout
+"Log 5 sets of bench",log_workout
+"Track 20 minutes on the treadmill",log_workout
+"Save today's session",log_workout
+"I burned 400 calories today",log_workout
+"Mark today as a rest day",log_workout
+"I did yoga for an hour",log_workout
+"Record my bicep curls",log_workout
+"Track my macros",log_workout
+"Log my breakfast",log_workout
 "My knee hurts when I squat",injury_advice
 "I have asthma what should I do",injury_advice
 "Lower back pain after deadlifts",injury_advice
@@ -81,3 +138,30 @@ query,intent
 "I have a slight groin pull",injury_advice
 "Is swimming good for joint pain?",injury_advice
 "How to train with plantar fasciitis",injury_advice
+"My lower back is tight",injury_advice
+"I have osteoporosis is lifting safe",injury_advice
+"Can I workout with arthritis",injury_advice
+"Exercises to avoid with a hernia",injury_advice
+"How to train if I have GERD",injury_advice
+"Workout modifications for pregnant women",injury_advice
+"Shoulder pops when I lift",injury_advice
+"I have carpal tunnel syndrome",injury_advice
+"Is deadlifting bad for your spine?",injury_advice
+"I dislocated my shoulder recently",injury_advice
+"How to recover from a torn meniscus",injury_advice
+"Safe exercises for cervical spondylosis",injury_advice
+"What to do for a stiff neck",injury_advice
+"I have chronic fatigue syndrome",injury_advice
+"Is it safe to workout with a fever?",injury_advice
+"How to fix bad posture",injury_advice
+"What is my current goal?",user_profile
+"Tell me my goal",user_profile
+"Show my user profile",user_profile
+"Analyze my last run",workout_analysis
+"How did I do on my last run",workout_analysis
+"Analyze my progress",workout_analysis
+"Show me my next workout",workout_recommendation
+"What is my workout today",workout_recommendation
+"Recipe for post-workout",diet_plan
+"Post workout meal recipe",diet_plan
+"Give me a recipe",diet_plan

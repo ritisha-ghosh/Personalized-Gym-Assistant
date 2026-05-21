@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const feedbackController = require('../controllers/feedbackController');
+const { protect } = require('../middleware/authMiddleware');
 
-// Submit feedback
-router.post('/', feedbackController.submitFeedback);
+// Route to submit feedback (Triggers AI Autonomous Loop)
+router.post('/', protect, feedbackController.submitFeedback);
 
-// Get feedback for a plan
-router.get('/:planId', feedbackController.getFeedbackForPlan);
+// Route to fetch feedback for a specific plan
+router.get('/:planId', protect, feedbackController.getFeedbackForPlan);
 
 module.exports = router;
-
