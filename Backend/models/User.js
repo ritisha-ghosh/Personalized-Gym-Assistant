@@ -54,14 +54,42 @@ const userSchema = new mongoose.Schema({
 
   // ✅ FIXED (lowercase, matches calculator)
   goal: {
-  type: String,
-  enum: ["muscle gain", "fat loss", "maintenance"],
-  lowercase: true,
-  trim: true
-},
+    type: String,
+    enum: ["muscle gain", "fat loss", "maintenance"],
+    lowercase: true,
+    trim: true
+  },
+  
   injury: {
     type: String,
-    default: "none"
+    default: "none",
+    trim: true,
+    lowercase: true
+  },
+
+  // 🔹 ADDED FOR WEEK 9 ML 
+  disease: {
+    type: String,
+    default: "none",
+    trim: true,
+    lowercase: true
+  },
+
+  //For current recovery state
+  medicalState: {
+    type: String,
+    enum: [
+      "healthy",
+      "acute injury",
+      "returning from injury"
+    ],
+    default: "healthy"
+  },
+
+  // 🔹 ADDED FOR WEEK 9 AUTONOMOUS FEEDBACK LOOP
+  difficulty_coefficient: {
+    type: Number,
+    default: 1.0
   },
 
   experience: {

@@ -30,6 +30,8 @@ exports.getUserProfile = async (req, res) => {
         profileImage: fullUser.profileImage, // This will now send the Base64 string directly
         bio: fullUser.bio,
         injury: fullUser.injury,
+        disease: fullUser.disease, // 🔹 ADDED FOR WEEK 9 ML
+        difficulty_coefficient: fullUser.difficulty_coefficient, // 🔹 ADDED FOR WEEK 9 FEEDBACK
         experience: fullUser.experience,
         activityLevel: fullUser.activityLevel,
         dietType: fullUser.dietType,
@@ -67,6 +69,7 @@ exports.updateUserProfile = async (req, res) => {
       experience: user.experience,
       activityLevel: user.activityLevel,
       dietType: user.dietType,
+      disease: user.disease, // 🔹 ADDED TO TRACK CHANGES
       noOnion: user.noOnion,
       noGarlic: user.noGarlic,
       glutenFree: user.glutenFree,
@@ -77,8 +80,8 @@ exports.updateUserProfile = async (req, res) => {
 
     const oldWeight = user.weight;
 
-    // Update text fields
-    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'activityLevel', 'goal', 'dietType', 'bio', 'injury', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
+    // Update text fields (🔹 Added 'disease' to this array)
+    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'activityLevel', 'goal', 'dietType', 'bio', 'injury', 'disease', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
     fieldsToUpdate.forEach(field => {
       if (req.body[field] !== undefined) {
         // Convert string representations to boolean for checkboxes
@@ -112,7 +115,8 @@ exports.updateUserProfile = async (req, res) => {
 
     const updatedUser = await user.save();
 
-    const planTriggerFields = ['height', 'weight', 'age', 'gender', 'goal', 'experience', 'activityLevel', 'dietType', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
+    // 🔹 Added 'disease' to this array so it forces a new AI generation if it changes
+    const planTriggerFields = ['height', 'weight', 'age', 'gender', 'goal', 'experience', 'activityLevel', 'dietType', 'disease', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
     const shouldRefreshPlans = planTriggerFields.some(field => String(oldValues[field] || '') !== String(updatedUser[field] || ''));
     if (shouldRefreshPlans) {
       try {
@@ -139,6 +143,8 @@ exports.updateUserProfile = async (req, res) => {
         dietType: updatedUser.dietType,
         bio: updatedUser.bio,
         injury: updatedUser.injury,
+        disease: updatedUser.disease, // 🔹 ADDED
+        difficulty_coefficient: updatedUser.difficulty_coefficient, // 🔹 ADDED
         noOnion: updatedUser.noOnion,
         noGarlic: updatedUser.noGarlic,
         glutenFree: updatedUser.glutenFree,

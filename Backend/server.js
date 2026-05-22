@@ -13,6 +13,7 @@ const dietPlanRoutes = require("./routes/dietPlanRoutes");
 const dietTrackingRoutes = require("./routes/dietTrackingRoutes");
 const logRoutes = require("./routes/logRoutes");
 const workoutRoutes = require("./routes/workoutRoutes");
+const feedbackRoutes = require("./routes/feedbackRoutes"); // 🔹 ADDED FOR WEEK 9 FEEDBACK LOOP
 
 dotenv.config();
 connectDB();
@@ -49,6 +50,7 @@ app.use("/api/diet-plan", dietPlanRoutes);
 app.use("/api/diet-tracking", dietTrackingRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/workouts", workoutRoutes);
+app.use("/api/feedback", feedbackRoutes); // 🔹 MOUNTED WEEK 9 FEEDBACK ROUTE
 
 /* 404 */
 app.use((req, res) => {
@@ -71,5 +73,5 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  //console.log('Subham');
+  console.log('THIS SHALL TOO PASS --Subham');
 });

@@ -1,4 +1,7 @@
 const UserLog = require("../models/UserLog");
+const {
+  updateAdaptiveState
+} = require("../services/adaptiveEngine");
 
 /* CREATE LOG */
 exports.createLog = async (req, res) => {
@@ -11,6 +14,9 @@ exports.createLog = async (req, res) => {
       difficultyRating,
       weight
     });
+    
+    // 🧠 Trigger adaptive AI engine
+    await updateAdaptiveState(req.user._id);
 
     res.status(201).json(log);
 

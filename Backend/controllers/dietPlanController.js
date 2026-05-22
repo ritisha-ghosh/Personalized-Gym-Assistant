@@ -51,7 +51,7 @@ const getDietPlan = async (req, res) => {
     // -----------------------------
     // 🔢 TDEE
     // -----------------------------
-    const tdee = calculateTDEE(bmr, activityLevel);
+    const tdee = calculateTDEE(bmr, activityLevel , user.medicalState);
 
     // -----------------------------
     // 🍽️ MACROS

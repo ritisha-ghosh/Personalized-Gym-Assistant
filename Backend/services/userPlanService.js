@@ -265,14 +265,41 @@ const getMLWorkoutRecommendation = async (user) => {
       exhausted_muscles: []
     }, { timeout: 6000 });
 
+    // 🔥 DEBUG: SEE EXACT ML OUTPUT
+    console.log("==== RAW ML RESPONSE ====");
+    console.log(JSON.stringify(response.data, null, 2));
+    console.log("========================");
+
+    const data = response.data;
+    if (!data) {
+      throw new Error("Empty ML response");
+    }
     return {
-      recommendationId: response.data.recommended_plan_id || null,
-      suggestion: response.data.exercise_suggestion || response.data.suggestion || null,
-      planMeta: response.data.plan_meta || null
+      recommendationId: data.recommended_plan_id || data.recommendation_id || null,
+
+      suggestion:
+        data.exercise_suggestion ||
+        data.suggestion ||
+        data.workout ||
+        data.plan ||
+        data.data?.suggestion ||
+        data.data?.workout ||
+        null,
+
+      planMeta: data.plan_meta || data.meta || null
     };
+
   } catch (error) {
-    console.warn('Workout plan recommendation service unavailable:', error.message || error);
-    return { recommendationId: null, suggestion: null, planMeta: null };
+    console.warn(
+      'Workout plan recommendation service unavailable:',
+      error.message || error
+    );
+
+    return {
+      recommendationId: null,
+      suggestion: null,
+      planMeta: null
+    };
   }
 };
 
@@ -351,6 +378,15 @@ const parseSuggestionToExercises = (suggestion) => {
 
 const buildWeeklyWorkoutPlanFromSuggestion = (user, suggestion) => {
   const baseExercises = parseSuggestionToExercises(suggestion);
+  let finalExercises = baseExercises;
+
+  if (!finalExercises || finalExercises.length === 0) {
+    finalExercises = [
+      { name: "Push Ups", sets: 3, reps: 12, muscleGroup: "chest" },
+      { name: "Squats", sets: 3, reps: 12, muscleGroup: "legs" },
+      { name: "Plank", sets: 3, reps: "30 sec", muscleGroup: "core" }
+    ];
+  }
   const normalizedText = (suggestion || '').toLowerCase();
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const useAlternateRest = /ppl|push-pull-legs|split|tabata|circuit|hypertrophy|crossfit|functional|training/.test(normalizedText);
@@ -364,24 +400,35 @@ const buildWeeklyWorkoutPlanFromSuggestion = (user, suggestion) => {
   };
 
   const buildDayExercises = (pattern, dayIndex) => {
-    let filtered = baseExercises.filter((exercise) => {
-      const category = muscleCategory(exercise.muscleGroup);
+    let filtered = (baseExercises || []).filter((exercise) => {
+      const category = muscleCategory(exercise.muscleGroup || '');
       if (pattern === 'fullBody') return true;
       if (pattern === 'upper') return ['push', 'pull'].includes(category);
       return category === pattern;
     });
 
-    if (filtered.length === 0) {
-      filtered = [...baseExercises];
-    }
 
     if (filtered.length === 0) {
-      return [{
-        name: suggestion || 'ML-generated workout',
-        sets: 3,
-        reps: 12,
-        muscleGroup: inferMuscleGroup(suggestion)
-      }];
+      filtered = [
+        {
+          name: "Push Ups",
+          sets: 3,
+          reps: 12,
+          muscleGroup: "chest"
+        },
+        {
+          name: "Squats",
+          sets: 3,
+          reps: 12,
+          muscleGroup: "legs"
+        },
+        {
+          name: "Plank",
+          sets: 3,
+          reps: "30 sec",
+          muscleGroup: "core"
+        }
+      ];
     }
 
     const offset = dayIndex % filtered.length;
@@ -445,32 +492,38 @@ const buildWeeklyWorkoutPlan = (user, recommendationId) => {
 
   const defaultPlans = {
     beginner: [
-      { title: 'Upper Body A', focusMuscles: ['chest', 'back', 'biceps'], exercises: [
+      {
+        title: 'Upper Body A', focusMuscles: ['chest', 'back', 'biceps'], exercises: [
           { name: 'Push-ups', sets: 3, reps: '10-12', muscleGroup: 'chest' },
           { name: 'Dumbbell Rows', sets: 3, reps: '10-12', muscleGroup: 'back' },
           { name: 'Bicep Curls', sets: 3, reps: '12-15', muscleGroup: 'biceps' }
         ]
       },
-      { title: 'Lower Body A', focusMuscles: ['quads', 'glutes'], exercises: [
+      {
+        title: 'Lower Body A', focusMuscles: ['quads', 'glutes'], exercises: [
           { name: 'Squats', sets: 3, reps: '10-12', muscleGroup: 'quads' },
           { name: 'Lunges', sets: 3, reps: '10-12', muscleGroup: 'glutes' }
         ]
       },
-      { title: 'Active Recovery', type: 'recovery', focusMuscles: ['general'], exercises: [
+      {
+        title: 'Active Recovery', type: 'recovery', focusMuscles: ['general'], exercises: [
           { name: 'Walking or Cycling', sets: 1, reps: '30 mins', muscleGroup: 'core' }
         ]
       },
-      { title: 'Upper Body B', focusMuscles: ['shoulders', 'triceps'], exercises: [
+      {
+        title: 'Upper Body B', focusMuscles: ['shoulders', 'triceps'], exercises: [
           { name: 'Overhead Press', sets: 3, reps: '10-12', muscleGroup: 'shoulders' },
           { name: 'Tricep Dips', sets: 3, reps: '10-12', muscleGroup: 'triceps' }
         ]
       },
-      { title: 'Lower Body B', focusMuscles: ['hamstrings', 'calves'], exercises: [
+      {
+        title: 'Lower Body B', focusMuscles: ['hamstrings', 'calves'], exercises: [
           { name: 'Deadlifts', sets: 3, reps: '8-10', muscleGroup: 'hamstrings' },
           { name: 'Calf Raises', sets: 3, reps: '15-20', muscleGroup: 'calves' }
         ]
       },
-      { title: 'Core & Conditioning', focusMuscles: ['core'], exercises: [
+      {
+        title: 'Core & Conditioning', focusMuscles: ['core'], exercises: [
           { name: 'Plank', sets: 3, reps: '30-45 secs', muscleGroup: 'core' },
           { name: 'Russian Twists', sets: 3, reps: '15-20', muscleGroup: 'core' }
         ]
@@ -478,65 +531,77 @@ const buildWeeklyWorkoutPlan = (user, recommendationId) => {
       { title: 'Rest Day', type: 'rest', focusMuscles: ['rest'], exercises: [] }
     ],
     intermediate: [
-      { title: 'Chest & Triceps', focusMuscles: ['chest', 'triceps'], exercises: [
+      {
+        title: 'Chest & Triceps', focusMuscles: ['chest', 'triceps'], exercises: [
           { name: 'Bench Press', sets: 4, reps: '8-10', muscleGroup: 'chest' },
           { name: 'Dumbbell Flyes', sets: 3, reps: '10-12', muscleGroup: 'chest' },
           { name: 'Tricep Pushdowns', sets: 3, reps: '10-12', muscleGroup: 'triceps' }
         ]
       },
-      { title: 'Back & Biceps', focusMuscles: ['back', 'biceps'], exercises: [
+      {
+        title: 'Back & Biceps', focusMuscles: ['back', 'biceps'], exercises: [
           { name: 'Barbell Rows', sets: 4, reps: '8-10', muscleGroup: 'back' },
           { name: 'Pull-ups', sets: 3, reps: '8-12', muscleGroup: 'back' },
           { name: 'Hammer Curls', sets: 3, reps: '10-12', muscleGroup: 'biceps' }
         ]
       },
-      { title: 'Active Recovery', type: 'recovery', focusMuscles: ['general'], exercises: [
+      {
+        title: 'Active Recovery', type: 'recovery', focusMuscles: ['general'], exercises: [
           { name: 'Light Jog', sets: 1, reps: '30 mins', muscleGroup: 'core' }
         ]
       },
-      { title: 'Shoulders & Abs', focusMuscles: ['shoulders', 'core'], exercises: [
+      {
+        title: 'Shoulders & Abs', focusMuscles: ['shoulders', 'core'], exercises: [
           { name: 'Military Press', sets: 4, reps: '8-10', muscleGroup: 'shoulders' },
           { name: 'Lateral Raises', sets: 3, reps: '12-15', muscleGroup: 'shoulders' },
           { name: 'Hanging Leg Raises', sets: 3, reps: '12-15', muscleGroup: 'core' }
         ]
       },
-      { title: 'Leg Day', focusMuscles: ['quads', 'hamstrings', 'glutes'], exercises: [
+      {
+        title: 'Leg Day', focusMuscles: ['quads', 'hamstrings', 'glutes'], exercises: [
           { name: 'Squats', sets: 4, reps: '8-10', muscleGroup: 'quads' },
           { name: 'Romanian Deadlifts', sets: 4, reps: '8-10', muscleGroup: 'hamstrings' }
         ]
       },
-      { title: 'Full Body Conditioning', focusMuscles: ['full body'], exercises: [
+      {
+        title: 'Full Body Conditioning', focusMuscles: ['full body'], exercises: [
           { name: 'Circuit Training', sets: 1, reps: '30 mins', muscleGroup: 'core' }
         ]
       },
       { title: 'Rest Day', type: 'rest', focusMuscles: ['rest'], exercises: [] }
     ],
     advanced: [
-      { title: 'Upper Power', focusMuscles: ['chest', 'back'], exercises: [
+      {
+        title: 'Upper Power', focusMuscles: ['chest', 'back'], exercises: [
           { name: 'Barbell Bench Press', sets: 5, reps: '5-6', muscleGroup: 'chest' },
           { name: 'Weighted Pull-ups', sets: 4, reps: '6-8', muscleGroup: 'back' }
         ]
       },
-      { title: 'Lower Power', focusMuscles: ['quads', 'hamstrings'], exercises: [
+      {
+        title: 'Lower Power', focusMuscles: ['quads', 'hamstrings'], exercises: [
           { name: 'Back Squats', sets: 5, reps: '5-6', muscleGroup: 'quads' },
           { name: 'Romanian Deadlifts', sets: 4, reps: '6-8', muscleGroup: 'hamstrings' }
         ]
       },
-      { title: 'Recovery & Mobility', type: 'recovery', focusMuscles: ['general'], exercises: [
+      {
+        title: 'Recovery & Mobility', type: 'recovery', focusMuscles: ['general'], exercises: [
           { name: 'Yoga Flow', sets: 1, reps: '30 mins', muscleGroup: 'core' }
         ]
       },
-      { title: 'Push Strength', focusMuscles: ['shoulders', 'triceps'], exercises: [
+      {
+        title: 'Push Strength', focusMuscles: ['shoulders', 'triceps'], exercises: [
           { name: 'Overhead Press', sets: 4, reps: '6-8', muscleGroup: 'shoulders' },
           { name: 'Dips', sets: 4, reps: '8-10', muscleGroup: 'triceps' }
         ]
       },
-      { title: 'Leg Hypertrophy', focusMuscles: ['quads', 'glutes'], exercises: [
+      {
+        title: 'Leg Hypertrophy', focusMuscles: ['quads', 'glutes'], exercises: [
           { name: 'Front Squats', sets: 4, reps: '8-10', muscleGroup: 'quads' },
           { name: 'Leg Press', sets: 4, reps: '10-12', muscleGroup: 'quads' }
         ]
       },
-      { title: 'Core & Conditioning', focusMuscles: ['core'], exercises: [
+      {
+        title: 'Core & Conditioning', focusMuscles: ['core'], exercises: [
           { name: 'Weighted Planks', sets: 4, reps: '45-60 secs', muscleGroup: 'core' }
         ]
       },
@@ -545,7 +610,7 @@ const buildWeeklyWorkoutPlan = (user, recommendationId) => {
   };
 
   const baseTemplates = defaultPlans[experience] || defaultPlans.intermediate;
-  const variant = parseInt(String(recommendationId || '' ).replace(/\D/g, ''), 10) || 1;
+  const variant = parseInt(String(recommendationId || '').replace(/\D/g, ''), 10) || 1;
   const dailyAdjust = variant % 3;
 
   const plan = baseTemplates.map((day, index) => {
@@ -606,141 +671,627 @@ const buildWeeklyWorkoutPlan = (user, recommendationId) => {
 };
 
 const generateAndSaveWorkoutPlan = async (user) => {
-  const mlRecommendation = await getMLWorkoutRecommendation(user);
-  const weeklyPlan = buildWeeklyWorkoutPlanFromSuggestion(user, mlRecommendation.suggestion || '');
 
-  const filter = { user: user._id, isAutoGenerated: true };
+  const mlRecommendation =
+    await getMLWorkoutRecommendation(user);
+
+  console.log("==== ML WORKOUT DEBUG ====");
+
+  console.log(
+    "Full ML response:",
+    mlRecommendation
+  );
+
+  console.log(
+    "Suggestion:",
+    mlRecommendation.suggestion
+  );
+
+  console.log("==========================");
+  // ===================================================
+  // 🧠 GET ML SUGGESTION
+  // ===================================================
+
+  const suggestionText =
+    mlRecommendation?.suggestion ||
+    mlRecommendation?.planMeta?.suggestion ||
+    '';
+
+  // ===================================================
+  // 🏋️ BUILD 7-DAY PLAN
+  // ===================================================
+
+  const weeklyPlan =
+    buildWeeklyWorkoutPlanFromSuggestion(
+      user,
+      suggestionText
+    );
+
+  // ===================================================
+  // 📦 DB FILTER
+  // ===================================================
+
+  const filter = {
+    user: user._id,
+    isAutoGenerated: true
+  };
+
+  // ===================================================
+  // 💾 SAVE PAYLOAD
+  // ===================================================
+
   const payload = {
     user: user._id,
-    title: `${user.name || 'User'} Weekly Workout Plan`,
-    goal: normalizeGoalLabel(user.goal),
-    experienceLevel: normalizeExperienceLabel(user.experience),
+    title:
+      `${user.name || 'User'} Weekly Workout Plan`,
+    goal:
+      normalizeGoalLabel(user.goal),
+    experienceLevel:
+      normalizeExperienceLabel(user.experience),
     durationWeeks: 4,
     daysPerWeek: 5,
     isAutoGenerated: true,
     weeklyPlan,
     generatedAt: new Date(),
     planSource: 'ml',
-    recommendationId: mlRecommendation.recommendationId ? String(mlRecommendation.recommendationId) : null
+    recommendationId:
+      mlRecommendation.recommendationId
+        ? String(
+          mlRecommendation.recommendationId
+        )
+        : null,
+    // =================================================
+    // 🧠 SNAPSHOT FOR PERSISTENCE
+    // =================================================
+
+    profileSnapshot: {
+      goal: user.goal,
+      experience: user.experience,
+      injury: user.injury,
+      medicalState: user.medicalState
+    }
+
   };
 
-  const updatedPlan = await WorkoutPlan.findOneAndUpdate(filter, payload, {
-    new: true, 
-    upsert: true,
-    setDefaultsOnInsert: true
-  });
+  // ===================================================
+  // 🔄 UPSERT PLAN
+  // ===================================================
 
+  const updatedPlan =
+    await WorkoutPlan.findOneAndUpdate(
+      filter,
+      payload,
+      {
+        returnDocument: 'after',
+        upsert: true,
+        setDefaultsOnInsert: true
+      }
+    );
+
+  // ===================================================
+  // 🚨 SAFETY CHECK
+  // ===================================================
+
+  if (
+    !updatedPlan.weeklyPlan ||
+    updatedPlan.weeklyPlan.length !== 7
+  ) {
+    throw new Error(
+      "Invalid weeklyPlan generated by ML layer"
+    );
+  }
+  console.log("✅ WORKOUT PLAN SAVED");
   return updatedPlan;
 };
 
+// =====================================================
+// 🔁 GET OR CREATE WORKOUT PLAN
+// =====================================================
+
 const getOrCreateWorkoutPlan = async (user) => {
-  let plan = await WorkoutPlan.findOne({ user: user._id, isAutoGenerated: true }).lean();
+
+  let plan =
+    await WorkoutPlan.findOne({
+
+      user: user._id,
+
+      isAutoGenerated: true
+
+    });
+
+  // ===================================================
+  // 🧠 REGENERATION LOGIC
+  // ===================================================
+
   const shouldRegenerate =
+
     !plan ||
+
     !Array.isArray(plan.weeklyPlan) ||
+
     plan.weeklyPlan.length !== 7 ||
-    plan.planSource !== 'ml' ||
-    !plan.recommendationId;
+
+    !plan.profileSnapshot ||
+
+    // Goal changed
+    plan.profileSnapshot.goal !== user.goal ||
+
+    // Experience changed
+    plan.profileSnapshot.experience !==
+    user.experience ||
+
+    // Injury changed
+    plan.profileSnapshot.injury !==
+    user.injury ||
+
+    // Medical state changed
+    plan.profileSnapshot.medicalState !==
+    user.medicalState;
+
+  // ===================================================
+  // 🔄 REGENERATE ONLY IF NEEDED
+  // ===================================================
 
   if (shouldRegenerate) {
-    plan = await generateAndSaveWorkoutPlan(user);
+    console.log(
+      "♻️ Regenerating workout plan..."
+    );
+    plan =
+      await generateAndSaveWorkoutPlan(user);
+  } else {
+    console.log(
+      "✅ Existing workout plan reused"
+    );
   }
   return plan;
 };
 
 const generateAndSaveDietPlan = async (user) => {
+
   let recommendationId = null;
+
   let weeklyPlan = [];
 
-  const activityLevel = normalizeActivityLevel(user.activityLevel);
-  const dietTypeNormalized = normalizeDietType(user.dietType);
-  const bmr = dietCalculator.calculateBMR({
-    gender: user.gender,
-    weight: Number(user.weight) || 70,
-    height: Number(user.height) || 170,
-    age: Number(user.age) || 30
-  });
+  // ===================================================
+  // 🧠 NORMALIZATION
+  // ===================================================
 
-  const tdee = dietCalculator.calculateTDEE(bmr, activityLevel);
-  const dailyNutrition = generateDietPlan({
-    tdee,
-    weight: Number(user.weight) || 70,
-    goal: normalizeGoal(user.goal)
-  });
+  const activityLevel =
+    normalizeActivityLevel(
+      user.activityLevel
+    );
+
+  const dietTypeNormalized =
+    normalizeDietType(
+      user.dietType
+    );
+
+  // ===================================================
+  // 🔥 BMR + TDEE
+  // ===================================================
+
+  const bmr =
+    dietCalculator.calculateBMR({
+
+      gender: user.gender,
+
+      weight:
+        Number(user.weight) || 70,
+
+      height:
+        Number(user.height) || 170,
+
+      age:
+        Number(user.age) || 30
+
+    });
+
+  // ===================================================
+  // 🩺 MEDICAL STATE ADAPTIVE TDEE
+  // ===================================================
+
+  const tdee =
+    dietCalculator.calculateTDEE(
+
+      bmr,
+
+      activityLevel,
+
+      user.medicalState || "healthy"
+
+    );
+
+  // ===================================================
+  // 🍽️ DAILY NUTRITION
+  // ===================================================
+
+  const dailyNutrition =
+    generateDietPlan({
+
+      tdee,
+
+      weight:
+        Number(user.weight) || 70,
+
+      goal:
+        normalizeGoal(user.goal)
+
+    });
+
+  // ===================================================
+  // 🤖 ML DIET RECOMMENDATION
+  // ===================================================
 
   try {
-    const response = await axios.post(`${ML_API_URL}/diet-recommendation`, {
-      dietType: dietTypeNormalized,
-      noOnion: !!user.noOnion,
-      noGarlic: !!user.noGarlic,
-      glutenFree: !!user.glutenFree,
-      lactoseFree: !!user.lactoseFree,
-      nutAllergy: !!user.nutAllergy,
-      sugarFree: !!user.sugarFree,
-      calories: dailyNutrition.calories,
-      activityLevel
-    }, { timeout: 6000 });
 
-    weeklyPlan = response.data.weekly_plan || [];
-    recommendationId = response.data.recommendation_id || null;
-  } catch (error) {
-    console.warn('Diet recommendation service unavailable:', error.message || error);
-  }
+    const response =
+      await axios.post(
 
-  if (!Array.isArray(weeklyPlan) || weeklyPlan.length !== 7 || isFlatWeeklyPlan(weeklyPlan)) {
-    weeklyPlan = Array.from({ length: 7 }).map((_, index) =>
-      createDailyDietDay(index, dailyNutrition.calories, dietTypeNormalized, {
-        noOnion: !!user.noOnion,
-        noGarlic: !!user.noGarlic,
-        glutenFree: !!user.glutenFree,
-        lactoseFree: !!user.lactoseFree,
-        nutAllergy: !!user.nutAllergy,
-        sugarFree: !!user.sugarFree
-      }, dailyNutrition)
+        `${ML_API_URL}/diet-recommendation`,
+
+        {
+
+          dietType:
+            dietTypeNormalized,
+
+          noOnion:
+            !!user.noOnion,
+
+          noGarlic:
+            !!user.noGarlic,
+
+          glutenFree:
+            !!user.glutenFree,
+
+          lactoseFree:
+            !!user.lactoseFree,
+
+          nutAllergy:
+            !!user.nutAllergy,
+
+          sugarFree:
+            !!user.sugarFree,
+
+          calories:
+            dailyNutrition.calories,
+
+          activityLevel,
+
+          // ✅ NEW
+          goal:
+            user.goal,
+
+          // ✅ NEW
+          medicalState:
+            user.medicalState || "healthy"
+
+        },
+
+        { timeout: 6000 }
+
+      );
+
+    weeklyPlan =
+      response.data.weekly_plan || [];
+
+    recommendationId =
+      response.data.recommendation_id || null;
+
+    console.log(
+      "✅ ML DIET PLAN GENERATED"
     );
+
+  } catch (error) {
+
+    console.warn(
+
+      'Diet recommendation service unavailable:',
+
+      error.message || error
+
+    );
+
   }
 
-  const filter = { userId: user._id };
-  const payload = {
-    userId: user._id,
-    goal: normalizeGoal(user.goal),
-    dietType: dietTypeNormalized,
-    activityLevel,
-    preferences: {
-      noOnion: !!user.noOnion,
-      noGarlic: !!user.noGarlic,
-      glutenFree: !!user.glutenFree,
-      lactoseFree: !!user.lactoseFree,
-      nutAllergy: !!user.nutAllergy,
-      sugarFree: !!user.sugarFree
-    },
-    weeklyPlan,
-    generatedAt: new Date(),
-    planSource: 'ml',
-    recommendationId: recommendationId ? String(recommendationId) : null
+  // ===================================================
+  // 🛡️ FALLBACK GENERATOR
+  // ===================================================
+
+  if (
+
+    !Array.isArray(weeklyPlan) ||
+
+    weeklyPlan.length !== 7 ||
+
+    isFlatWeeklyPlan(weeklyPlan)
+
+  ) {
+
+    console.log(
+      "⚠️ Using fallback diet generator"
+    );
+
+    weeklyPlan =
+
+      Array.from({ length: 7 })
+
+        .map((_, index) =>
+
+          createDailyDietDay(
+
+            index,
+
+            dailyNutrition.calories,
+
+            dietTypeNormalized,
+
+            {
+
+              noOnion:
+                !!user.noOnion,
+
+              noGarlic:
+                !!user.noGarlic,
+
+              glutenFree:
+                !!user.glutenFree,
+
+              lactoseFree:
+                !!user.lactoseFree,
+
+              nutAllergy:
+                !!user.nutAllergy,
+
+              sugarFree:
+                !!user.sugarFree
+
+            },
+
+            dailyNutrition
+
+          )
+
+        );
+
+  }
+
+  // ===================================================
+  // 📦 SAVE FILTER
+  // ===================================================
+
+  const filter = {
+
+    userId: user._id
+
   };
 
-  const updatedPlan = await UserDietPlan.findOneAndUpdate(filter, payload, {
-    new: true,
-    upsert: true,
-    setDefaultsOnInsert: true
-  });
+  // ===================================================
+  // 💾 SAVE PAYLOAD
+  // ===================================================
+
+  const payload = {
+
+    userId: user._id,
+
+    goal:
+      normalizeGoal(user.goal),
+
+    dietType:
+      dietTypeNormalized,
+
+    activityLevel,
+
+    preferences: {
+
+      noOnion:
+        !!user.noOnion,
+
+      noGarlic:
+        !!user.noGarlic,
+
+      glutenFree:
+        !!user.glutenFree,
+
+      lactoseFree:
+        !!user.lactoseFree,
+
+      nutAllergy:
+        !!user.nutAllergy,
+
+      sugarFree:
+        !!user.sugarFree
+
+    },
+
+    weeklyPlan,
+
+    generatedAt:
+      new Date(),
+
+    planSource: 'ml',
+
+    recommendationId:
+
+      recommendationId
+
+        ? String(recommendationId)
+
+        : null,
+
+    // =================================================
+    // 🧠 PROFILE SNAPSHOT
+    // =================================================
+
+    profileSnapshot: {
+
+      goal: user.goal,
+
+      dietType: user.dietType,
+
+      noOnion: user.noOnion,
+
+      noGarlic: user.noGarlic,
+
+      glutenFree: user.glutenFree,
+
+      lactoseFree: user.lactoseFree,
+
+      nutAllergy: user.nutAllergy,
+
+      sugarFree: user.sugarFree,
+
+      medicalState:
+        user.medicalState
+
+    }
+
+  };
+
+  // ===================================================
+  // 🔄 UPSERT PLAN
+  // ===================================================
+
+  const updatedPlan =
+    await UserDietPlan.findOneAndUpdate(
+
+      filter,
+
+      payload,
+
+      {
+
+        returnDocument: 'after',
+
+        upsert: true,
+
+        setDefaultsOnInsert: true
+
+      }
+
+    );
+
+  console.log(
+    "✅ DIET PLAN SAVED"
+  );
 
   return updatedPlan;
+
 };
+
+// =====================================================
+// 🔁 GET OR CREATE DIET PLAN
+// =====================================================
 
 const getOrCreateDietPlan = async (user) => {
-  let dietPlan = await UserDietPlan.findOne({ userId: user._id }).lean();
-  if (!dietPlan || !Array.isArray(dietPlan.weeklyPlan) || dietPlan.weeklyPlan.length !== 7) {
-    dietPlan = await generateAndSaveDietPlan(user);
+
+  let dietPlan =
+    await UserDietPlan.findOne({
+
+      userId: user._id
+
+    }).lean();
+
+  // ===================================================
+  // 🧠 REGENERATION LOGIC
+  // ===================================================
+
+  const shouldRegenerateDiet =
+
+    !dietPlan ||
+
+    !Array.isArray(
+      dietPlan.weeklyPlan
+    ) ||
+
+    dietPlan.weeklyPlan.length !== 7 ||
+
+    !dietPlan.profileSnapshot ||
+
+    // Goal changed
+    dietPlan.profileSnapshot.goal !==
+    user.goal ||
+
+    // Diet changed
+    dietPlan.profileSnapshot.dietType !==
+    user.dietType ||
+
+    // Onion preference changed
+    dietPlan.profileSnapshot.noOnion !==
+    user.noOnion ||
+
+    // Garlic preference changed
+    dietPlan.profileSnapshot.noGarlic !==
+    user.noGarlic ||
+
+    // Gluten changed
+    dietPlan.profileSnapshot.glutenFree !==
+    user.glutenFree ||
+
+    // Lactose changed
+    dietPlan.profileSnapshot.lactoseFree !==
+    user.lactoseFree ||
+
+    // Nut allergy changed
+    dietPlan.profileSnapshot.nutAllergy !==
+    user.nutAllergy ||
+
+    // Sugar changed
+    dietPlan.profileSnapshot.sugarFree !==
+    user.sugarFree ||
+
+    // Medical state changed
+    dietPlan.profileSnapshot.medicalState !==
+    user.medicalState;
+
+  // ===================================================
+  // 🔄 REGENERATE IF NEEDED
+  // ===================================================
+
+  if (shouldRegenerateDiet) {
+
+    console.log(
+      "♻️ Regenerating diet plan..."
+    );
+
+    dietPlan =
+      await generateAndSaveDietPlan(user);
+
+  } else {
+
+    console.log(
+      "✅ Existing diet plan reused"
+    );
+
   }
+
   return dietPlan;
+
 };
 
+// =====================================================
+// 🔁 FORCE REGENERATE BOTH PLANS
+// ===================================================
+
 const regenerateUserPlans = async (user) => {
-  const workoutPlan = await generateAndSaveWorkoutPlan(user);
-  const dietPlan = await generateAndSaveDietPlan(user);
-  return { workoutPlan, dietPlan };
+
+  console.log(
+    "♻️ Regenerating ALL plans..."
+  );
+
+  const workoutPlan =
+    await generateAndSaveWorkoutPlan(user);
+
+  const dietPlan =
+    await generateAndSaveDietPlan(user);
+
+  return {
+
+    workoutPlan,
+
+    dietPlan
+
+  };
+
 };
 
 module.exports = {
