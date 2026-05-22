@@ -1,9 +1,9 @@
 const Feedback = require('../models/Feedback');
-const User = require('../models/User'); // 🔹 NEEDED TO UPDATE MULTIPLIER
-const { scaleDifficulty } = require('../services/aiModelService'); // 🔹 IMPORT NEW AI SERVICE
+const User = require('../models/User'); 
+const { scaleDifficulty } = require('../services/aiModelService'); 
 
 // POST /feedback - submit feedback
-exports.submitFeedback = async (req, res) => {
+const submitFeedback = async (req, res) => {
     try {
         const { userId, planId, difficulty, comment } = req.body;
 
@@ -49,7 +49,7 @@ exports.submitFeedback = async (req, res) => {
 };
 
 // GET /feedback/:planId - get all feedback for a plan
-exports.getFeedbackForPlan = async (req, res) => {
+const getFeedbackForPlan = async (req, res) => {
     try {
         const { planId } = req.params;
         const feedbacks = await Feedback.find({ planId }).sort({ createdAt: -1 });
@@ -58,4 +58,9 @@ exports.getFeedbackForPlan = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
+};
+
+module.exports = {
+    submitFeedback,
+    getFeedbackForPlan
 };
