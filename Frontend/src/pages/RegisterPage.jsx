@@ -1,8 +1,14 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { DarkModeContext } from '../context/DarkModeContext';
 import logoImg from '../assets/logo.png';
+
+const rawDiseases = ["High BP", "Low BP", "Diabetes", "Pre Diabetes", "High Cholesterol", "Heart Disease", "Obesity", "Asthma", "Arthritis", "Thyroid", "PCOS", "Fatty Liver", "Kidney Disease", "Depression", "Anxiety", "Migraine", "Cervical Pain", "Sciatica", "Spondylitis", "Insomnia", "Anemia", "Vitamin D Deficiency", "Vitamin B12 Deficiency", "IBS", "Acidity", "Ulcer", "COPD", "Sleep Apnea", "Epilepsy", "Vertigo", "Hyperthyroidism", "Hypothyroidism", "Osteoporosis", "Joint Pain", "Frozen Shoulder", "Tennis Elbow", "Carpal Tunnel", "GERD", "Piles", "Constipation", "Sinusitis", "Allergy", "Bronchitis", "Stress", "PCOD", "Menopause", "Post Pregnancy Weakness", "Weak Immunity", "Muscle Weakness", "Liver Disorder", "Heart Blockage", "High Triglycerides", "Low Stamina", "Underweight", "Overweight"];
+const diseasesList = ["Regular", ...rawDiseases.sort()];
+
+const rawInjuries = ["Hand Fracture", "Arm Fracture", "Leg Fracture", "Foot Fracture", "Shoulder Injury", "Elbow Injury", "Wrist Injury", "Knee Pain", "Back Pain", "Neck Injury", "Ankle Injury", "Hip Injury", "Muscle Tear", "ACL Injury", "Hamstring Injury", "Finger Fracture", "Toe Fracture", "Chest Injury", "Spinal Injury", "Ligament Tear", "Meniscus Tear", "Heel Pain", "Calf Injury", "Bicep Tear", "Tricep Injury", "Rotator Cuff Injury", "Groin Injury", "Pelvic Injury", "Tailbone Pain", "Shin Splints", "Dislocated Shoulder", "Dislocated Knee", "Nerve Injury", "Sciatic Injury", "Whiplash", "Jaw Injury", "Rib Fracture", "Skull Injury", "Eye Injury", "Burn Injury", "Sprained Wrist", "Sprained Ankle", "Pulled Muscle", "Tendon Injury", "Lower Back Strain", "Upper Back Strain", "Patella Injury", "Quad Injury", "Achilles Injury", "Fractured Collarbone", "Frozen Joint", "Hip Flexor Injury", "IT Band Syndrome", "Stress Fracture"];
+const injuriesList = ["Regular", ...rawInjuries.sort()];
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -13,8 +19,43 @@ const RegisterPage = () => {
   const [backendError, setBackendError] = useState('');
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   
+  const [step, setStep] = useState(1);
   const [experience, setExperience] = useState('Beginner');
   const [exclusions, setExclusions] = useState([]);
+  const [selectedDiseases, setSelectedDiseases] = useState([]);
+  const [selectedInjuries, setSelectedInjuries] = useState([]);
+  const [diseaseDropdownOpen, setDiseaseDropdownOpen] = useState(false);
+  const [injuryDropdownOpen, setInjuryDropdownOpen] = useState(false);
+
+  const diseaseRef = useRef(null);
+  const injuryRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (diseaseRef.current && !diseaseRef.current.contains(event.target)) {
+        setDiseaseDropdownOpen(false);
+      }
+      if (injuryRef.current && !injuryRef.current.contains(event.target)) {
+        setInjuryDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleSelection = (item, selectedList, setList) => {
+    if (item === "Regular") {
+      setList(["Regular"]);
+    } else {
+      let newList = selectedList.filter(i => i !== "Regular");
+      if (newList.includes(item)) {
+        newList = newList.filter(i => i !== item);
+      } else {
+        newList.push(item);
+      }
+      setList(newList);
+    }
+  };
 
   const toggleExclusion = (item) => {
     if (exclusions.includes(item)) {
@@ -47,7 +88,8 @@ const RegisterPage = () => {
       nutAllergy: exclusions.includes("Nut Allergy"),
       sugarFree: exclusions.includes("Sugar Free"),
       activityLevel: formData.activityLevel,
-      injury: formData.injuryStatus
+      medicalConditions: selectedDiseases,
+      injuries: selectedInjuries
     };
 
     try {
@@ -83,8 +125,7 @@ const RegisterPage = () => {
     gender: '',
     fitnessGoal: '',
     dietType: '',
-    activityLevel: '',
-    injuryStatus: ''
+    activityLevel: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -112,6 +153,13 @@ const RegisterPage = () => {
 
     const error = validate(name, value);
     setErrors({ ...errors, [name]: error });
+  };
+
+  const handleNextStep = (next) => {
+    const form = document.getElementById('registerForm');
+    if (form.reportValidity()) {
+      setStep(next);
+    }
   };
 
   return (
@@ -205,7 +253,7 @@ const RegisterPage = () => {
             <p className="text-slate-400 text-sm mt-2">Join us and start your personalized fitness journey.</p>
           </div>
 
-          <form className="space-y-10" onSubmit={handleSubmit}>
+          <form id="registerForm" className="space-y-10" onSubmit={handleSubmit}>
 
             {backendError && (
               <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold">
@@ -213,6 +261,8 @@ const RegisterPage = () => {
               </div>
             )}
 
+            {step === 1 && (
+              <>
             <section>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-pink-50 rounded-lg text-[#db2777]">
@@ -261,7 +311,7 @@ const RegisterPage = () => {
               </div>
             </section>
 
-            <section>
+            <section className="mt-10">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-pink-50 rounded-lg text-[#db2777]">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -320,7 +370,7 @@ const RegisterPage = () => {
                       value={formData.gender}
                       onChange={handleInputChange}
                       required
-                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#0f172a] hover:bg-[#1e293b] border-[#334155] text-white' : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'}`}
                     >
                       <option value="" disabled>Select</option>
                       <option value="Male">Male</option>
@@ -340,7 +390,7 @@ const RegisterPage = () => {
                       value={formData.fitnessGoal}
                       onChange={handleInputChange}
                       required
-                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#0f172a] hover:bg-[#1e293b] border-[#334155] text-white' : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'}`}
                     >
                       <option value="" disabled>Select Goal</option>
                       <option value="fat loss">Fat Loss</option>
@@ -381,6 +431,24 @@ const RegisterPage = () => {
               </div>
             </section>
 
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => handleNextStep(2)}
+                disabled={Object.values(errors).some(err => err !== "") || !formData.age || loading}
+                className={`w-full font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 ${Object.values(errors).some(err => err !== "") || !formData.age || loading
+                    ? "bg-slate-300 cursor-not-allowed text-slate-500"
+                    : "bg-[#00c4b4] hover:bg-[#00a89f] text-white shadow-teal-100"
+                  }`}
+              >
+                Next Page
+              </button>
+            </div>
+              </>
+            )}
+
+            {step === 2 && (
+              <>
             <section>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-pink-50 rounded-lg text-[#db2777]">
@@ -398,7 +466,7 @@ const RegisterPage = () => {
                       value={formData.dietType}
                       onChange={handleInputChange}
                       required
-                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#0f172a] hover:bg-[#1e293b] border-[#334155] text-white' : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'}`}
                     >
                       <option value="" disabled>Select Diet</option>
                       <option value="non-vegetarian">Non-Vegetarian (Omnivore)</option>
@@ -417,7 +485,7 @@ const RegisterPage = () => {
                       value={formData.activityLevel}
                       onChange={handleInputChange}
                       required
-                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#1e293b] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                      className={`w-full px-4 py-3 border rounded-xl outline-none focus:border-teal-500 appearance-none transition-all ${isDarkMode ? 'bg-[#0f172a] hover:bg-[#1e293b] border-[#334155] text-white' : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'}`}
                     >
                       <option value="" disabled>Select Activity</option>
                       <option value="sedentary">Sedentary (Office Job)</option>
@@ -455,31 +523,132 @@ const RegisterPage = () => {
                   ))}
                 </div>
               </div>
-
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Injury / Medical Conditions</label>
-                <input 
-                  type="text" 
-                  name="injuryStatus"
-                  value={formData.injuryStatus}
-                  onChange={handleInputChange}
-                  placeholder="e.g. Lower Back Pain, Asthma..." 
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:border-teal-500" 
-                />
-              </div>
             </section>
 
+                <div className="pt-2 flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className={`w-1/3 font-bold py-4 rounded-xl shadow-sm flex items-center justify-center transition-transform active:scale-95 border-2 ${isDarkMode ? 'border-slate-600 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleNextStep(3)}
+                    className={`w-2/3 font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 bg-[#00c4b4] hover:bg-[#00a89f] text-white shadow-teal-100`}
+                  >
+                    Next Page
+                  </button>
+                </div>
+              </>
+            )}
+
+            {step === 3 && (
+              <>
+                <section className="mb-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-pink-50 rounded-lg text-[#db2777]">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    </div>
+                    <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Medical Conditions</h3>
+                  </div>
+
+                  <div ref={diseaseRef}>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Medical Conditions / Diseases</label>
+                    <div className="relative">
+                      <div 
+                        className={`custom-select w-full px-4 py-3 border rounded-xl outline-none transition-all cursor-pointer flex justify-between items-center font-bold ${isDarkMode ? `border-[#334155] text-white ${diseaseDropdownOpen ? 'ring-2 ring-teal-500/20 border-teal-500' : ''}` : `border-slate-200 text-slate-700 hover:bg-slate-50 ${diseaseDropdownOpen ? 'bg-white ring-2 ring-teal-500/20 border-teal-500' : 'bg-white'}`}`}
+                        onClick={() => setDiseaseDropdownOpen(!diseaseDropdownOpen)}
+                      >
+                        <span className="truncate pr-4">
+                          {selectedDiseases.length > 0 ? selectedDiseases.join(", ") : "Select Medical Conditions..."}
+                        </span>
+                        <svg className={`w-4 h-4 transition-transform ${diseaseDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                      
+                      {diseaseDropdownOpen && (
+                        <div className={`custom-dropdown-menu absolute z-20 w-full mt-2 max-h-60 overflow-y-auto rounded-xl shadow-xl border ${isDarkMode ? 'border-[#334155]' : 'bg-white border-slate-200'}`}>
+                          {diseasesList.map(disease => (
+                            <label key={disease} className={`flex items-center px-4 py-3 cursor-pointer transition-colors font-bold text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700 hover:bg-slate-50'}`}>
+                              <input 
+                                type="checkbox" 
+                                checked={selectedDiseases.includes(disease)}
+                                onChange={() => toggleSelection(disease, selectedDiseases, setSelectedDiseases)}
+                                className="mr-3 w-4 h-4 text-teal-500 rounded border-slate-300 focus:ring-teal-500"
+                              />
+                              {disease}
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                <section className="mb-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-pink-50 rounded-lg text-[#db2777]">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    </div>
+                    <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Injury  </h3>
+                  </div>
+
+                  <div ref={injuryRef}>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Injury  </label>
+                    <div className="relative">
+                      <div 
+                        className={`custom-select w-full px-4 py-3 border rounded-xl outline-none transition-all cursor-pointer flex justify-between items-center font-bold ${isDarkMode ? `border-[#334155] text-white ${injuryDropdownOpen ? 'ring-2 ring-teal-500/20 border-teal-500' : ''}` : `border-slate-200 text-slate-700 hover:bg-slate-50 ${injuryDropdownOpen ? 'bg-white ring-2 ring-teal-500/20 border-teal-500' : 'bg-white'}`}`}
+                        onClick={() => setInjuryDropdownOpen(!injuryDropdownOpen)}
+                      >
+                        <span className="truncate pr-4">
+                          {selectedInjuries.length > 0 ? selectedInjuries.join(", ") : "Select Injuries..."}
+                        </span>
+                        <svg className={`w-4 h-4 transition-transform ${injuryDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                      
+                      {injuryDropdownOpen && (
+                        <div className={`custom-dropdown-menu absolute z-20 w-full mt-2 max-h-60 overflow-y-auto rounded-xl shadow-xl border ${isDarkMode ? 'border-[#334155]' : 'bg-white border-slate-200'}`}>
+                          {injuriesList.map(injury => (
+                            <label key={injury} className={`flex items-center px-4 py-3 cursor-pointer transition-colors font-bold text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700 hover:bg-slate-50'}`}>
+                              <input 
+                                type="checkbox" 
+                                checked={selectedInjuries.includes(injury)}
+                                onChange={() => toggleSelection(injury, selectedInjuries, setSelectedInjuries)}
+                                className="mr-3 w-4 h-4 text-teal-500 rounded border-slate-300 focus:ring-teal-500"
+                              />
+                              {injury}
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                <div className="pt-2 flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className={`w-1/3 font-bold py-4 rounded-xl shadow-sm flex items-center justify-center transition-transform active:scale-95 border-2 ${isDarkMode ? 'border-slate-600 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={selectedDiseases.length === 0 || selectedInjuries.length === 0 || loading}
+                    className={`w-2/3 font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 ${selectedDiseases.length === 0 || selectedInjuries.length === 0 || loading
+                        ? "bg-slate-300 cursor-not-allowed text-slate-500"
+                        : "bg-[#00c4b4] hover:bg-[#00a89f] text-white shadow-teal-100"
+                      }`}
+                  >
+                    {loading ? 'Creating Profile...' : 'Complete Registration'}
+                  </button>
+                </div>
+              </>
+            )}
+
             <div className="pt-2">
-              <button
-                type="submit"
-                disabled={Object.values(errors).some(err => err !== "") || !formData.age || loading}
-                className={`w-full font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 ${Object.values(errors).some(err => err !== "") || !formData.age || loading
-                    ? "bg-slate-300 cursor-not-allowed text-slate-500"
-                    : "bg-[#00c4b4] hover:bg-[#00a89f] text-white shadow-teal-100"
-                  }`}
-              >
-                {loading ? 'Creating Profile...' : 'Complete Registration'}
-              </button>
               <p className="text-[11px] text-slate-400 text-center mt-6">
                 By completing registration, you agree to our <span className="underline cursor-pointer">Terms of Service</span> and <span className="underline cursor-pointer">Privacy Policy</span>.
               </p>

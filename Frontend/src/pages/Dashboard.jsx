@@ -37,14 +37,19 @@ const Dashboard = () => {
       try {
         setLoading(true);
         // Fetch user profile from the backend as the single source of truth.
-        const profileResponse = await api.get('/users/profile');
-        const profileData = profileResponse.data.user;
+        let profileResponse;
+        try {
+          profileResponse = await api.get('/users/profile');
+        } catch (err) {
+          profileResponse = await api.get('/auth/profile');
+        }
+        const profileData = profileResponse.data.user || profileResponse.data;
         
        setUserProfile(profileData);
 
 // Fetch workout logs from backend
 const logsResponse = await api.get("/logs");
-const logs = logsResponse.data;
+const logs = logsResponse.data.logs || logsResponse.data || [];
 
 const now = new Date();
 const startOfWeek = new Date(now);
@@ -71,8 +76,14 @@ const uniqueWorkoutDatesThisWeek = new Set(
 
 setWeeklyWorkoutCount(uniqueWorkoutDatesThisWeek.size);
 
-const weeklyPlanResponse = await api.get("/workouts/weekly-plan");
-const weeklyPlan = weeklyPlanResponse.data.weekPlan;
+let weeklyPlan = [];
+try {
+  const weeklyPlanResponse = await api.get("/workouts/weekly-plan");
+  weeklyPlan = weeklyPlanResponse.data.weekPlan || weeklyPlanResponse.data.weeklyPlan || weeklyPlanResponse.data || [];
+  if (!Array.isArray(weeklyPlan)) weeklyPlan = [];
+} catch (err) {
+  console.warn("Failed to fetch weekly plan:", err);
+}
 
 console.log("Weekly plan:", weeklyPlan);
 
@@ -84,13 +95,23 @@ if (todayWorkout) {
   
   if (todayWorkout.completed) {
     progressPercentage = 100;
-  } else if (user?.id && todayWorkout.date) {
-    const saved = localStorage.getItem(`workout_completed_${user.id}_${todayWorkout.date}`);
-    if (saved) {
+  } else {
+    const dateStr = todayWorkout.date ? todayWorkout.date.split('T')[0] : new Date().toISOString().split('T')[0];
+    
+    const keysToCheck = [
+      user?.id && todayWorkout.date && `workout_completed_${user.id}_${todayWorkout.date}`,
+      user?.id && `workout_completed_${user.id}_${dateStr}`,
+      todayWorkout.date && `workout_completed_${todayWorkout.date}`,
+      `workout_completed_${dateStr}`
+    ].filter(Boolean);
+    const finalSaved = keysToCheck.reduce((found, key) => found || localStorage.getItem(key), null);
+    
+    if (finalSaved) {
       try {
-        const completedExerciseIds = JSON.parse(saved);
+        const completedData = JSON.parse(finalSaved);
+        const completedCount = Array.isArray(completedData) ? completedData.length : (Number(completedData) || 0);
         const totalExercises = todayWorkout.type === 'rest' ? 1 : Math.max(todayWorkout.exercises?.length || 1, 1);
-        progressPercentage = Math.round((completedExerciseIds.length / totalExercises) * 100);
+        progressPercentage = Math.min(Math.round((completedCount / totalExercises) * 100), 100);
       } catch (e) {
         console.error("Error parsing saved workout progress:", e);
       }
@@ -119,6 +140,42 @@ setRecentWorkouts(weeklyPlan.slice(0, 3));
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, [user?.id]);
+
+  // Real-time progress percentage update
+  useEffect(() => {
+    if (!recommendedWorkout || recommendedWorkout.completed) return;
+    
+    const interval = setInterval(() => {
+      const dateStr = recommendedWorkout.date ? recommendedWorkout.date.split('T')[0] : new Date().toISOString().split('T')[0];
+      
+      const keysToCheck = [
+        user?.id && recommendedWorkout.date && `workout_completed_${user.id}_${recommendedWorkout.date}`,
+        user?.id && `workout_completed_${user.id}_${dateStr}`,
+        recommendedWorkout.date && `workout_completed_${recommendedWorkout.date}`,
+        `workout_completed_${dateStr}`
+      ].filter(Boolean);
+      const finalSaved = keysToCheck.reduce((found, key) => found || localStorage.getItem(key), null);
+      
+      let newProgress = 0;
+
+      if (finalSaved) {
+        try {
+          const completedData = JSON.parse(finalSaved);
+          const completedCount = Array.isArray(completedData) ? completedData.length : (Number(completedData) || 0);
+          const totalExercises = recommendedWorkout.type === 'rest' ? 1 : Math.max(recommendedWorkout.exercises?.length || 1, 1);
+          newProgress = Math.min(Math.round((completedCount / totalExercises) * 100), 100);
+        } catch (e) {
+          // ignore
+        }
+      }
+      
+      if (newProgress !== recommendedWorkout.progress) {
+        setRecommendedWorkout(prev => ({...prev, progress: newProgress}));
+      }
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [recommendedWorkout, user?.id]);
 
  const getGreeting = () => {
   const hour = currentTime.getHours();

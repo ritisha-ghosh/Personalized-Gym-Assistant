@@ -29,8 +29,8 @@ exports.getUserProfile = async (req, res) => {
         goal: fullUser.goal,
         profileImage: fullUser.profileImage, // This will now send the Base64 string directly
         bio: fullUser.bio,
-        injury: fullUser.injury,
-        disease: fullUser.disease, // 🔹 ADDED FOR WEEK 9 ML
+        medicalConditions: fullUser.medicalConditions || ["Regular"],
+        injuries: fullUser.injuries || ["Regular"],
         difficulty_coefficient: fullUser.difficulty_coefficient, // 🔹 ADDED FOR WEEK 9 FEEDBACK
         experience: fullUser.experience,
         activityLevel: fullUser.activityLevel,
@@ -69,7 +69,8 @@ exports.updateUserProfile = async (req, res) => {
       experience: user.experience,
       activityLevel: user.activityLevel,
       dietType: user.dietType,
-      disease: user.disease, // 🔹 ADDED TO TRACK CHANGES
+      medicalConditions: user.medicalConditions,
+      injuries: user.injuries,
       noOnion: user.noOnion,
       noGarlic: user.noGarlic,
       glutenFree: user.glutenFree,
@@ -80,8 +81,8 @@ exports.updateUserProfile = async (req, res) => {
 
     const oldWeight = user.weight;
 
-    // Update text fields (🔹 Added 'disease' to this array)
-    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'activityLevel', 'goal', 'dietType', 'bio', 'injury', 'disease', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
+    // Update regular text fields
+    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'activityLevel', 'goal', 'dietType', 'bio', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
     fieldsToUpdate.forEach(field => {
       if (req.body[field] !== undefined) {
         // Convert string representations to boolean for checkboxes
@@ -92,6 +93,23 @@ exports.updateUserProfile = async (req, res) => {
         }
       }
     });
+
+    // Handle medicalConditions and injuries arrays
+    if (req.body.medicalConditions !== undefined) {
+      if (Array.isArray(req.body.medicalConditions)) {
+        user.medicalConditions = req.body.medicalConditions;
+      } else if (typeof req.body.medicalConditions === 'string') {
+        user.medicalConditions = [req.body.medicalConditions];
+      }
+    }
+
+    if (req.body.injuries !== undefined) {
+      if (Array.isArray(req.body.injuries)) {
+        user.injuries = req.body.injuries;
+      } else if (typeof req.body.injuries === 'string') {
+        user.injuries = [req.body.injuries];
+      }
+    }
 
     if (req.body.weight !== undefined && Number(req.body.weight) !== Number(oldWeight)) {
       try {
@@ -115,8 +133,8 @@ exports.updateUserProfile = async (req, res) => {
 
     const updatedUser = await user.save();
 
-    // 🔹 Added 'disease' to this array so it forces a new AI generation if it changes
-    const planTriggerFields = ['height', 'weight', 'age', 'gender', 'goal', 'experience', 'activityLevel', 'dietType', 'disease', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
+    // Trigger plan regeneration if key fields change
+    const planTriggerFields = ['height', 'weight', 'age', 'gender', 'goal', 'experience', 'activityLevel', 'dietType', 'medicalConditions', 'injuries', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
     const shouldRefreshPlans = planTriggerFields.some(field => String(oldValues[field] || '') !== String(updatedUser[field] || ''));
     if (shouldRefreshPlans) {
       try {
@@ -142,9 +160,9 @@ exports.updateUserProfile = async (req, res) => {
         activityLevel: updatedUser.activityLevel,
         dietType: updatedUser.dietType,
         bio: updatedUser.bio,
-        injury: updatedUser.injury,
-        disease: updatedUser.disease, // 🔹 ADDED
-        difficulty_coefficient: updatedUser.difficulty_coefficient, // 🔹 ADDED
+        medicalConditions: updatedUser.medicalConditions || ["Regular"],
+        injuries: updatedUser.injuries || ["Regular"],
+        difficulty_coefficient: updatedUser.difficulty_coefficient,
         noOnion: updatedUser.noOnion,
         noGarlic: updatedUser.noGarlic,
         glutenFree: updatedUser.glutenFree,

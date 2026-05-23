@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from "../componenets/layout/Layout";
 import { AuthContext } from '../context/AuthContext';
@@ -7,8 +7,14 @@ import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import api from '../utils/api';
 
+const rawDiseases = ["High BP", "Low BP", "Diabetes", "Pre Diabetes", "High Cholesterol", "Heart Disease", "Obesity", "Asthma", "Arthritis", "Thyroid", "PCOS", "Fatty Liver", "Kidney Disease", "Depression", "Anxiety", "Migraine", "Cervical Pain", "Sciatica", "Spondylitis", "Insomnia", "Anemia", "Vitamin D Deficiency", "Vitamin B12 Deficiency", "IBS", "Acidity", "Ulcer", "COPD", "Sleep Apnea", "Epilepsy", "Vertigo", "Hyperthyroidism", "Hypothyroidism", "Osteoporosis", "Joint Pain", "Frozen Shoulder", "Tennis Elbow", "Carpal Tunnel", "GERD", "Piles", "Constipation", "Sinusitis", "Allergy", "Bronchitis", "Stress", "PCOD", "Menopause", "Post Pregnancy Weakness", "Weak Immunity", "Muscle Weakness", "Liver Disorder", "Heart Blockage", "High Triglycerides", "Low Stamina", "Underweight", "Overweight"];
+const diseasesList = ["Regular", ...rawDiseases.sort()];
+
+const rawInjuries = ["Hand Fracture", "Arm Fracture", "Leg Fracture", "Foot Fracture", "Shoulder Injury", "Elbow Injury", "Wrist Injury", "Knee Pain", "Back Pain", "Neck Injury", "Ankle Injury", "Hip Injury", "Muscle Tear", "ACL Injury", "Hamstring Injury", "Finger Fracture", "Toe Fracture", "Chest Injury", "Spinal Injury", "Ligament Tear", "Meniscus Tear", "Heel Pain", "Calf Injury", "Bicep Tear", "Tricep Injury", "Rotator Cuff Injury", "Groin Injury", "Pelvic Injury", "Tailbone Pain", "Shin Splints", "Dislocated Shoulder", "Dislocated Knee", "Nerve Injury", "Sciatic Injury", "Whiplash", "Jaw Injury", "Rib Fracture", "Skull Injury", "Eye Injury", "Burn Injury", "Sprained Wrist", "Sprained Ankle", "Pulled Muscle", "Tendon Injury", "Lower Back Strain", "Upper Back Strain", "Patella Injury", "Quad Injury", "Achilles Injury", "Fractured Collarbone", "Frozen Joint", "Hip Flexor Injury", "IT Band Syndrome", "Stress Fracture"];
+const injuriesList = ["Regular", ...rawInjuries.sort()];
+
 const UserProfile = () => {
-  const { user, login, updateUser } = useContext(AuthContext); // ⭐ Add updateUser
+  const { user, login, updateUser } = useContext(AuthContext); 
   const { isDarkMode } = useContext(DarkModeContext);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
@@ -29,7 +35,6 @@ const UserProfile = () => {
     dietType: '',
     activityLevel: '',
     bio: '',
-    injury: 'none',
     noOnion: false,
     noGarlic: false,
     glutenFree: false,
@@ -42,7 +47,42 @@ const UserProfile = () => {
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [uploadError, setUploadError] = useState('');
-  const [isInjuryActive, setIsInjuryActive] = useState(false);
+  
+  const [selectedDiseases, setSelectedDiseases] = useState(['Regular']);
+  const [selectedInjuries, setSelectedInjuries] = useState(['Regular']);
+  const [diseaseDropdownOpen, setDiseaseDropdownOpen] = useState(false);
+  const [injuryDropdownOpen, setInjuryDropdownOpen] = useState(false);
+
+  const diseaseRef = useRef(null);
+  const injuryRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (diseaseRef.current && !diseaseRef.current.contains(event.target)) {
+        setDiseaseDropdownOpen(false);
+      }
+      if (injuryRef.current && !injuryRef.current.contains(event.target)) {
+        setInjuryDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleSelection = (item, selectedList, setList) => {
+    if (item === "Regular") {
+      setList(["Regular"]);
+    } else {
+      let newList = selectedList.filter(i => i !== "Regular");
+      if (newList.includes(item)) {
+        newList = newList.filter(i => i !== item);
+      } else {
+        newList.push(item);
+      }
+      if (newList.length === 0) newList = ["Regular"];
+      setList(newList);
+    }
+  };
 
   // State for image cropping
   const [imgSrc, setImgSrc] = useState('');
@@ -50,7 +90,6 @@ const UserProfile = () => {
   const [completedCrop, setCompletedCrop] = useState(null);
   const imgRef = React.useRef(null);
 
-  // --- Image Cropping Functions ---
   function onImageLoad(e) {
     const { width, height } = e.currentTarget;
     const newCrop = centerCrop(
@@ -61,13 +100,11 @@ const UserProfile = () => {
     setCrop(newCrop);
   }
 
-  // FIXED: Perfectly maps display size to actual image pixels for a symmetric crop
   function getCroppedImg(image, crop, fileName) {
     const canvas = document.createElement('canvas');
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
     
-    // Create a high-res canvas matching the actual image crop size
     canvas.width = Math.floor(crop.width * scaleX);
     canvas.height = Math.floor(crop.height * scaleY);
     const ctx = canvas.getContext('2d');
@@ -109,7 +146,6 @@ const UserProfile = () => {
           dietType: data.dietType || '',
           activityLevel: data.activityLevel || '',
           bio: data.bio || '',
-          injury: data.injury || 'none',
           noOnion: data.noOnion === true || data.noOnion === 'true',
           noGarlic: data.noGarlic === true || data.noGarlic === 'true',
           glutenFree: data.glutenFree === true || data.glutenFree === 'true',
@@ -118,8 +154,12 @@ const UserProfile = () => {
           sugarFree: data.sugarFree === true || data.sugarFree === 'true'
         });
 
+        const medicalConditions = data.medicalConditions?.length > 0 ? data.medicalConditions : ['Regular'];
+        const injuries = data.injuries?.length > 0 ? data.injuries : ['Regular'];
+        
+        setSelectedDiseases(medicalConditions);
+        setSelectedInjuries(injuries);
         setProfileImage(data.profileImage || null);
-        setIsInjuryActive(data.injury && data.injury !== 'none');
       } catch (err) {
         console.error("Failed to load profile", err);
         setPageError('Error loading profile');
@@ -131,13 +171,11 @@ const UserProfile = () => {
     fetchProfile();
   }, []);
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  // Save profile to backend
   const handleSave = async () => {
     setSaveStatus('Saving...');
     setPageError('');
@@ -166,7 +204,9 @@ const UserProfile = () => {
       formDataToSend.append('nutAllergy', formData.nutAllergy);
       formDataToSend.append('sugarFree', formData.sugarFree);
       if (formData.bio) formDataToSend.append('bio', formData.bio);
-      formDataToSend.append('injury', isInjuryActive ? formData.injury : 'none');
+      
+      selectedDiseases.forEach(item => formDataToSend.append('medicalConditions', item));
+      selectedInjuries.forEach(item => formDataToSend.append('injuries', item));
       
       if (profileImageFile) {
         formDataToSend.append('profileImage', profileImageFile, `profile-${user.id || 'user'}.jpg`);
@@ -179,7 +219,6 @@ const UserProfile = () => {
       const updatedUser = updateResponse.data.user;
       setProfileImage(updatedUser.profileImage || null);
 
-      // ⭐ Update AuthContext with new user data (especially experience level)
       updateUser({
         experience: updatedUser.experience,
         goal: updatedUser.goal,
@@ -189,7 +228,8 @@ const UserProfile = () => {
         height: updatedUser.height,
         gender: updatedUser.gender,
         bio: updatedUser.bio,
-        injury: updatedUser.injury,
+        medicalConditions: updatedUser.medicalConditions,
+        injuries: updatedUser.injuries,
         dietType: updatedUser.dietType,
         noOnion: updatedUser.noOnion,
         noGarlic: updatedUser.noGarlic,
@@ -209,9 +249,6 @@ const UserProfile = () => {
       setIsEditMode(false);
       setProfileImageFile(null);
       
-      console.log(`✅ Profile saved - Experience Level: ${updatedUser.experience}, Goal: ${updatedUser.goal}`);
-      
-      // FIXED: Display success message briefly, then refresh the page
       setTimeout(() => {
         window.location.reload();
       }, 1500);
@@ -223,7 +260,6 @@ const UserProfile = () => {
     }
   };
 
-  // Handle file upload
   const handleUploadImage = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -238,7 +274,6 @@ const UserProfile = () => {
     }
   };
 
-  // Handle saving the cropped image
   const handleCropSave = async () => {
     if (!completedCrop || !imgRef.current) {
       setUploadError('Could not crop image. Please try again.');
@@ -255,7 +290,6 @@ const UserProfile = () => {
     setShowGalleryModal(false);
   };
 
-  // Handle deleting the profile image
   const handleDeleteImage = async () => {
     if (window.confirm('Are you sure you want to delete your profile picture?')) {
       setSaveStatus('Deleting image...');
@@ -272,7 +306,6 @@ const UserProfile = () => {
 
         setSaveStatus('✓ Image deleted successfully!');
         
-        // Refresh page after deleting image
         setTimeout(() => {
           window.location.reload();
         }, 1500);
@@ -294,10 +327,8 @@ const UserProfile = () => {
     );
   }
 
-  // Generate Fallback URL for missing images
   const fallbackImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=00c4b4&color=fff&size=200`;
 
-  // Helper classes for inputs based on dark mode
   const inputStyles = `w-full px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all font-bold ${
     isDarkMode 
       ? 'bg-[#0f172a] border border-[#334155] text-white focus:bg-[#1e293b]' 
@@ -317,7 +348,6 @@ const UserProfile = () => {
           @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
           .modal-content { animation: modalSlideIn 0.3s ease-out; }
           
-          /* Hide number input arrows (spinners) */
           input[type="number"]::-webkit-inner-spin-button,
           input[type="number"]::-webkit-outer-spin-button {
             -webkit-appearance: none;
@@ -342,7 +372,6 @@ const UserProfile = () => {
                     alt="Profile" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Fallback if backend URL 404s
                       e.target.onerror = null; 
                       e.target.src = fallbackImage;
                     }}
@@ -412,6 +441,16 @@ const UserProfile = () => {
               {formData.goal && (
                 <p className={`font-medium text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
                   <span className="text-teal-500 font-bold">Goal :</span> {formData.goal.charAt(0).toUpperCase() + formData.goal.slice(1)}
+                </p>
+              )}
+              {selectedDiseases && selectedDiseases.length > 0 && (
+                <p className={`font-medium text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
+                  <span className="text-orange-500 font-bold">Medical Status :</span> {selectedDiseases.join(", ")}
+                </p>
+              )}
+              {selectedInjuries && selectedInjuries.length > 0 && (
+                <p className={`font-medium text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
+                  <span className="text-red-500 font-bold">Injury Status :</span> {selectedInjuries.join(", ")}
                 </p>
               )}
             </div>
@@ -540,7 +579,6 @@ const UserProfile = () => {
                     <option value="light">Lightly Active</option>
                     <option value="moderate">Moderately Active</option>
                     <option value="active">Very Active</option>
-                    <option value="very_active">Extremely Active</option>
                   </select>
                 </div>
               </div>
@@ -609,7 +647,82 @@ const UserProfile = () => {
               </div>
             </section>
 
-            {/* Bio */}
+            {/* Medical & Injury Status */}
+            <section className={`p-8 rounded-2xl shadow-sm border relative z-50 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
+              <div className="flex items-center gap-2 mb-6">
+                <span className="material-symbols-outlined text-teal-500">medical_services</span>
+                <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Medical & Injury Status</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Fixed Medical Dropdown */}
+                <div ref={diseaseRef} className="space-y-2">
+                  <label className={`text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Medical Conditions / Diseases</label>
+                  <div className="relative">
+                    <div 
+                      className={`custom-select w-full px-4 py-3 border rounded-xl outline-none transition-all cursor-pointer flex justify-between items-center font-bold ${isDarkMode ? `border-[#334155] text-white ${diseaseDropdownOpen ? 'ring-2 ring-teal-500/20 border-teal-500' : ''}` : `border-slate-200 text-slate-900 hover:bg-slate-50 ${diseaseDropdownOpen ? 'bg-white ring-2 ring-teal-500/20 border-teal-500' : 'bg-slate-50'}`}`}
+                      onClick={() => setDiseaseDropdownOpen(!diseaseDropdownOpen)}
+                    >
+                      <span className="truncate pr-4">
+                        {selectedDiseases.join(", ")}
+                      </span>
+                      <span className={`material-symbols-outlined transition-transform ${diseaseDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                    </div>
+                    
+                    {diseaseDropdownOpen && (
+                      <div className={`custom-dropdown-menu absolute z-20 w-full mt-2 max-h-60 overflow-y-auto rounded-xl shadow-xl border ${isDarkMode ? 'border-[#334155]' : 'bg-white border-slate-200'}`}>
+                        {diseasesList.map(disease => (
+                          <label key={disease} className={`flex items-center px-4 py-3 cursor-pointer transition-colors font-bold text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700 hover:bg-slate-50'}`}>
+                            <input 
+                              type="checkbox" 
+                              checked={selectedDiseases.includes(disease)}
+                              onChange={() => toggleSelection(disease, selectedDiseases, setSelectedDiseases)}
+                              className="mr-3 w-4 h-4 text-teal-500 rounded border-slate-400 focus:ring-0"
+                            />
+                            {disease}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Fixed Injury Dropdown */}
+                <div ref={injuryRef} className="space-y-2">
+                  <label className={`text-xs font-bold uppercase tracking-wide ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Injury Statuses</label>
+                  <div className="relative">
+                    <div 
+                      className={`custom-select w-full px-4 py-3 border rounded-xl outline-none transition-all cursor-pointer flex justify-between items-center font-bold ${isDarkMode ? `border-[#334155] text-white ${injuryDropdownOpen ? 'ring-2 ring-teal-500/20 border-teal-500' : ''}` : `border-slate-200 text-slate-900 hover:bg-slate-50 ${injuryDropdownOpen ? 'bg-white ring-2 ring-teal-500/20 border-teal-500' : 'bg-slate-50'}`}`}
+                      onClick={() => setInjuryDropdownOpen(!injuryDropdownOpen)}
+                    >
+                      <span className="truncate pr-4">
+                        {selectedInjuries.join(", ")}
+                      </span>
+                      <span className={`material-symbols-outlined transition-transform ${injuryDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                    </div>
+                    
+                    {injuryDropdownOpen && (
+                      <div className={`custom-dropdown-menu absolute z-20 w-full mt-2 max-h-60 overflow-y-auto rounded-xl shadow-xl border ${isDarkMode ? 'border-[#334155]' : 'bg-white border-slate-200'}`}>
+                        {injuriesList.map(injury => (
+                          <label key={injury} className={`flex items-center px-4 py-3 cursor-pointer transition-colors font-bold text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700 hover:bg-slate-50'}`}>
+                            <input 
+                              type="checkbox" 
+                              checked={selectedInjuries.includes(injury)}
+                              onChange={() => toggleSelection(injury, selectedInjuries, setSelectedInjuries)}
+                              className="mr-3 w-4 h-4 text-teal-500 rounded border-slate-400 focus:ring-0"
+                            />
+                            {injury}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Bio / Motivation */}
             <section className={`p-8 rounded-2xl shadow-sm border ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
               <div className="flex items-center gap-2 mb-6">
                 <span className="material-symbols-outlined text-teal-500">description</span>
@@ -628,39 +741,6 @@ const UserProfile = () => {
                 }`}
                 rows="4"
               ></textarea>
-            </section>
-
-            {/* Injury Status */}
-            <section className={`p-8 rounded-2xl border ${isDarkMode ? 'bg-[#453603]/20 border-[#856404]/30' : 'bg-[#fdf8e6] border-[#f3eac5]'}`}>
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <span className={`material-symbols-outlined ${isDarkMode ? 'text-yellow-500' : 'text-[#856404]'}`}>medical_services</span>
-                  <h3 className={`text-lg font-bold ${isDarkMode ? 'text-yellow-500' : 'text-[#856404]'}`}>Injury Status</h3>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={isInjuryActive}
-                    onChange={() => setIsInjuryActive(!isInjuryActive)}
-                  />
-                  <div className={`w-12 h-7 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all ${isDarkMode ? 'bg-slate-600 peer-checked:bg-yellow-600' : 'bg-[#dcdcdc] peer-checked:bg-[#856404]'}`}></div>
-                </label>
-              </div>
-
-              {isInjuryActive && (
-                <input
-                  name="injury"
-                  value={formData.injury}
-                  onChange={handleInputChange}
-                  placeholder="Describe your injury"
-                  className={`w-full rounded-xl px-4 py-3 outline-none focus:ring-2 font-medium ${
-                    isDarkMode 
-                      ? 'bg-[#1e293b] border border-[#856404]/30 text-white focus:ring-yellow-500/20' 
-                      : 'bg-white border border-[#f3eac5] text-slate-900 focus:ring-[#856404]/20'
-                  }`}
-                />
-              )}
             </section>
 
             {/* Action Buttons */}
@@ -787,25 +867,39 @@ const UserProfile = () => {
               </section>
             )}
 
-            {/* Bio */}
+            {/* Medical & Injury Status View */}
+            {(selectedDiseases.length > 0 || selectedInjuries.length > 0) && (
+              <section className={`p-8 rounded-2xl shadow-sm border ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
+                <div className="flex items-center gap-2 mb-6">
+                  <span className="material-symbols-outlined text-teal-500">medical_services</span>
+                  <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Medical & Injury Status</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {selectedDiseases.length > 0 && (
+                    <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-[#0f172a]' : 'bg-slate-50'}`}>
+                      <p className={`text-xs font-bold uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Medical Status</p>
+                      <p className={`text-lg font-bold mt-2 capitalize leading-relaxed ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedDiseases.join(', ')}</p>
+                    </div>
+                  )}
+                  {selectedInjuries.length > 0 && (
+                    <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-[#0f172a]' : 'bg-slate-50'}`}>
+                      <p className={`text-xs font-bold uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Injury Status</p>
+                      <p className={`text-lg font-bold mt-2 capitalize leading-relaxed ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedInjuries.join(', ')}</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Bio / Motivation */}
             {formData.bio && (
               <section className={`p-8 rounded-2xl shadow-sm border ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
                 <div className="flex items-center gap-2 mb-6">
                   <span className="material-symbols-outlined text-teal-500">description</span>
-                  <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Bio</h3>
+                  <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Bio / Motivation</h3>
                 </div>
                 <p className={`leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{formData.bio}</p>
-              </section>
-            )}
-
-            {/* Injury Status */}
-            {isInjuryActive && formData.injury && formData.injury !== 'none' && (
-              <section className={`p-8 rounded-2xl border ${isDarkMode ? 'bg-[#453603]/20 border-[#856404]/30' : 'bg-[#fdf8e6] border-[#f3eac5]'}`}>
-                <div className="flex items-center gap-2 mb-4">
-                  <span className={`material-symbols-outlined ${isDarkMode ? 'text-yellow-500' : 'text-[#856404]'}`}>medical_services</span>
-                  <h3 className={`text-lg font-bold ${isDarkMode ? 'text-yellow-500' : 'text-[#856404]'}`}>Injury Status</h3>
-                </div>
-                <p className={`font-medium ${isDarkMode ? 'text-yellow-400' : 'text-[#856404]'}`}>{formData.injury}</p>
               </section>
             )}
 

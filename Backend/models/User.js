@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
 
+const rawDiseases = ["High BP", "Low BP", "Diabetes", "Pre Diabetes", "High Cholesterol", "Heart Disease", "Obesity", "Asthma", "Arthritis", "Thyroid", "PCOS", "Fatty Liver", "Kidney Disease", "Depression", "Anxiety", "Migraine", "Cervical Pain", "Sciatica", "Spondylitis", "Insomnia", "Anemia", "Vitamin D Deficiency", "Vitamin B12 Deficiency", "IBS", "Acidity", "Ulcer", "COPD", "Sleep Apnea", "Epilepsy", "Vertigo", "Hyperthyroidism", "Hypothyroidism", "Osteoporosis", "Joint Pain", "Frozen Shoulder", "Tennis Elbow", "Carpal Tunnel", "GERD", "Piles", "Constipation", "Sinusitis", "Allergy", "Bronchitis", "Stress", "PCOD", "Menopause", "Post Pregnancy Weakness", "Weak Immunity", "Muscle Weakness", "Liver Disorder", "Heart Blockage", "High Triglycerides", "Low Stamina", "Underweight", "Overweight"];
+const diseasesList = ["Regular", ...rawDiseases.sort()];
+
+const rawInjuries = ["Hand Fracture", "Arm Fracture", "Leg Fracture", "Foot Fracture", "Shoulder Injury", "Elbow Injury", "Wrist Injury", "Knee Pain", "Back Pain", "Neck Injury", "Ankle Injury", "Hip Injury", "Muscle Tear", "ACL Injury", "Hamstring Injury", "Finger Fracture", "Toe Fracture", "Chest Injury", "Spinal Injury", "Ligament Tear", "Meniscus Tear", "Heel Pain", "Calf Injury", "Bicep Tear", "Tricep Injury", "Rotator Cuff Injury", "Groin Injury", "Pelvic Injury", "Tailbone Pain", "Shin Splints", "Dislocated Shoulder", "Dislocated Knee", "Nerve Injury", "Sciatic Injury", "Whiplash", "Jaw Injury", "Rib Fracture", "Skull Injury", "Eye Injury", "Burn Injury", "Sprained Wrist", "Sprained Ankle", "Pulled Muscle", "Tendon Injury", "Lower Back Strain", "Upper Back Strain", "Patella Injury", "Quad Injury", "Achilles Injury", "Fractured Collarbone", "Frozen Joint", "Hip Flexor Injury", "IT Band Syndrome", "Stress Fracture"];
+const injuriesList = ["Regular", ...rawInjuries.sort()];
+
 const userSchema = new mongoose.Schema({
 
   name: {
@@ -60,19 +66,20 @@ const userSchema = new mongoose.Schema({
     trim: true
   },
   
-  injury: {
-    type: String,
-    default: "none",
-    trim: true,
-    lowercase: true
+  injuries: {
+    type: [{
+      type: String,
+      enum: injuriesList
+    }],
+    default: ["Regular"]
   },
 
-  // 🔹 ADDED FOR WEEK 9 ML 
-  disease: {
-    type: String,
-    default: "none",
-    trim: true,
-    lowercase: true
+  medicalConditions: {
+    type: [{
+      type: String,
+      enum: diseasesList
+    }],
+    default: ["Regular"]
   },
 
   //For current recovery state
@@ -111,7 +118,7 @@ const userSchema = new mongoose.Schema({
 
   activityLevel: {
     type: String,
-    enum: ["sedentary", "light", "moderate", "active", "very_active"],
+    enum: ["sedentary", "light", "moderate", "active"],
     default: "moderate",
     lowercase: true,
     trim: true
