@@ -19,7 +19,7 @@
 4. **progression :** make progression bar goal dynamic,/ remove benchpress box.. export button pdf download
 5. **nutrition :** removed water tip button, micronutrient box
 6. **Dashboard :** removes view routng button , leader board and , weighttrend chart / connect start session button with workout
-7. 
+7. Chatbot - Make the preset questions as per csv, better welcome message, chat history.. Register and UserProfile - add medical conditions and injuries dropdown.. Dashboard - made again full dynamic.. Workout & Nutritrion - Made the dates real dates..
 
 ---
 
