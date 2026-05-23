@@ -36,7 +36,7 @@ const WorkoutCard = ({ workout }) => {
             Intense
           </span>
           <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-400'}`}>
-            Hypertrophy Session
+            {workout?.type || "Full Body Workout"}
           </span>
         </div>
 

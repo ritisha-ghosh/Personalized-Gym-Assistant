@@ -68,7 +68,9 @@ const getDietPlan = async (req, res) => {
     const dietPreferences = {
       dietType: user.dietType || "vegetarian",
       noOnion: user.noOnion || false,
-      noGarlic: user.noGarlic || false
+      noGarlic: user.noGarlic || false,
+      medicalConditions: user.medicalConditions,
+      injuries: user.injuries
     };
 
     const recipeResponse = await getDietRecommendations(dietPreferences);

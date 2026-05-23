@@ -6,6 +6,34 @@ import { AuthContext } from '../context/AuthContext';
 import api from '../utils/api';
 import { DarkModeContext } from '../context/DarkModeContext';
 
+// Helper to process workout plan and align dates with the current week
+const processAndAlignWorkoutPlan = (plan) => {
+  if (!plan || !Array.isArray(plan) || plan.length === 0) return [];
+
+  // Helper to get YYYY-MM-DD from a Date object, respecting local timezone
+  const toYYYYMMDD = (dateObj) => {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to midnight to avoid time-related issues
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  return plan.map((day, index) => {
+    const currentDate = new Date(today);
+    currentDate.setDate(today.getDate() + index);
+    return {
+      ...day,
+      date: toYYYYMMDD(currentDate),
+      dayName: dayNames[currentDate.getDay()],
+      isToday: index === 0,
+    };
+  });
+};
+
 const Workout = () => {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
@@ -22,7 +50,8 @@ const Workout = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserExperience, setCurrentUserExperience] = useState(null);
   const [userGoal, setUserGoal] = useState(null);
-  const [userInjury, setUserInjury] = useState(null);
+  const [userInjuries, setUserInjuries] = useState([]);
+  const [userMedicalConditions, setUserMedicalConditions] = useState([]);
   const [userWeight, setUserWeight] = useState(null);
   
   const [notes, setNotes] = useState([]);
@@ -54,13 +83,15 @@ const Workout = () => {
   response.data.weeklyPlan ||
   response.data.weekPlan ||
   [];
-        setWeekPlan(receivedPlan);
+        const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
+        setWeekPlan(realTimePlan);
         setCurrentUserExperience(response.data.user?.experienceLevel);
         setUserGoal(response.data.user?.goal);
-        setUserInjury(response.data.user?.injury);
+        setUserInjuries(response.data.user?.injuries || []);
+        setUserMedicalConditions(response.data.user?.medicalConditions || []);
         setUserWeight(response.data.user?.weight);
 
-        const currentPlan = receivedPlan.find((day) => day.isToday) || receivedPlan[0];
+        const currentPlan = realTimePlan.find((day) => day.isToday) || realTimePlan[0];
         if (currentPlan?.completed) {
           setIsWorkoutDoneToday(true);
           setcompletedExerciseIds(currentPlan.exercises.map((_, idx) => idx));
@@ -115,13 +146,14 @@ const Workout = () => {
       console.log(`✅ Refreshed workout plan - Experience used: ${response.data.user?.experienceLevel}`);
       
       const receivedPlan = response.data.weeklyPlan || response.data.workoutPlan?.weeklyPlan || [];
-      setWeekPlan(receivedPlan);
+      const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
+      setWeekPlan(realTimePlan);
       setCurrentUserExperience(response.data.user?.experienceLevel);
-      setUserGoal(response.data.user?.goal);
-      setUserInjury(response.data.user?.injury);
+      setUserInjuries(response.data.user?.injuries || []);
+      setUserMedicalConditions(response.data.user?.medicalConditions || []);
       setUserWeight(response.data.user?.weight);
 
-      const currentPlan = receivedPlan.find((day) => day.isToday) || receivedPlan[0];
+      const currentPlan = realTimePlan.find((day) => day.isToday) || realTimePlan[0];
       if (currentPlan?.completed) {
         setIsWorkoutDoneToday(true);
         setcompletedExerciseIds(currentPlan.exercises.map((_, idx) => idx));
@@ -256,9 +288,16 @@ const Workout = () => {
               {userGoal && <p>Goal : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-[#00c4b4]/20 text-[#00c4b4]`}>
                 {userGoal}
               </span></p>}
-              {userInjury && <p>Injury Status : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-500`}>
-                {userInjury}
-              </span></p>}
+              {userMedicalConditions && userMedicalConditions.length > 0 && !userMedicalConditions.includes('Regular') && (
+                <p>Medical : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-500`}>
+                  {userMedicalConditions.join(', ')}
+                </span></p>
+              )}
+              {userInjuries && userInjuries.length > 0 && !userInjuries.includes('Regular') && (
+                <p>Injuries : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-red-500/20 text-red-500`}>
+                  {userInjuries.join(', ')}
+                </span></p>
+              )}
             </div>
           </div>
           <div className="flex gap-3 items-center">

@@ -220,7 +220,8 @@ exports.generateSmartRecommendation = async (req, res) => {
 
       experience: user.experience,
 
-      injury: user.injury,
+      injuries: user.injuries,
+      medicalConditions: user.medicalConditions,
 
       // ✅ NEW
       medicalState: user.medicalState,
@@ -404,7 +405,8 @@ exports.getWeeklyPlan = async (req, res) => {
         goal: user.goal,
         age: user.age,
         weight: user.weight,
-        injury: user.injury,
+        injuries: user.injuries,
+        medicalConditions: user.medicalConditions,
         medicalState: user.medicalState
       },
       weeklyPlan: weekPlan,

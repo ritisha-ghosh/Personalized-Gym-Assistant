@@ -13,6 +13,8 @@ const Neutrations = () => {
   const { isDarkMode } = useContext(DarkModeContext);
 
   const [userDietData, setUserDietData] = useState(null);
+  const [userMedicalConditions, setUserMedicalConditions] = useState([]);
+  const [userInjuries, setUserInjuries] = useState([]);
   const [weeklyPlan, setWeeklyPlan] = useState([]);
   const [notes, setNotes] = useState([]);
   const [completedMeals, setCompletedMeals] = useState([]);
@@ -60,6 +62,8 @@ const Neutrations = () => {
           goal: userData.goal,
           weight: userData.weight
         });
+        setUserMedicalConditions(userData.medicalConditions || []);
+        setUserInjuries(userData.injuries || []);
 
         // Fetch Weekly Plan with ML integration
         const planResponse = await api.get('/diet-tracking/weekly-plan');
@@ -193,13 +197,28 @@ const Neutrations = () => {
                   <p>Diet Type : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-[#00c4b4]/20 text-[#00c4b4]`}>
                     {userDietData.dietType}
                   </span></p>
-                  {userDietData.noOnion && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>No Onion</p>}
-                  {userDietData.noGarlic && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>No Garlic</p>}
-                  {userDietData.glutenFree && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Gluten-Free</p>}
-                  {userDietData.lactoseFree && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Lactose-Free</p>}
-                  {userDietData.nutAllergy && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Nut Allergy</p>}
-                  {userDietData.sugarFree && <p className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Sugar-Free</p>}
+                  {(userDietData.noOnion || userDietData.noGarlic || userDietData.glutenFree || userDietData.lactoseFree || userDietData.nutAllergy || userDietData.sugarFree) && (
+                    <p className="flex items-center gap-2 flex-wrap">
+                      Dietary Exclusions :
+                      {userDietData.noOnion && <span className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>No Onion</span>}
+                      {userDietData.noGarlic && <span className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>No Garlic</span>}
+                      {userDietData.glutenFree && <span className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Gluten-Free</span>}
+                      {userDietData.lactoseFree && <span className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Lactose-Free</span>}
+                      {userDietData.nutAllergy && <span className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Nut Allergy</span>}
+                      {userDietData.sugarFree && <span className={`font-semibold px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-400`}>Sugar-Free</span>}
+                    </p>
+                  )}
                 </>
+              )}
+              {userMedicalConditions && userMedicalConditions.length > 0 && (
+                <p>Medical Status : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block ${userMedicalConditions.includes('Regular') ? 'bg-green-500/20 text-green-500' : 'bg-orange-500/20 text-orange-500'}`}>
+                  {userMedicalConditions.join(', ')}
+                </span></p>
+              )}
+              {userInjuries && userInjuries.length > 0 && (
+                <p>Injury Status : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block ${userInjuries.includes('Regular') ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                  {userInjuries.join(', ')}
+                </span></p>
               )}
             </div>
           </div>
