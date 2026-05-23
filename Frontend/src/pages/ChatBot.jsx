@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import Layout from "../componenets/layout/Layout";
 import { Send, PlusCircle, Bot, Search, Mic, MicOff, User, Sparkles, Clock, X, MessageSquare, Trash2, Pencil } from 'lucide-react';
 import api from '../utils/api';
+import logo from '../assets/logo.png';
 import { AuthContext } from '../context/AuthContext';
 import { DarkModeContext } from '../context/DarkModeContext';
 
@@ -676,23 +677,23 @@ const ChatBot = () => {
                 className={`flex gap-4 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
               >
                 {/* Avatar */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm ${msg.sender === 'ai' ? 'bg-teal-500 text-white' : ''}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${msg.sender === 'ai' ? 'bg-[#00c4b4]/10 border border-[#00c4b4]/50 shadow-md shadow-[#00c4b4]/30' : 'shadow-sm'}`}>
                   {msg.sender === 'ai' ? (
-                    <Bot size={20} />
+                    <img src={logo} alt="AI Coach" className="w-7 h-7 object-contain" />
                   ) : (
                     /* Display Real Profile Image directly from backend fetch (userProfile) */
                     userProfile?.profileImage ? (
                       <img 
                         src={userProfile.profileImage} 
                         alt="User" 
-                        className={`w-full h-full rounded-full object-cover border-2 ${isDarkMode ? 'border-slate-500' : 'border-slate-300'}`}
+                        className={`w-full h-full rounded-full object-cover border-2 ${isDarkMode ? 'border-slate-600' : 'border-slate-400'}`}
                         onError={(e) => {
                           e.target.onerror = null; 
                           e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile?.name || 'User')}&background=00c4b4&color=fff`;
                         }}
                       />
                     ) : (
-                      <div className={`w-full h-full rounded-full border-2 flex items-center justify-center ${isDarkMode ? 'border-slate-500 bg-gradient-to-br from-indigo-600 to-purple-600' : 'border-slate-300 bg-gradient-to-br from-[#db2777] to-orange-400'}`}>
+                      <div className={`w-full h-full rounded-full border-2 flex items-center justify-center ${isDarkMode ? 'border-slate-600 bg-gradient-to-br from-indigo-600 to-purple-600' : 'border-slate-400 bg-gradient-to-br from-[#db2777] to-orange-400'}`}>
                         <User size={20} className="text-white" />
                       </div>
                     )
@@ -737,8 +738,8 @@ const ChatBot = () => {
           {/* Typing Indicator (Only show if not searching) */}
           {isTyping && !searchQuery && (
             <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center shrink-0">
-                <Bot size={20} className="text-white" />
+              <div className="w-10 h-10 rounded-full bg-[#00c4b4]/10 border border-[#00c4b4]/50 shadow-md shadow-[#00c4b4]/30 flex items-center justify-center shrink-0">
+                <img src={logo} alt="AI Coach" className="w-7 h-7 object-contain" />
               </div>
               <div className={`p-4 rounded-2xl rounded-tl-none flex items-center gap-1 ${isDarkMode ? 'bg-[#1e293b] border border-[#334155]' : 'bg-[#e0f7f6]'}`}>
                 <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce"></div>
