@@ -1,13 +1,14 @@
 const express = require("express");
 const multer = require("multer");
 const authMiddleware = require("../middleware/authMiddleware");
-const { 
-  getUserProfile, 
-  updateUserProfile, 
+const {
+  getUserProfile,
+  updateUserProfile,
   updateUserSettings,
   updatePassword,
   deleteAccount,
-  deleteProfileImage
+  deleteProfileImage,
+  updateInjuryStatus
 } = require("../controllers/userController");
 
 // Use Memory Storage instead of Disk Storage! No more 'uploads' folder.
@@ -32,6 +33,7 @@ const router = express.Router();
 // All routes are protected
 router.get("/profile", authMiddleware, getUserProfile);
 router.put("/profile", authMiddleware, upload.single('profileImage'), updateUserProfile);
+router.put("/update-injury", authMiddleware, updateInjuryStatus);
 router.put("/update-settings", authMiddleware, updateUserSettings);
 router.put("/update-password", authMiddleware, updatePassword);
 router.delete("/delete-account", authMiddleware, deleteAccount);

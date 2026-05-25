@@ -35,8 +35,8 @@ exports.register = async (req, res) => {
       height,
       fitnessGoal, // mapped from frontend payload
       goal,
-      injuryStatus, // mapped from frontend payload
-      injury,
+      medicalConditions,
+      injuries,
       experience,
       activityLevel,
       dietType,
@@ -75,7 +75,8 @@ exports.register = async (req, res) => {
         normalizedDietType = 'vegetarian';
     }
     let normalizedActivityLevel = activityLevel?.toLowerCase().trim();
-    if (!['sedentary', 'light', 'moderate', 'active', 'very_active'].includes(normalizedActivityLevel)) {
+    if (normalizedActivityLevel === 'very_active') normalizedActivityLevel = 'active';
+    if (!['sedentary', 'light', 'moderate', 'active'].includes(normalizedActivityLevel)) {
       normalizedActivityLevel = 'moderate';
     }
     const normalizedGender = gender?.toLowerCase().trim();
@@ -94,7 +95,8 @@ exports.register = async (req, res) => {
 
       gender: normalizedGender,
       goal: normalizedGoal,
-      injury: injuryStatus || injury,
+      medicalConditions: Array.isArray(medicalConditions) ? medicalConditions : (medicalConditions ? [medicalConditions] : ["Regular"]),
+      injuries: Array.isArray(injuries) ? injuries : (injuries ? [injuries] : ["Regular"]),
 
       experience: normalizedExperience,
 
@@ -223,3 +225,6 @@ console.log("EXPORT CHECK:", {
   register: typeof exports.register,
   login: typeof exports.login
 });
+
+// 🔹 FIX: Map signup to register so the frontend `/auth/signup` endpoint connects successfully
+exports.signup = exports.register;

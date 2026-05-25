@@ -2,10 +2,23 @@ const mongoose = require('mongoose');
 
 const UserActivitySchema = new mongoose.Schema({
   userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  sessionId: {
+    type: String,
+    required: true,
+    index: true
+  },
+  title: {
+    type: String
+  },
+  query: {
     type: String,
     required: true
   },
-  query: {
+  response: {
     type: String,
     required: true
   },
