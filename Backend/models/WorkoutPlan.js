@@ -103,8 +103,15 @@ const workoutPlanSchema = new mongoose.Schema({
   recommendationId: {
     type: String,
     default: null
-  }
+  },
 
-}, { timestamps: true });
+  status: {
+  type: String,
+  enum: ["active", "archived"],
+  default: "active"
+} 
+},
+
+{ timestamps: true });
 
 module.exports = mongoose.model("WorkoutPlan", workoutPlanSchema);

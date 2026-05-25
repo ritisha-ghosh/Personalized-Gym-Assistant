@@ -73,7 +73,24 @@ const userSchema = new mongoose.Schema({
     }],
     default: ["Regular"]
   },
-
+  
+  injuryStatus: {
+  type: {
+    type: String,
+    enum: injuriesList,
+    default: "Regular"
+  },
+  severity: {
+    type: String,
+    enum: ["mild", "moderate", "severe"],
+    default: null
+  },
+  phase: {
+    type: String,
+    enum: ["acute", "recovery", "rehab"],
+    default: null
+  }
+},
   medicalConditions: {
     type: [{
       type: String,

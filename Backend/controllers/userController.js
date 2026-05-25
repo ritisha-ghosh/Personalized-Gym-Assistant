@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const User = require("../models/User");
 const UserLog = require("../models/UserLog");
 const { regenerateUserPlans } = require("../services/userPlanService");
+const WorkoutPlan = require("../models/WorkoutPlan");
 
 exports.getUserProfile = async (req, res) => {
   try {
@@ -264,5 +265,62 @@ exports.deleteAccount = async (req, res) => {
   } catch (error) {
     console.error("Delete account error:", error);
     res.status(500).json({ message: "Server error while deleting account" });
+  }
+};
+
+exports.updateInjuryStatus = async (req, res) => {
+  try {
+    const { type, severity, phase } = req.body;
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    // 1. Update injuryStatus
+    user.injuryStatus = {
+      type,
+      severity,
+      phase
+    };
+
+    // Optional: keep injuries history updated
+    if (
+      type &&
+      type !== "Regular" &&
+      !user.injuries.includes(type)
+    ) {
+      user.injuries.push(type);
+    }
+console.log("Saving:", user.injuryStatus);
+    await user.save();
+console.log("Saved:", user.injuryStatus);
+    // 2. Archive active workout plans
+    await WorkoutPlan.updateMany(
+      {
+        user: user._id,
+        status: "active"
+      },
+      {
+        status: "archived"
+      }
+    );
+
+    // 3. Trigger full regeneration
+    await regenerateUserPlans(user);
+
+    res.status(200).json({
+      message: "Injury state updated successfully",
+      injuryStatus: user.injuryStatus
+    });
+
+  } catch (error) {
+    console.error("Update injury status error:", error);
+    res.status(500).json({
+      message: "Server error while updating injury status"
+    });
   }
 };

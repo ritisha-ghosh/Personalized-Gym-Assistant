@@ -14,7 +14,7 @@ const dietTrackingRoutes = require("./routes/dietTrackingRoutes");
 const logRoutes = require("./routes/logRoutes");
 const workoutRoutes = require("./routes/workoutRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes"); // 🔹 ADDED FOR WEEK 9 FEEDBACK LOOP
-
+const dashboardRoutes = require("./routes/dashboardRoutes");
 dotenv.config();
 connectDB();
 
@@ -44,6 +44,7 @@ app.get("/", (req, res) => {
 /* OLD ROUTES (Stable) */
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/diet", dietRoutes);
 app.use("/api/diet-plan", dietPlanRoutes);
@@ -74,4 +75,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('THIS SHALL TOO PASS --Subham');
+  console.log('FUCK YOU SUBHAM --Shreya');
 });
