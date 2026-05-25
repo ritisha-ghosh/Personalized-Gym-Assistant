@@ -293,6 +293,7 @@ This frontend analytics module is designed to integrate with backend APIs and ML
 
 
 
+---
 
 
 
@@ -307,256 +308,257 @@ This frontend analytics module is designed to integrate with backend APIs and ML
 
 ---
 
-## ✅ Week 1: Backend Setup & Authentication
+### ✅ Week 1: Backend Setup & Authentication
 
-### 🔧 Core Setup
-- Initialized Express.js server
-- Configured environment variables using `dotenv`
-- Implemented MVC architecture (Models, Controllers, Routes)
-- Setup Nodemon for development
-- Server successfully running
+#### 🔧 Core Setup
 
-### 🗄 Database Integration
-- Connected backend to MongoDB Atlas using Mongoose
-- Created database configuration module (`config/db.js`)
-- Environment-based configuration using `.env`
+ Initialized Express.js server
+ Configured environment variables using dotenv
+ Implemented MVC architecture (Models, Controllers, Routes)
+ Setup Nodemon for development
+ Server configured and running successfully
 
-### 👤 User Schema & Model
-- Designed `User` schema with fields:
-  - name, email, password (hashed)
-  - age, weight, height
-  - goal, injury, experience
-- Created MongoDB model using Mongoose
+#### 🗄 Database Integration
 
-### 🔐 Authentication System
-- Implemented Signup and Login APIs
-- Password hashing using `bcryptjs`
-- JWT-based authentication using `jsonwebtoken`
-- Token generation on login
-- Secure authentication flow
+ Connected backend to MongoDB Atlas using Mongoose
+ Created reusable database configuration module (config/db.js)
+ Added environment-based configuration via .env
 
-### 🧪 Testing
-- Tested APIs using Thunder Client
-- Verified signup and login functionality
-- Confirmed JWT token generation
+#### 👤 User Schema & Model
 
----
+Designed User schema with:
 
-## ✅ Week 2: Workout & User Logs System
+name, email, password (hashed)
+age, weight, height
+goal, injury, experience
 
-### 🏋️ WorkoutPlan Module
-- Designed and implemented `WorkoutPlan` schema
-- Fields include:
-  - user reference, title, goal, experience level
-  - duration, days per week
-  - exercises (sets, reps, rest)
-  - notes
-- Implemented full CRUD operations:
-  - Create, Read, Update, Delete
-- User-specific data handling using JWT
+#### 🔐 Authentication System
 
-### 📊 User Logs Module
-- Designed `UserLog` schema
-- Fields include:
-  - user reference, status, date, notes
-- Implemented full CRUD operations
-- Enabled tracking of user activity and workout history
+ Built Signup and Login APIs
+ Password hashing using bcryptjs
+ Implemented JWT authentication using jsonwebtoken
+ Added secure token generation and validation
 
-### 🔐 Security & Middleware
-- Implemented JWT authentication middleware
-- Protected routes for:
-  - Workout plans
-  - User logs
-- Ensured secure request handling
+#### 🧪 Testing
 
-### ⚡ Database Optimization
-- Added MongoDB indexing:
-  - User logs
-  - Workout data
-- Improved query performance and scalability
-
-### 🧪 Testing
-- Verified all CRUD APIs using Thunder Client
-- Tested validation and error handling
-- Confirmed end-to-end request flow
-
----
-
-## ✅ Week 3: Service Layer & Feature Expansion
-
-### ⚙️ Backend Enhancements
-- Added service layer to separate business logic from controllers
-- Improved code maintainability and scalability
-
-### 🥗 Diet & AI Features
-- Implemented diet calculation and planning services
-- Added calorie and nutrition-based computations
-- Integrated AI-related service module for intelligent recommendations
-
-### 📦 Model & API Expansion
-- Expanded MongoDB models:
-  - Workout plans
-  - Diet plans
-  - User logs
-- Added new API routes for extended features
-
-### 🏗 Architecture
-- Maintained clean MVC structure
-- Ensured proper middleware usage
-
----
-
-## ✅ Week 4: Advanced Authentication & Security
-
-### 🔐 JWT Authentication Upgrade
-- Implemented Access Token and Refresh Token system
-- Access tokens used for protected routes
-- Refresh tokens used for session persistence
-
-### 🔄 Refresh Token System
-- Created refresh token controller and routes
-- Enabled generation of new access tokens without re-login
-
-### ⚡ Redis Integration
-- Integrated Redis for secure storage of refresh tokens
-- Enabled token validation and revocation
-- Improved session management
-
-### 👤 User Model Update
-- Added `refreshToken` field to User schema
-
-### 🧪 Testing
-- Verified:
-  - Login → Access + Refresh token generation
-  - Refresh token → New access token
-  - Token validation and error handling
-
-### 🎯 Outcome
-- Improved authentication security and scalability
-- Enabled seamless user sessions
-
----
-
-## ✅ Week 6: Logging Stability & Performance Optimization
-
-### ⚡ Backend Improvements
-- Implemented MongoDB connection pooling and timeout settings
-- Added global error handling in `server.js`
-- Optimized logging operations in `logController.js`
-
-### 📊 Performance Optimization
-- Added indexing (`user + date`) in `UserLog` model
-- Improved query performance for log retrieval
-
-### 🛡 Reliability
-- Enhanced validation and error handling for log APIs
-- Ensured stability during high-volume logging
-
----
-
-## ✅ Week 7: User Log Analytics (Advanced Backend Logic)
-
-### 🔧 Key Features
-- Implemented MongoDB aggregation pipeline for last 48-hour logs
-- Grouped logs by user for activity analysis
-- Computed key metrics:
-  - Latest user status
-  - Average difficulty rating
-  - Total activity count
-  - Missed workout count
-
-### 🔌 API Integration
-- Added protected endpoint:
-  - `GET /api/logs/last-48-hours`
-- Integrated JWT authentication
-- Secured API using Bearer tokens
-
-### 🧪 Testing
-- Tested using Thunder Client
-- Verified:
-  - Authentication flow
-  - Data filtering (last 48 hours)
-  - Aggregation accuracy
-
-### 🎯 Outcome
-- Enabled structured data for recovery logic
-- Built foundation for AI-based recommendations
-
----
+Verified all APIs using Thunder Client
 
 
+### ✅ Week 2: Workout & User Logs System
 
-## Week 8 Progress Report – Backend Development (Shreya)
+#### 🏋️ WorkoutPlan Module
 
-### Overview
-Completed major backend production-readiness tasks for the Personalized Gym Assistant project. This week focused on professional API architecture, recovery-tracking data aggregation, and deployment/security improvements.
+Designed and implemented WorkoutPlan schema:
 
----
+user reference
+goal
+experience level
+duration
+exercises
+notes
 
-### ✅ Tasks Completed
+Implemented full CRUD operations:
 
-### 1. History Aggregation for Recovery Tracker
-Implemented MongoDB aggregation logic to fetch the authenticated user’s last 48 hours of workout/recovery logs.
+Create
+Read
+Update
+Delete
 
-### Features:
-- Filters logs from the last 48 hours only
-- Returns user-specific data
-- Calculates:
-  - Latest workout status
-  - Average difficulty rating
-  - Total logs submitted
-  - Missed workout count
-- Returns recent log history for frontend recovery insights
+#### 📊 User Logs Module
 
-### Files Updated:
-- `models/UserLog.js`
-- `controllers/logController.js`
-- `routes/logRoutes.js`
+Built UserLog schema for:
 
----
+workout status
+date
+notes
+user activity history
 
-### 2. API Versioning Upgrade
-Restructured backend endpoints into a professional versioned format:
+Implemented full CRUD operations.
+
+#### 🔐 Security & Middleware
+
+Added JWT authentication middleware
+Protected workout and log routes
+
+#### ⚡ Database Optimization
+
+Added MongoDB indexes for faster queries
 
 
-/api/v1/auth
-/api/v1/logs
-/api/v1/chat
-/api/v1/workouts
-/api/v1/diet
-/api/v1/diet-plan
+### ✅ Week 3: Service Layer & Feature Expansion
+
+#### ⚙️ Backend Improvements
+
+Added service layer architecture
+Separated business logic from controllers
+
+#### 🥗 Diet & AI Features
+
+Implemented:
+
+diet calculation service
+calorie estimation logic
+nutrition planning logic
+AI recommendation 
+
+#### 🏗 Architecture
+
+Maintained scalable modular MVC structure
+
+
+### ✅ Week 4: Advanced Authentication & Security
+
+#### 🔐 Token Upgrade
+
+Implemented:
+
+Access Token system
+Refresh Token system
+Refresh Token Flow
+Built refresh token route/controller
+Enabled silent session renewal
+Redis Integration
+
+Integrated Redis for:
+
+refresh token storage
+token revocation
+secure session handling
+
+#### 👤 User Model Update
+
+Added refreshToken field.
+
+
+### ✅ Week 6: Logging Stability & Performance Optimization
+
+#### ⚡ Backend Improvements
+
+Added MongoDB connection pooling
+Added timeout handling
+Implemented global error handling in server.js
+
+#### 📊 Optimization
+
+Added compound index (user + date) in UserLog
+Improved log retrieval speed
+
+#### 🛡 Reliability
+
+Improved validation and API stability
+
+
+### ✅ Week 7: User Log Analytics
+
+#### 🔧 Aggregation Logic
+
+Built MongoDB aggregation for last 48-hour logs.
+
+Generated:
+
+latest user status
+average difficulty
+total logs
+missed workout count
+API
+
+Created protected route:
+
+GET /api/logs/last-48-hours
+
+#### 🎯 Outcome
+
+Established foundation for recovery intelligence and AI suggestions.
+
+
+### ✅ Week 8: Recovery Tracker & Production Readiness
+
+#### History Aggregation
+
+Enhanced recovery tracking system with:
+
+authenticated user filtering
+last 48-hour log history
+recovery analytics support
+Improvements
+professional API structure
+cleaner aggregation responses
+deployment-ready backend architecture
+
+
+### ✅ Week 9: Live Dashboard Metrics API
+
+#### Implemented new protected dashboard endpoint:
+
+GET /api/dashboard/metrics
+
+Features Added
+
+Built live aggregation for:
+
+#### 📅 Daily Metrics
+
+total logs
+average difficulty
+status breakdown
+latest weight
+
+#### 📊 Weekly Trends
+
+weekly activity chart data
+average daily difficulty
+
+#### 📈 Monthly Trends
+
+monthly weight progression
+duplicate same-day weight removal
+
+#### 🧠 Performance Score
+
+Calculated based on:
+
+active days
+missed days
+difficulty rating
+
+#### ⚡ Performance Optimization
+
+Used Promise.all() for parallel DB queries
+
+#### 🧪 Testing
+
+Successfully tested using Thunder Client
+
+#### 🎯 Result
+
+Dashboard endpoint is fully production-ready for frontend chart integration.
+
 
 
 ## 🧱 Tech Stack
 
-- Node.js  
-- Express.js  
-- MongoDB Atlas  
-- Mongoose  
-- JWT Authentication  
-- bcryptjs  
-- Redis  
-- dotenv  
-- Nodemon  
+Node.js
+Express.js
+MongoDB Atlas
+Mongoose
+Redis
+JWT
+bcryptjs
+dotenv
+Nodemon
+🏗 Architecture Highlights
+MVC Architecture
+RESTful APIs
+Modular backend design
+Service-layer abstraction
+Scalable database schema design
+
+## 📍 Final Note
+
+This backend system is designed to integrate seamlessly with the frontend and ML layer, enabling intelligent fitness recommendations, personalized workout generation, recovery analysis, and live dashboard insights.
+
 
 ---
-
-## 🏗 Backend Architecture
-
-- MVC Architecture (Models, Controllers, Routes)
-- RESTful API design
-- Modular and scalable backend structure
-- Service-layer abstraction for business logic
-- Schema-based database modeling
-
----
-
-## 📍 Notes
-
-This backend module is designed to integrate seamlessly with the frontend and ML layer, enabling intelligent fitness recommendations and recovery analysis.
-
-
-
 
 # Extras
 

@@ -744,12 +744,12 @@ const generateAndSaveWorkoutPlan = async (user) => {
     // 🧠 SNAPSHOT FOR PERSISTENCE
     // =================================================
 
-    profileSnapshot: {
-      goal: user.goal,
-      experience: user.experience,
-      injury: user.injury,
-      medicalState: user.medicalState
-    }
+   profileSnapshot: {
+  goal: user.goal,
+  experience: user.experience,
+  injuryStatus: user.injuryStatus,
+  medicalState: user.medicalState
+}
 
   };
 
@@ -821,8 +821,8 @@ const getOrCreateWorkoutPlan = async (user) => {
     user.experience ||
 
     // Injury changed
-    plan.profileSnapshot.injury !==
-    user.injury ||
+    JSON.stringify(plan.profileSnapshot?.injuryStatus) !==
+JSON.stringify(user.injuryStatus) ||
 
     // Medical state changed
     plan.profileSnapshot.medicalState !==
