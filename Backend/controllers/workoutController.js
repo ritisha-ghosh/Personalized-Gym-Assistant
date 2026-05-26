@@ -371,7 +371,7 @@ exports.getWeeklyPlan = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const savedPlan = await getOrCreateWorkoutPlan(userId);
+    const savedPlan = await getOrCreateWorkoutPlan(user);
     if (!savedPlan || !Array.isArray(savedPlan.weeklyPlan)) {
       return res.status(500).json({ message: "Failed to load workout plan" });
     }

@@ -380,12 +380,120 @@ const buildWeeklyWorkoutPlanFromSuggestion = (user, suggestion) => {
   const baseExercises = parseSuggestionToExercises(suggestion);
   let finalExercises = baseExercises;
 
+  // ⭐ Get experience-based default plans as fallback
+  const experience = normalizeExperience(user.experience);
+  const defaultPlans = {
+    beginner: [
+      { title: 'Upper Body A', focusMuscles: ['chest', 'back', 'biceps'], exercises: [
+          { name: 'Push-ups', sets: 3, reps: '10-12', muscleGroup: 'chest' },
+          { name: 'Dumbbell Rows', sets: 3, reps: '10-12', muscleGroup: 'back' },
+          { name: 'Bicep Curls', sets: 3, reps: '12-15', muscleGroup: 'biceps' }
+        ]
+      },
+      { title: 'Lower Body A', focusMuscles: ['quads', 'glutes'], exercises: [
+          { name: 'Squats', sets: 3, reps: '10-12', muscleGroup: 'quads' },
+          { name: 'Lunges', sets: 3, reps: '10-12', muscleGroup: 'glutes' }
+        ]
+      },
+      { title: 'Active Recovery', type: 'recovery', focusMuscles: ['general'], exercises: [
+          { name: 'Walking or Cycling', sets: 1, reps: '30 mins', muscleGroup: 'core' }
+        ]
+      },
+      { title: 'Upper Body B', focusMuscles: ['shoulders', 'triceps'], exercises: [
+          { name: 'Overhead Press', sets: 3, reps: '10-12', muscleGroup: 'shoulders' },
+          { name: 'Tricep Dips', sets: 3, reps: '10-12', muscleGroup: 'triceps' }
+        ]
+      },
+      { title: 'Lower Body B', focusMuscles: ['hamstrings', 'calves'], exercises: [
+          { name: 'Deadlifts', sets: 3, reps: '8-10', muscleGroup: 'hamstrings' },
+          { name: 'Calf Raises', sets: 3, reps: '15-20', muscleGroup: 'calves' }
+        ]
+      },
+      { title: 'Core & Conditioning', focusMuscles: ['core'], exercises: [
+          { name: 'Plank', sets: 3, reps: '30-45 secs', muscleGroup: 'core' },
+          { name: 'Russian Twists', sets: 3, reps: '15-20', muscleGroup: 'core' }
+        ]
+      },
+      { title: 'Rest Day', type: 'rest', focusMuscles: ['rest'], exercises: [] }
+    ],
+    intermediate: [
+      { title: 'Chest & Triceps', focusMuscles: ['chest', 'triceps'], exercises: [
+          { name: 'Bench Press', sets: 4, reps: '8-10', muscleGroup: 'chest' },
+          { name: 'Dumbbell Flyes', sets: 3, reps: '10-12', muscleGroup: 'chest' },
+          { name: 'Tricep Pushdowns', sets: 3, reps: '10-12', muscleGroup: 'triceps' }
+        ]
+      },
+      { title: 'Back & Biceps', focusMuscles: ['back', 'biceps'], exercises: [
+          { name: 'Barbell Rows', sets: 4, reps: '8-10', muscleGroup: 'back' },
+          { name: 'Pull-ups', sets: 3, reps: '8-12', muscleGroup: 'back' },
+          { name: 'Hammer Curls', sets: 3, reps: '10-12', muscleGroup: 'biceps' }
+        ]
+      },
+      { title: 'Active Recovery', type: 'recovery', focusMuscles: ['general'], exercises: [
+          { name: 'Light Jog', sets: 1, reps: '30 mins', muscleGroup: 'core' }
+        ]
+      },
+      { title: 'Legs & Glutes', focusMuscles: ['quads', 'hamstrings', 'glutes'], exercises: [
+          { name: 'Squats', sets: 4, reps: '8-10', muscleGroup: 'quads' },
+          { name: 'Romanian Deadlifts', sets: 3, reps: '10-12', muscleGroup: 'hamstrings' }
+        ]
+      },
+      { title: 'Shoulders & Core', focusMuscles: ['shoulders', 'core'], exercises: [
+          { name: 'Military Press', sets: 4, reps: '8-10', muscleGroup: 'shoulders' },
+          { name: 'Weighted Planks', sets: 3, reps: '45-60 secs', muscleGroup: 'core' }
+        ]
+      },
+      { title: 'Full Body', focusMuscles: ['chest', 'back', 'legs'], exercises: [
+          { name: 'Deadlifts', sets: 4, reps: '5-8', muscleGroup: 'back' },
+          { name: 'Incline Press', sets: 3, reps: '8-12', muscleGroup: 'chest' },
+          { name: 'Leg Press', sets: 3, reps: '8-12', muscleGroup: 'quads' }
+        ]
+      },
+      { title: 'Rest Day', type: 'rest', focusMuscles: ['rest'], exercises: [] }
+    ],
+    advanced: [
+      { title: 'Chest & Triceps Power', focusMuscles: ['chest', 'triceps'], exercises: [
+          { name: 'Barbell Bench Press', sets: 5, reps: '5-6', muscleGroup: 'chest' },
+          { name: 'Close Grip Bench', sets: 4, reps: '6-8', muscleGroup: 'triceps' },
+          { name: 'Weighted Dips', sets: 4, reps: '6-8', muscleGroup: 'triceps' }
+        ]
+      },
+      { title: 'Back & Biceps Strength', focusMuscles: ['back', 'biceps'], exercises: [
+          { name: 'Barbell Rows', sets: 5, reps: '5-6', muscleGroup: 'back' },
+          { name: 'Weighted Pull-ups', sets: 4, reps: '6-8', muscleGroup: 'back' },
+          { name: 'Barbell Curls', sets: 4, reps: '6-8', muscleGroup: 'biceps' }
+        ]
+      },
+      { title: 'Active Recovery', type: 'recovery', focusMuscles: ['general'], exercises: [
+          { name: 'Yoga or Stretching', sets: 1, reps: '45 mins', muscleGroup: 'core' }
+        ]
+      },
+      { title: 'Legs & Glutes Hypertrophy', focusMuscles: ['quads', 'hamstrings', 'glutes'], exercises: [
+          { name: 'Back Squats', sets: 5, reps: '5-6', muscleGroup: 'quads' },
+          { name: 'Front Squats', sets: 4, reps: '8-10', muscleGroup: 'quads' },
+          { name: 'Bulgarian Split Squats', sets: 4, reps: '8-10', muscleGroup: 'glutes' }
+        ]
+      },
+      { title: 'Shoulder Strength & Stability', focusMuscles: ['shoulders'], exercises: [
+          { name: 'Military Press', sets: 5, reps: '5-6', muscleGroup: 'shoulders' },
+          { name: 'Lateral Raises', sets: 4, reps: '12-15', muscleGroup: 'shoulders' },
+          { name: 'Reverse Pec Deck', sets: 4, reps: '12-15', muscleGroup: 'shoulders' }
+        ]
+      },
+      { title: 'Full Body Compound', focusMuscles: ['chest', 'back', 'legs'], exercises: [
+          { name: 'Deadlifts', sets: 5, reps: '3-5', muscleGroup: 'back' },
+          { name: 'Incline Barbell Press', sets: 4, reps: '6-8', muscleGroup: 'chest' },
+          { name: 'Bulgarian Split Squats', sets: 4, reps: '8-10', muscleGroup: 'legs' }
+        ]
+      },
+      { title: 'Rest Day', type: 'rest', focusMuscles: ['rest'], exercises: [] }
+    ]
+  };
+
   if (!finalExercises || finalExercises.length === 0) {
-    finalExercises = [
-      { name: "Push Ups", sets: 3, reps: 12, muscleGroup: "chest" },
-      { name: "Squats", sets: 3, reps: 12, muscleGroup: "legs" },
-      { name: "Plank", sets: 3, reps: "30 sec", muscleGroup: "core" }
-    ];
+    // ⭐ Use experience-based default plans instead of hardcoded exercises
+    const experiencePlan = defaultPlans[experience] || defaultPlans.intermediate;
+    finalExercises = experiencePlan.flatMap(day => day.exercises || []);
   }
   const normalizedText = (suggestion || '').toLowerCase();
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
