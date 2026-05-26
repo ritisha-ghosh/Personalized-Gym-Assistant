@@ -74,8 +74,14 @@ const Workout = () => {
     return experience.toString().toLowerCase();
   };
 
+  const capitalizeExperience = (experience) => {
+    if (!experience) return 'Loading...';
+    const str = experience.toString();
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
   const normalizedExperience = normalizeExperience(currentUserExperience || user?.experience);
-  const displayedExperience = currentUserExperience || user?.experience || 'Loading...';
+  const displayedExperience = capitalizeExperience(currentUserExperience || user?.experience);
 
   // ⭐ Fetch weekly plan from backend - REFETCH when user.experience changes
   useEffect(() => {
@@ -132,9 +138,12 @@ const Workout = () => {
     }
   }, [user?.id, user?.experience]); // ⭐ REFETCH when experience changes
 
+  // Sync experience level from AuthContext whenever user data changes
   useEffect(() => {
     if (user?.experience) {
-      setCurrentUserExperience(normalizeExperience(user.experience));
+      const normalized = normalizeExperience(user.experience);
+      setCurrentUserExperience(normalized);
+      console.log(`🔄 Experience level updated from AuthContext: ${user.experience} -> normalized: ${normalized}`);
     }
   }, [user?.experience]);
 
