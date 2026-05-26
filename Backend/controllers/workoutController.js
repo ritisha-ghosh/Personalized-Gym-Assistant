@@ -10,33 +10,25 @@ console.log("Workout controller loaded");
 
 exports.createPlan = async (req, res) => {
   try {
-    const plan = await WorkoutPlan.create({
-      user: req.user.id,
-      title: req.body.title,
-      goal: req.body.goal,
-      experienceLevel: req.body.experienceLevel,
-      durationWeeks: req.body.durationWeeks,
-      daysPerWeek: req.body.daysPerWeek,
+    const userId = req.user.id;
+    const user = await User.findById(userId);
 
-      exercises: req.body.exercises.map(ex => ({
-        name: ex.name,
-        muscleGroup: ex.muscleGroups || ex.muscleGroup,
-        sets: ex.sets,
-        reps: ex.reps,
-        restSeconds: ex.restSeconds || 60
-      })),
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      notes: req.body.notes
-    });
+    // Call the newly built AI User Plan Service to generate the dynamic plan
+    console.log(`Generating AI Workout Plan for ${user.experience} user...`);
+    const plan = await getOrCreateWorkoutPlan(user);
 
     res.status(201).json({
-      message: "Workout plan created",
+      message: "AI Workout plan created successfully",
       plan
     });
 
   } catch (error) {
     console.error("CREATE PLAN ERROR:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error generating AI plan" });
   }
 };
 

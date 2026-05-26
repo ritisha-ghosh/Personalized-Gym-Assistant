@@ -319,44 +319,30 @@ const getMLWorkoutRecommendation = async (user) => {
       weight_kg: Number(user.weight) || 70,
       experience_level: experienceMap[normalizeExperience(user.experience)] || 2,
       goal_type: goalMap[normalizeGoal(user.goal)] || 3,
+      disease: user.medicalConditions?.[0] || 'none', // Push medical context to AI
+      injury: user.injuries?.[0] || 'none',           // Push injury context to AI
       exhausted_muscles: []
     }, { timeout: 6000 });
 
-    // 🔥 DEBUG: SEE EXACT ML OUTPUT
-    console.log("==== RAW ML RESPONSE ====");
-    console.log(JSON.stringify(response.data, null, 2));
-    console.log("========================");
-
     const data = response.data;
-    if (!data) {
-      throw new Error("Empty ML response");
+    if (!data) throw new Error("Empty ML response");
+
+    // 🔹 THE FIX: Map to the exact variable names Python is sending
+    // We convert the base_routine object into a single string for the parser
+    let rawSuggestion = null;
+    if (data.base_routine) {
+        rawSuggestion = `${data.base_routine.Monday} + ${data.base_routine.Tuesday}`;
     }
+
     return {
-      recommendationId: data.recommended_plan_id || data.recommendation_id || null,
-
-      suggestion:
-        data.exercise_suggestion ||
-        data.suggestion ||
-        data.workout ||
-        data.plan ||
-        data.data?.suggestion ||
-        data.data?.workout ||
-        null,
-
-      planMeta: data.plan_meta || data.meta || null
+      recommendationId: data.recommended_cluster_index || null,
+      suggestion: rawSuggestion || "Push Ups 3 x 12 + Squats 3 x 12 + Plank 3 x 30", // Fallback string formatted for your parser
+      planMeta: data.medical_mutations_applied || null
     };
 
   } catch (error) {
-    console.warn(
-      'Workout plan recommendation service unavailable:',
-      error.message || error
-    );
-
-    return {
-      recommendationId: null,
-      suggestion: null,
-      planMeta: null
-    };
+    console.warn('Workout plan recommendation service unavailable:', error.message || error);
+    return { recommendationId: null, suggestion: null, planMeta: null };
   }
 };
 
@@ -675,8 +661,17 @@ const buildWeeklyWorkoutPlan = (user, recommendationId) => {
       const sets = Math.max(2, exercise.sets + (dailyAdjust === 1 ? 0 : dailyAdjust));
       let reps = exercise.reps;
       if (typeof reps === 'string' && reps.includes('-')) {
-        const [low, high] = reps.split('-').map(Number);
-        reps = `${Math.max(5, low + dailyAdjust)}-${Math.max(6, high + dailyAdjust)}`;
+        // Safely extract just the numbers, ignoring words like "secs"
+        const [lowStr, highStr] = reps.split('-');
+        const low = parseInt(lowStr.replace(/\D/g, ''), 10);
+        const high = parseInt(highStr.replace(/\D/g, ''), 10);
+        
+        // Preserve time suffixes if they exist
+        const suffix = reps.includes('sec') ? ' secs' : (reps.includes('min') ? ' mins' : '');
+        
+        if (!isNaN(low) && !isNaN(high)) {
+          reps = `${Math.max(5, low + dailyAdjust)}-${Math.max(6, high + dailyAdjust)}${suffix}`;
+        }
       } else if (typeof reps === 'number') {
         reps = Math.max(5, reps + dailyAdjust);
       }
@@ -758,11 +753,10 @@ const generateAndSaveWorkoutPlan = async (user) => {
   // 🏋️ BUILD 7-DAY PLAN
   // ===================================================
 
-  const weeklyPlan =
-    buildWeeklyWorkoutPlanFromSuggestion(
-      user,
-      suggestionText
-    );
+  const weeklyPlan = buildWeeklyWorkoutPlan(
+      user, 
+      mlRecommendation.recommendationId
+  );
 
   // ===================================================
   // 📦 DB FILTER
