@@ -69,6 +69,20 @@ const Workout = () => {
     });
   };
 
+  const normalizeExperience = (experience) => {
+    if (!experience) return null;
+    return experience.toString().toLowerCase();
+  };
+
+  const capitalizeExperience = (experience) => {
+    if (!experience) return 'Loading...';
+    const str = experience.toString();
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
+  const normalizedExperience = normalizeExperience(currentUserExperience || user?.experience);
+  const displayedExperience = capitalizeExperience(currentUserExperience || user?.experience);
+
   // ⭐ Fetch weekly plan from backend - REFETCH when user.experience changes
   useEffect(() => {
     const fetchWeeklyPlan = async () => {
@@ -79,13 +93,11 @@ const Workout = () => {
         const response = await api.get('/workouts/weekly-plan');
         console.log(`✅ Received workout plan - Experience used: ${response.data.user?.experienceLevel}`);
         
-        const receivedPlan =
-  response.data.weeklyPlan ||
-  response.data.weekPlan ||
-  [];
+        const receivedPlan = response.data.weeklyPlan || response.data.weekPlan || [];
+        
         const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
         setWeekPlan(realTimePlan);
-        setCurrentUserExperience(response.data.user?.experienceLevel);
+        setCurrentUserExperience(normalizeExperience(response.data.user?.experienceLevel || response.data.user?.experience));
         setUserGoal(response.data.user?.goal);
         setUserInjuries(response.data.user?.injuries || []);
         setUserMedicalConditions(response.data.user?.medicalConditions || []);
@@ -126,6 +138,15 @@ const Workout = () => {
     }
   }, [user?.id, user?.experience]); // ⭐ REFETCH when experience changes
 
+  // Sync experience level from AuthContext whenever user data changes
+  useEffect(() => {
+    if (user?.experience) {
+      const normalized = normalizeExperience(user.experience);
+      setCurrentUserExperience(normalized);
+      console.log(`🔄 Experience level updated from AuthContext: ${user.experience} -> normalized: ${normalized}`);
+    }
+  }, [user?.experience]);
+
   // Save checkbox state to localStorage
   useEffect(() => {
     if (weekPlan.length > 0 && user?.id && !isWorkoutDoneToday) {
@@ -148,7 +169,7 @@ const Workout = () => {
       const receivedPlan = response.data.weeklyPlan || response.data.workoutPlan?.weeklyPlan || [];
       const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
       setWeekPlan(realTimePlan);
-      setCurrentUserExperience(response.data.user?.experienceLevel);
+      setCurrentUserExperience(normalizeExperience(response.data.user?.experienceLevel || response.data.user?.experience));
       setUserInjuries(response.data.user?.injuries || []);
       setUserMedicalConditions(response.data.user?.medicalConditions || []);
       setUserWeight(response.data.user?.weight);
@@ -279,11 +300,11 @@ const Workout = () => {
             <h1 className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Weekly Workout Plan</h1>
             <div className={`text-sm mt-2 flex gap-3 flex-wrap items-center ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
               <p>Experience Level : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block ${
-                currentUserExperience === 'beginner' ? 'bg-blue-500/20 text-blue-400' :
-                currentUserExperience === 'intermediate' ? 'bg-yellow-500/20 text-yellow-400' :
+                normalizedExperience === 'beginner' ? 'bg-blue-500/20 text-blue-400' :
+                normalizedExperience === 'intermediate' ? 'bg-yellow-500/20 text-yellow-400' :
                 'bg-red-500/20 text-red-400'
               }`}>
-                {currentUserExperience || user?.experience || 'Loading...'}
+                {displayedExperience}
               </span></p>
               {userGoal && <p>Goal : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-[#00c4b4]/20 text-[#00c4b4]`}>
                 {userGoal}

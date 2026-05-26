@@ -401,7 +401,8 @@ exports.getWeeklyPlan = async (req, res) => {
       message: "Weekly plan loaded successfully",
       user: {
         name: user.name,
-        experienceLevel: (savedPlan.experienceLevel || user.experience || 'intermediate').toString().toLowerCase(),
+        experienceLevel: (user.experience || savedPlan.experienceLevel || 'intermediate').toString().toLowerCase(),
+        experience: (user.experience || savedPlan.experienceLevel || 'intermediate').toString().toLowerCase(),
         goal: user.goal,
         age: user.age,
         weight: user.weight,

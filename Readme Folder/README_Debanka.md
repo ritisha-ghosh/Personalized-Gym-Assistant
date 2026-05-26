@@ -84,6 +84,26 @@ BeFit functions via an interconnected, dual-server framework engineered to maint
   * Enabled instant form bindings mapping biological profiles (injuries, custom dietary structures like `noOnion` or `noGarlic`, goals, and physical statistics).
   * Built live multipart upload boundaries linking custom image payloads directly with clean asynchronous file buffers under Express routes. 
 
+## 📊 Data Engineering & Preprocessing Pipeline
+
+To fuel the "Smart Coach" recommendation microservice, a custom end-to-end data pipeline was designed and executed, spanning from generation to final serialization.
+
+### 1. Dataset Generation
+* **Workout Dataset:** Curated a custom repository of localized gym exercises categorized by target muscle groups, compounding variables, and multi-joint vs. isolation movements.
+* **Nutrition Dataset:** Engineered an extensive macro/micronutrient mapping dataset reflecting caloric splits, macro distribution percentages (protein, carbs, fats), and dietary attributes (e.g., Vegetarian, No-Onion/No-Garlic options).
+
+### 2. Data Cleaning & Feature Engineering (Python, Pandas, NumPy)
+Because user inputs must map cleanly to model vectors, the data underwent strict processing:
+* **Handling Incomplete Attributes:** Replaced or imputed missing qualitative metrics with baseline healthy reference distributions based on biological age and biological sex.
+* **Categorical Encoding:** Converted text fields into standardized numerical matrices for mathematical proximity modeling.
+  * *Experience Levels:* mapped sequentially (`Beginner` ➔ `1`, `Intermediate` ➔ `2`, `Advanced` ➔ `3`).
+  * *Fitness Goals:* structurally vectorized (`Fat Loss` ➔ `1`, `Muscle Gain` ➔ `2`, `Maintenance` ➔ `3`).
+* **Outlier Filtration:** Programmed restrictive verification constraints to automatically purge or clamp anomalies (e.g., preventing unrealistic heights, weights, or negative caloric limits) before data hit the model training phase.
+
+### 3. Pipeline Integration & Serialization
+* Preprocessed data frames were normalized and formatted into structures fully optimized for ingestion by the Python Flask microservice.
+* This direct data serialization ensures sub-second response times when computing the mathematical distance between a live user's fitness profile and the curated workout matrix.
+
 ---
 
 ## 💻 Tech Stack Implemented
