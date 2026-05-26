@@ -104,12 +104,32 @@ const workoutPlanSchema = new mongoose.Schema({
     type: String,
     default: null
   },
-
+  profileSnapshot: {
+    goal: {
+      type: String,
+      enum: ['Weight Loss', 'Muscle Gain', 'Maintenance'],
+      trim: true
+    },
+    experience: {
+      type: String,
+      enum: ['Beginner', 'Intermediate', 'Advanced'],
+      trim: true
+    },
+    injuryStatus: {
+      type: Array,
+      default: []
+    },
+    medicalState: {
+      type: String,
+      trim: true,
+      default: 'healthy'
+    }
+  },
   status: {
-  type: String,
-  enum: ["active", "archived"],
-  default: "active"
-} 
+    type: String,
+    enum: ["active", "archived"],
+    default: "active"
+  }
 },
 
 { timestamps: true });
