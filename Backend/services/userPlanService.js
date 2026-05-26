@@ -98,11 +98,30 @@ const getMealDescription = (food, preferences, dietType) => {
 
   // Ensure vegetarian/vegan safety: replace obvious animal items if type is vegetarian/vegan
   if (type === 'vegetarian' || type === 'vegan') {
-    updated = updated.replace(/chicken|beef|pork|bacon|turkey|sausage|shrimp|salmon|tuna|fish/gi, (match) => {
-      const lower = match.toLowerCase();
-      if (type === 'vegan') return 'tofu';
-      // vegetarian: keep eggs/dairy but replace meat with plant protein
-      return lower.includes('salmon') || lower.includes('tuna') || lower.includes('shrimp') ? 'grilled tempeh' : 'tofu';
+    const vegReplacements = [
+      { find: /\bgrilled chicken\b/gi, replace: type === 'vegan' ? 'grilled tofu' : 'grilled soyachap' },
+      { find: /\bchicken salad\b/gi, replace: type === 'vegan' ? 'tofu salad' : 'soyachap salad' },
+      { find: /\bchicken sandwich\b/gi, replace: type === 'vegan' ? 'tofu sandwich' : 'soyachap sandwich' },
+      { find: /\bchicken wrap\b/gi, replace: type === 'vegan' ? 'tofu wrap' : 'soyachap wrap' },
+      { find: /\bchicken curry\b/gi, replace: type === 'vegan' ? 'tofu curry' : 'soyachap curry' },
+      { find: /\bgrilled fish\b/gi, replace: type === 'vegan' ? 'grilled tofu' : 'grilled mushroom' },
+      { find: /\bfish fry\b/gi, replace: type === 'vegan' ? 'tofu fry' : 'mushroom fry' },
+      { find: /\bfish curry\b/gi, replace: type === 'vegan' ? 'tofu curry' : 'mushroom curry' },
+      { find: /\bchicken\b/gi, replace: type === 'vegan' ? 'tofu' : 'soyachap' },
+      { find: /\bfish\b/gi, replace: type === 'vegan' ? 'tofu' : 'mushroom' },
+      { find: /\bsalmon\b/gi, replace: type === 'vegan' ? 'tofu' : 'mushroom' },
+      { find: /\btuna\b/gi, replace: type === 'vegan' ? 'tofu' : 'mushroom' },
+      { find: /\bshrimp\b/gi, replace: type === 'vegan' ? 'tofu' : 'mushroom' },
+      { find: /\b(egg|eggs)\b/gi, replace: type === 'vegan' ? 'tofu' : 'paneer' },
+      { find: /\bbeef\b/gi, replace: type === 'vegan' ? 'tofu' : 'paneer' },
+      { find: /\bpork\b/gi, replace: type === 'vegan' ? 'tofu' : 'paneer' },
+      { find: /\bbacon\b/gi, replace: type === 'vegan' ? 'tofu' : 'paneer' },
+      { find: /\bturkey\b/gi, replace: type === 'vegan' ? 'tofu' : 'paneer' },
+      { find: /\bsausage\b/gi, replace: type === 'vegan' ? 'tofu' : 'paneer' }
+    ];
+
+    vegReplacements.forEach(({ find, replace }) => {
+      updated = updated.replace(find, replace);
     });
   }
 
@@ -110,6 +129,44 @@ const getMealDescription = (food, preferences, dietType) => {
   // (No-op for now, templates are chosen accordingly)
 
   return updated.replace(/\s+\s+/g, ' ').trim();
+};
+
+const sanitizeDietPlanForPreferences = (weeklyPlan, dietType, preferences) => {
+  if (!Array.isArray(weeklyPlan)) return weeklyPlan;
+
+  const sanitizeText = (value) => {
+    if (typeof value !== 'string') return value;
+    return getMealDescription(value, preferences, dietType);
+  };
+
+  return weeklyPlan.map((day) => {
+    if (!day || typeof day !== 'object') return day;
+
+    const sanitizedDay = { ...day };
+
+    if (Array.isArray(day.meals)) {
+      sanitizedDay.meals = day.meals.map((meal) => {
+        if (!meal || typeof meal !== 'object') {
+          return typeof meal === 'string' ? sanitizeText(meal) : meal;
+        }
+        return {
+          ...meal,
+          food: meal.food ? sanitizeText(meal.food) : meal.food,
+          name: meal.name ? sanitizeText(meal.name) : meal.name,
+          notes: meal.notes ? sanitizeText(meal.notes) : meal.notes
+        };
+      });
+    } else if (typeof day.meals === 'string') {
+      sanitizedDay.meals = sanitizeText(day.meals);
+    }
+
+    sanitizedDay.title = day.title ? sanitizeText(day.title) : day.title;
+    sanitizedDay.notes = day.notes ? sanitizeText(day.notes) : day.notes;
+    sanitizedDay.description = day.description ? sanitizeText(day.description) : day.description;
+    sanitizedDay.food = day.food ? sanitizeText(day.food) : day.food;
+
+    return sanitizedDay;
+  });
 };
 
 const getWeeklyDietTemplates = (dietType, preferences) => {
@@ -977,6 +1034,19 @@ const generateAndSaveDietPlan = async (user) => {
     recommendationId =
       response.data.recommendation_id || null;
 
+    weeklyPlan = sanitizeDietPlanForPreferences(
+      weeklyPlan,
+      dietTypeNormalized,
+      {
+        noOnion: !!user.noOnion,
+        noGarlic: !!user.noGarlic,
+        glutenFree: !!user.glutenFree,
+        lactoseFree: !!user.lactoseFree,
+        nutAllergy: !!user.nutAllergy,
+        sugarFree: !!user.sugarFree
+      }
+    );
+
     console.log(
       "✅ ML DIET PLAN GENERATED"
     );
@@ -1124,24 +1194,23 @@ const generateAndSaveDietPlan = async (user) => {
 
     profileSnapshot: {
 
-      goal: user.goal,
+      goal: normalizeGoal(user.goal),
 
-      dietType: user.dietType,
+      dietType: dietTypeNormalized,
 
-      noOnion: user.noOnion,
+      noOnion: !!user.noOnion,
 
-      noGarlic: user.noGarlic,
+      noGarlic: !!user.noGarlic,
 
-      glutenFree: user.glutenFree,
+      glutenFree: !!user.glutenFree,
 
-      lactoseFree: user.lactoseFree,
+      lactoseFree: !!user.lactoseFree,
 
-      nutAllergy: user.nutAllergy,
+      nutAllergy: !!user.nutAllergy,
 
-      sugarFree: user.sugarFree,
+      sugarFree: !!user.sugarFree,
 
-      medicalState:
-        user.medicalState
+      medicalState: user.medicalState
 
     }
 
@@ -1207,37 +1276,37 @@ const getOrCreateDietPlan = async (user) => {
 
     !dietPlan.profileSnapshot ||
 
-    // Goal changed
+    // Goal changed (compare normalized goal)
     dietPlan.profileSnapshot.goal !==
-    user.goal ||
+    normalizeGoal(user.goal) ||
 
-    // Diet changed
+    // Diet changed (compare normalized diet)
     dietPlan.profileSnapshot.dietType !==
-    user.dietType ||
+    normalizeDietType(user.dietType) ||
 
     // Onion preference changed
     dietPlan.profileSnapshot.noOnion !==
-    user.noOnion ||
+    !!user.noOnion ||
 
     // Garlic preference changed
     dietPlan.profileSnapshot.noGarlic !==
-    user.noGarlic ||
+    !!user.noGarlic ||
 
     // Gluten changed
     dietPlan.profileSnapshot.glutenFree !==
-    user.glutenFree ||
+    !!user.glutenFree ||
 
     // Lactose changed
     dietPlan.profileSnapshot.lactoseFree !==
-    user.lactoseFree ||
+    !!user.lactoseFree ||
 
     // Nut allergy changed
     dietPlan.profileSnapshot.nutAllergy !==
-    user.nutAllergy ||
+    !!user.nutAllergy ||
 
     // Sugar changed
     dietPlan.profileSnapshot.sugarFree !==
-    user.sugarFree ||
+    !!user.sugarFree ||
 
     // Medical state changed
     dietPlan.profileSnapshot.medicalState !==

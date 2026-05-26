@@ -69,10 +69,19 @@ exports.register = async (req, res) => {
     const normalizedExperience = experience?.toLowerCase().trim();
     
     let normalizedDietType = dietType?.toLowerCase().trim();
-    if (['standard', 'pescatarian', 'eggetarian'].includes(normalizedDietType)) {
-        normalizedDietType = 'non-vegetarian';
+    if (!normalizedDietType) {
+      normalizedDietType = undefined;
+    } else if (['standard', 'pescatarian'].includes(normalizedDietType)) {
+      normalizedDietType = 'non-vegetarian';
+    } else if (normalizedDietType === 'eggetarian') {
+      // Eggetarian is treated as vegetarian for meal templates (allows eggs)
+      normalizedDietType = 'vegetarian';
     } else if (normalizedDietType === 'vegan') {
-        normalizedDietType = 'vegetarian';
+      normalizedDietType = 'vegan';
+    } else if (normalizedDietType && normalizedDietType.includes('non')) {
+      normalizedDietType = 'non-vegetarian';
+    } else if (normalizedDietType && normalizedDietType.includes('veget')) {
+      normalizedDietType = 'vegetarian';
     }
     let normalizedActivityLevel = activityLevel?.toLowerCase().trim();
     if (normalizedActivityLevel === 'very_active') normalizedActivityLevel = 'active';
