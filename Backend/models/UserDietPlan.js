@@ -48,6 +48,27 @@ const userDietPlanSchema = new mongoose.Schema({
   recommendationId: {
     type: String,
     default: null
+  },
+  profileSnapshot: {
+    goal: {
+      type: String,
+      enum: ['muscle gain', 'fat loss', 'maintenance'],
+      lowercase: true,
+      trim: true
+    },
+    dietType: {
+      type: String,
+      enum: ['vegetarian', 'non-vegetarian', 'vegan'],
+      lowercase: true,
+      trim: true
+    },
+    noOnion: { type: Boolean, default: false },
+    noGarlic: { type: Boolean, default: false },
+    glutenFree: { type: Boolean, default: false },
+    lactoseFree: { type: Boolean, default: false },
+    nutAllergy: { type: Boolean, default: false },
+    sugarFree: { type: Boolean, default: false },
+    medicalState: { type: String, trim: true }
   }
 }, { timestamps: true });
 
