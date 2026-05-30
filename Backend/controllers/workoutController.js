@@ -353,7 +353,6 @@ exports.logDietDay = async (req, res) => {
   }
 };
 
-
 // 🗓️ GET DYNAMIC WEEKLY PLAN - Shows today + next 6 days with ML recommendations
 exports.getWeeklyPlan = async (req, res) => {
   try {
@@ -363,7 +362,9 @@ exports.getWeeklyPlan = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const savedPlan = await getOrCreateWorkoutPlan(userId);
+    // 🔹 THE FIX: Pass the full 'user' object, not the string ID!
+    const savedPlan = await getOrCreateWorkoutPlan(user); 
+    
     if (!savedPlan || !Array.isArray(savedPlan.weeklyPlan)) {
       return res.status(500).json({ message: "Failed to load workout plan" });
     }
