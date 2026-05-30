@@ -157,12 +157,16 @@ const Workout = () => {
     }
   }, [completedExerciseIds, weekPlan, user?.id, isWorkoutDoneToday]);
 
-  // Manual refresh function
+  // Manual refresh function (Force generation via POST, then GET UI data)
   const handleRefreshWorkouts = async () => {
     try {
       setRefreshing(true);
-      console.log(`🔃 Manual refresh triggered for user: ${user?.name}, Experience: ${user?.experience}`);
+      console.log(`🔃 Manual AI generation triggered for user: ${user?.name}`);
       
+      // 1. Force the backend AI to generate a brand new plan
+      await api.post('/workouts', {});
+
+      // 2. Fetch the newly generated plan with full UI formatting
       const response = await api.get('/workouts/weekly-plan');
       console.log(`✅ Refreshed workout plan - Experience used: ${response.data.user?.experienceLevel}`);
       
@@ -192,10 +196,10 @@ const Workout = () => {
         }
       }
       
-      setFeedbackModal({ show: true, type: 'success', message: `Workouts refreshed! Experience Level: ${response.data.user?.experienceLevel}` });
+      setFeedbackModal({ show: true, type: 'success', message: `AI Workouts generated successfully! Level: ${response.data.user?.experienceLevel}` });
     } catch (error) {
       console.error("❌ Refresh failed:", error);
-      setFeedbackModal({ show: true, type: 'error', message: "Failed to refresh workouts" });
+      setFeedbackModal({ show: true, type: 'error', message: "Failed to generate new AI workouts" });
     } finally {
       setRefreshing(false);
     }
@@ -322,6 +326,16 @@ const Workout = () => {
             </div>
           </div>
           <div className="flex gap-3 items-center">
+            {/* 🔹 THE MISSING REGENERATE BUTTON HAS BEEN ADDED */}
+            <button
+              onClick={handleRefreshWorkouts}
+              disabled={refreshing}
+              className={`flex items-center justify-center gap-2 ${isDarkMode ? 'bg-[#1e293b] hover:bg-[#334155] text-white' : 'bg-slate-800 hover:bg-slate-700 text-white'} px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0 h-[48px] ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
+              <span className="hidden sm:inline">{refreshing ? 'Generating...' : 'Regenerate Plan'}</span>
+              <span className="sm:hidden">Refresh</span>
+            </button>
             <button
               onClick={() => setShowAddForm(!showAddForm)}
               className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0 h-[48px]"
