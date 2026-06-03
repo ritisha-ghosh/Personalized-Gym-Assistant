@@ -1,5 +1,5 @@
 const express = require("express");
-const  protect  = require("../middleware/authMiddleware");
+const protect = require("../middleware/authMiddleware");
 
 const {
   createPlan,
@@ -11,9 +11,9 @@ const {
   getWeeklyPlan,
   addCustomNote,
   deleteCustomNote,
-  getCustomNotes
+  getCustomNotes,
+  submitDifficultyRating // 🔹 Added this import
 } = require("../controllers/workoutController");
-
 
 const { validatePlan } = require("../middleware/validateWorkout");
 
@@ -27,7 +27,10 @@ router.get("/notes", protect, getCustomNotes);
 router.post("/notes", protect, addCustomNote);
 router.delete("/notes/:logId", protect, deleteCustomNote);
 
-// ️ Smart Recommendation
+// ⭐ Submit Difficulty Rating
+router.post("/rate-difficulty", protect, submitDifficultyRating); // 🔹 Added this route
+
+// 💡 Smart Recommendation
 router.get("/smart-recommendation", protect, generateSmartRecommendation);
 
 // CREATE WORKOUT PLAN

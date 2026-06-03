@@ -58,6 +58,7 @@ const Workout = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [feedbackModal, setFeedbackModal] = useState({ show: false, type: '', message: '' });
+  const [difficultyModal, setDifficultyModal] = useState({ show: false, rating: 5 });
 
   const formatLocalDate = (dateStr) => {
     if (!dateStr) return '';
@@ -83,7 +84,7 @@ const Workout = () => {
   const normalizedExperience = normalizeExperience(currentUserExperience || user?.experience);
   const displayedExperience = capitalizeExperience(currentUserExperience || user?.experience);
 
-  // ⭐ Fetch weekly plan from backend - REFETCH when user.experience changes
+  // Fetch weekly plan from backend - REFETCH when user.experience changes
   useEffect(() => {
     const fetchWeeklyPlan = async () => {
       try {
@@ -136,7 +137,7 @@ const Workout = () => {
     if (user?.id) {
       fetchWeeklyPlan();
     }
-  }, [user?.id, user?.experience]); // ⭐ REFETCH when experience changes
+  }, [user?.id, user?.experience]);
 
   // Sync experience level from AuthContext whenever user data changes
   useEffect(() => {
@@ -233,35 +234,67 @@ const Workout = () => {
 
   // Toggle exercise completion
   const toggleExercise = (id) => {
-    if (isWorkoutDoneToday) return; // Prevent unchecking if workout is already done for today
+    if (isWorkoutDoneToday) return;
     setcompletedExerciseIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
   };
 
-  // Handle complete workout for today
-  const handleCompleteWorkout = async () => {
+  // Open the difficulty slider modal
+  const handleCompleteWorkout = () => {
     const todayPlanToUse = weekPlan.find((day) => day.isToday) || weekPlan[0];
-    if (isWorkoutDoneToday || completedExerciseIds.length !== todayPlanToUse?.exercises?.length) return;
+    const targetLength = todayPlanToUse?.type === 'rest' ? 1 : (todayPlanToUse?.exercises?.length || 0);
+    if (isWorkoutDoneToday || completedExerciseIds.length !== targetLength) return;
 
+    setDifficultyModal({ show: true, rating: 5 });
+  };
+
+  // Submit the log after user sets the slider
+  const submitWorkoutLog = async () => {
     try {
+      const todayPlanToUse = weekPlan.find((day) => day.isToday) || weekPlan[0];
+      const todayDayIndex = todayPlanToUse?.dayIndex ?? 0;
+
       const logData = {
         status: "active",
-        difficultyRating: 7,
+        difficultyRating: difficultyModal.rating,
         weight: userWeight || 70,
         date: new Date(),
         exercisesLogged: completedExerciseIds
       };
 
+      // 1. Log the workout
       await api.post("/logs", logData);
-      
+
+      // 2. Send difficulty rating to scale future days
+      await api.post("/workouts/rate-difficulty", {
+        dayIndex: todayDayIndex,
+        averageDifficulty: difficultyModal.rating
+      });
+
+      // 3. Re-fetch the plan so updated sets/reps show immediately
+      const response = await api.get('/workouts/weekly-plan');
+      const receivedPlan = response.data.weeklyPlan || [];
+      const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
+      setWeekPlan(realTimePlan);
+
       // Mark as completed
       setIsWorkoutDoneToday(true);
-      setFeedbackModal({ show: true, type: 'success', message: 'Workout Logged Successfully ! Great Job.' });
-      
+      setDifficultyModal({ show: false, rating: 5 });
+      setFeedbackModal({
+        show: true,
+        type: 'success',
+        message: `Workout Logged! Difficulty recorded as ${difficultyModal.rating}/10.`
+      });
+
     } catch (error) {
       console.error("Workout log error:", error);
-      setFeedbackModal({ show: true, type: 'error', message: error?.response?.data?.message || "Failed to log workout" });
+      setDifficultyModal({ show: false, rating: 5 });
+      setFeedbackModal({
+        show: true,
+        type: 'error',
+        message: error?.response?.data?.message || "Failed to log workout"
+      });
     }
   };
 
@@ -326,7 +359,6 @@ const Workout = () => {
             </div>
           </div>
           <div className="flex gap-3 items-center">
-            {/* 🔹 THE MISSING REGENERATE BUTTON HAS BEEN ADDED */}
             <button
               onClick={handleRefreshWorkouts}
               disabled={refreshing}
@@ -687,6 +719,51 @@ const Workout = () => {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Difficulty Rating Modal */}
+      {difficultyModal.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[70]">
+          <div className={`rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center transform transition-all ${isDarkMode ? 'bg-[#0f172a] border border-[#334155]' : 'bg-white border border-slate-100'}`}>
+            <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              How hard was today's workout?
+            </h3>
+            <p className={`text-sm mb-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              Your rating helps PulseAI dynamically scale your future routines.
+            </p>
+            
+            <div className="w-full mb-8 px-2">
+              <input 
+                type="range" 
+                min="1" 
+                max="10" 
+                value={difficultyModal.rating} 
+                onChange={(e) => setDifficultyModal({...difficultyModal, rating: parseInt(e.target.value)})}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#00c4b4]"
+              />
+              <div className="flex justify-between mt-3 px-1 text-xs font-bold text-slate-400 uppercase">
+                <span>1 (Easy)</span>
+                <span className={`text-lg text-[#00c4b4]`}>{difficultyModal.rating}</span>
+                <span>10 (Max)</span>
+              </div>
+            </div>
+            
+            <div className="flex w-full gap-3">
+              <button
+                onClick={() => setDifficultyModal({ show: false, rating: 5 })}
+                className={`flex-1 py-3 font-bold rounded-xl transition-all active:scale-95 ${isDarkMode ? 'bg-[#334155] text-slate-300 hover:bg-[#475569]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitWorkoutLog}
+                className="flex-1 bg-[#00c4b4] hover:bg-[#00a89f] text-white py-3 font-bold rounded-xl shadow-lg shadow-[#00c4b4]/20 transition-all hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Log Workout
+              </button>
+            </div>
           </div>
         </div>
       )}
