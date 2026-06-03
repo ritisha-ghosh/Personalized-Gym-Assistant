@@ -68,7 +68,14 @@ const userDietPlanSchema = new mongoose.Schema({
     lactoseFree: { type: Boolean, default: false },
     nutAllergy: { type: Boolean, default: false },
     sugarFree: { type: Boolean, default: false },
-    medicalState: { type: String, trim: true }
+    medicalConditions: {
+      type: Array,
+      default: []
+    },
+    injuries: {
+      type: Array,
+      default: []
+    }
   }
 }, { timestamps: true });
 
