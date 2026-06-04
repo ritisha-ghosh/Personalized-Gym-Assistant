@@ -25,10 +25,12 @@ const processAndAlignWorkoutPlan = (plan) => {
   return plan.map((day, index) => {
     const currentDate = new Date(today);
     currentDate.setDate(today.getDate() + index);
+    const renderedDayName = dayNames[currentDate.getDay()];
     return {
       ...day,
       date: toYYYYMMDD(currentDate),
-      dayName: dayNames[currentDate.getDay()],
+      dayName: renderedDayName,
+      title: day.title === 'Rest & Recovery' ? day.title : `${renderedDayName} Training`,
       isToday: index === 0,
     };
   });
@@ -59,7 +61,7 @@ const Workout = () => {
   const [noteText, setNoteText] = useState("");
   const [feedbackModal, setFeedbackModal] = useState({ show: false, type: '', message: '' });
   const [difficultyModal, setDifficultyModal] = useState({ show: false, rating: 5 });
-
+console.log(weekPlan)
   const formatLocalDate = (dateStr) => {
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-');
