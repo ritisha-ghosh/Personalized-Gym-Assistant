@@ -6,11 +6,10 @@ import { AuthContext } from '../context/AuthContext';
 import api from '../utils/api';
 import { DarkModeContext } from '../context/DarkModeContext';
 
-// Helper to process workout plan and align dates with the current week
+// Helper to process workout plan and align the backend weekly plan so today is the first shown card
 const processAndAlignWorkoutPlan = (plan) => {
   if (!plan || !Array.isArray(plan) || plan.length === 0) return [];
 
-  // Helper to get YYYY-MM-DD from a Date object, respecting local timezone
   const toYYYYMMDD = (dateObj) => {
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -19,19 +18,38 @@ const processAndAlignWorkoutPlan = (plan) => {
   };
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Set to midnight to avoid time-related issues
-  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  today.setHours(0, 0, 0, 0);
+  const todayKey = toYYYYMMDD(today);
 
-  return plan.map((day, index) => {
-    const currentDate = new Date(today);
-    currentDate.setDate(today.getDate() + index);
-    const renderedDayName = dayNames[currentDate.getDay()];
+  const normalizeDate = (date) => {
+    if (!date) return null;
+    const rawDate = date.toString().split('T')[0];
+    return rawDate;
+  };
+
+  const normalizedPlan = plan.map((day) => ({
+    ...day,
+    date: normalizeDate(day.date) || normalizeDate(day.startDate) || null,
+  }));
+
+  const todayIndex = normalizedPlan.findIndex((day) => day.date === todayKey);
+  const rotatedPlan = todayIndex > 0
+    ? [...normalizedPlan.slice(todayIndex), ...normalizedPlan.slice(0, todayIndex)]
+    : normalizedPlan;
+
+  return rotatedPlan.map((day) => {
+    const dateValue = day.date ? new Date(day.date) : null;
+    const renderedDayName = dateValue
+      ? dateValue.toLocaleDateString('en-US', { weekday: 'long' })
+      : 'Today';
+    const isRest = day.type === 'rest' || (day.title && day.title.toLowerCase().includes('rest'));
+
     return {
       ...day,
-      date: toYYYYMMDD(currentDate),
-      dayName: renderedDayName,
-      title: day.title === 'Rest & Recovery' ? day.title : `${renderedDayName} Training`,
-      isToday: index === 0,
+      dayName: isRest ? 'Rest Day' : renderedDayName,
+      title: day.title || (isRest ? 'Rest & Recovery' : `${renderedDayName} Training`),
+      isToday: day.date === todayKey,
+      date: day.date || (dateValue ? toYYYYMMDD(dateValue) : todayKey),
     };
   });
 };
@@ -61,7 +79,7 @@ const Workout = () => {
   const [noteText, setNoteText] = useState("");
   const [feedbackModal, setFeedbackModal] = useState({ show: false, type: '', message: '' });
   const [difficultyModal, setDifficultyModal] = useState({ show: false, rating: 5 });
-console.log(weekPlan)
+//console.log(weekPlan)
   const formatLocalDate = (dateStr) => {
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-');
@@ -321,7 +339,7 @@ console.log(weekPlan)
       </Layout>
     );
   }
-
+console.log(todayPlan)
   return (
     <Layout>
       <style>
@@ -461,7 +479,7 @@ console.log(weekPlan)
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Today's Focus</p>
               <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {todayPlan?.title || 'Loading...'}
+                {todayPlan.focusMuscles.map((muscle) => muscle).join(', ') || 'Loading...'}
               </p>
             </div>
           </div>
