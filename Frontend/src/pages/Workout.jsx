@@ -506,7 +506,7 @@ console.log(todayPlan)
                       {formatLocalDate(todayPlan.date)}
                     </p>
                     <h3 className={`text-2xl font-bold mt-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                      {todayPlan.title}
+                      {todayPlan.focusMuscles.map((muscle) => muscle).join(', ')} Training
                     </h3>
                   </div>
                   <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center ${isWorkoutDoneToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}>
@@ -626,7 +626,7 @@ console.log(todayPlan)
               </div>
               
               <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {day.title}
+                {day.focusMuscles.map((muscle) => muscle).join(', ')} Training
               </h3>
 
               {day.type === 'rest' ? (
