@@ -7,6 +7,9 @@ import api from '../utils/api';
 import { DarkModeContext } from '../context/DarkModeContext';
 
 // Helper to process workout plan and align the backend weekly plan so today is the first shown card
+// This function is designed to be robust. It aligns the 7-day workout cycle from the backend
+// with the current date, and then generates a fresh, correct sequence of dates for the week.
+// This prevents any issues with incorrect dates or timezone problems from the backend.
 const processAndAlignWorkoutPlan = (plan) => {
   if (!plan || !Array.isArray(plan) || plan.length === 0) return [];
 
@@ -17,39 +20,65 @@ const processAndAlignWorkoutPlan = (plan) => {
     return `${year}-${month}-${day}`;
   };
 
+  // Find the first valid date from the backend plan to use as an anchor
+  const planStartDateStr = plan.map(p => p.date || p.startDate).find(d => d);
+
+  // If no date is provided by the backend, we can't align based on a cycle.
+  // Fallback: Assume the plan starts today and is in order for the next 7 days.
+  if (!planStartDateStr) {
+    const today = new Date();
+    return plan.slice(0, 7).map((day, index) => { // Use slice to ensure we don't go over 7
+      const currentDate = new Date(today);
+      currentDate.setDate(today.getDate() + index);
+      const dateKey = toYYYYMMDD(currentDate);
+
+      const isRest = day.type === 'rest' || (day.title && day.title.toLowerCase().includes('rest'));
+      const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+      return {
+        ...day,
+        date: dateKey,
+        isToday: index === 0,
+        dayName: isRest ? 'Rest Day' : dayName,
+        title: day.title || (isRest ? 'Rest & Recovery' : `${dayName} Training`),
+      };
+    });
+  }
+
+  // We have an anchor date. Let's align the plan cycle to today.
+  const planStartDate = new Date(planStartDateStr.split('T')[0] + 'T00:00:00'); // Parse as local time
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const todayKey = toYYYYMMDD(today);
 
-  const normalizeDate = (date) => {
-    if (!date) return null;
-    const rawDate = date.toString().split('T')[0];
-    return rawDate;
-  };
+  // Calculate the difference in days between today and the plan's start date
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const dayDifference = Math.round((today.getTime() - planStartDate.getTime()) / msPerDay);
 
-  const normalizedPlan = plan.map((day) => ({
-    ...day,
-    date: normalizeDate(day.date) || normalizeDate(day.startDate) || null,
-  }));
+  // The index of today's workout in the original plan array, using modulo for cyclic plans
+  const todayIndexInPlan = (dayDifference % 7 + 7) % 7; // Handles negative results
 
-  const todayIndex = normalizedPlan.findIndex((day) => day.date === todayKey);
-  const rotatedPlan = todayIndex > 0
-    ? [...normalizedPlan.slice(todayIndex), ...normalizedPlan.slice(0, todayIndex)]
-    : normalizedPlan;
+  // Rotate the plan so that today's workout is at the beginning of the array
+  const rotatedPlan = [
+    ...plan.slice(todayIndexInPlan),
+    ...plan.slice(0, todayIndexInPlan)
+  ];
 
-  return rotatedPlan.map((day) => {
-    const dateValue = day.date ? new Date(day.date) : null;
-    const renderedDayName = dateValue
-      ? dateValue.toLocaleDateString('en-US', { weekday: 'long' })
-      : 'Today';
+  // Now, map over the correctly ordered plan and assign fresh, guaranteed-correct dates
+  return rotatedPlan.slice(0, 7).map((day, index) => {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    currentDate.setDate(currentDate.getDate() + index);
+
+    const dateKey = toYYYYMMDD(currentDate);
+    const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
     const isRest = day.type === 'rest' || (day.title && day.title.toLowerCase().includes('rest'));
 
     return {
       ...day,
-      dayName: isRest ? 'Rest Day' : renderedDayName,
-      title: day.title || (isRest ? 'Rest & Recovery' : `${renderedDayName} Training`),
-      isToday: day.date === todayKey,
-      date: day.date || (dateValue ? toYYYYMMDD(dateValue) : todayKey),
+      date: dateKey, // Overwrite with the correct, generated date
+      isToday: index === 0,
+      dayName: isRest ? 'Rest Day' : dayName,
+      title: day.title || (isRest ? 'Rest & Recovery' : `${dayName} Training`),
     };
   });
 };
@@ -379,6 +408,7 @@ console.log(todayPlan)
             </div>
           </div>
           <div className="flex gap-3 items-center">
+            {/*
             <button
               onClick={handleRefreshWorkouts}
               disabled={refreshing}
@@ -388,6 +418,7 @@ console.log(todayPlan)
               <span className="hidden sm:inline">{refreshing ? 'Generating...' : 'Regenerate Plan'}</span>
               <span className="sm:hidden">Refresh</span>
             </button>
+            */}
             <button
               onClick={() => setShowAddForm(!showAddForm)}
               className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0 h-[48px]"
@@ -486,8 +517,13 @@ console.log(todayPlan)
         </div>
 
         {/* Injury Warning Box */}
-        <div className={`p-4 rounded-xl border flex items-center justify-center gap-3 shadow-sm ${isDarkMode ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-600'}`}>
-          <span className="font-bold text-base sm:text-lg">⚠️ Note : If you have an injury, please skip today's workout.</span>
+        <div className={`p-4 rounded-xl border flex items-center justify-center gap-3 shadow-sm ${isDarkMode ? 'bg-orange-500/10 border-orange-500/20' : 'bg-orange-50 border-orange-200'}`}>
+          <p className="text-center">
+            <span className={`font-bold text-base sm:text-lg ${isDarkMode ? 'text-red-400' : 'text-red-500'}`}>⚠️ Note : </span>
+            <span className={`font-medium text-sm sm:text-base ${isDarkMode ? 'text-orange-300' : 'text-orange-500'}`}>
+              If you have an injury, please skip workouts until your recovery period is over and you are cleared for regular activity.
+            </span>
+          </p>
         </div>
 
         {/* --- Workouts Grid --- */}
@@ -509,7 +545,7 @@ console.log(todayPlan)
                       {todayPlan.focusMuscles.map((muscle) => muscle).join(', ')} Training
                     </h3>
                   </div>
-                  <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center ${isWorkoutDoneToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}>
+                  <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center flex-shrink-0 ${isWorkoutDoneToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}>
                     <CheckCircle2 size={16} />
                   </div>
                 </div>
@@ -549,7 +585,7 @@ console.log(todayPlan)
                           <span>1 Full Day</span>
                         </div>
                       </div>
-                      <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${completedExerciseIds.includes(0) ? 'text-green-600 bg-green-500/10' : 'text-[#00c4b4] bg-[#00c4b4]/10'}`}>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${completedExerciseIds.includes(0) ? 'text-green-600 bg-green-500/10' : 'text-green-600 bg-green-500/10'}`}>
                         Bodyweight
                       </span>
                     </div>
@@ -582,7 +618,7 @@ console.log(todayPlan)
                               <span>{exercise.reps} Reps</span>
                             </div>
                           </div>
-                          <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${isDone ? 'text-green-600 bg-green-500/10' : 'text-[#00c4b4] bg-[#00c4b4]/10'}`}>
+                          <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${isDone ? 'text-green-600 bg-green-500/10' : 'text-green-600 bg-green-500/10'}`}>
                             {exercise.weight}
                           </span>
                         </div>
@@ -598,8 +634,8 @@ console.log(todayPlan)
                   className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md flex justify-center items-center gap-2 ${
                     isWorkoutDoneToday
                       ? 'bg-green-500 text-white cursor-default shadow-none'
-                      : completedExerciseIds.length === (todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length)
-                        ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
+                      : completedExerciseIds.length === (todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length) ?
+                        'bg-green-500 text-white hover:bg-green-600 cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
                         : (isDarkMode ? 'bg-[#334155] text-slate-400 cursor-not-allowed shadow-none' : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none')
                   }`}
                 >
@@ -751,7 +787,7 @@ console.log(todayPlan)
               How hard was today's workout?
             </h3>
             <p className={`text-sm mb-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              Your rating helps PulseAI dynamically scale your future routines.
+              Your rating helps BeFit AI dynamically scale your future routines.
             </p>
             
             <div className="w-full mb-8 px-2">

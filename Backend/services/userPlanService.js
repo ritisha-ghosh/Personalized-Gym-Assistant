@@ -662,6 +662,19 @@ const generateAndSaveDietPlan = async (user) => {
     );
   }
 
+  // Add a persistent date to each day of the plan to allow for correct frontend rotation.
+  // This ensures the alignment logic on the client-side has a stable anchor date.
+  const weekStart = getMondayStart();
+  const datedWeeklyPlan = weeklyPlan.map((day, index) => {
+    const currentDate = new Date(weekStart);
+    currentDate.setDate(currentDate.getDate() + index);
+    const isoDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+    return {
+      ...toPlainObject(day),
+      date: isoDate,
+    };
+  });
+
   const filter  = { userId: user._id };
 
   const payload = {
@@ -677,7 +690,7 @@ const generateAndSaveDietPlan = async (user) => {
       nutAllergy:  !!user.nutAllergy,
       sugarFree:   !!user.sugarFree
     },
-    weeklyPlan,
+    weeklyPlan: datedWeeklyPlan,
     generatedAt:      new Date(),
     planSource:       'ml',
     recommendationId: recommendationId ? String(recommendationId) : null,

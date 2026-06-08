@@ -24,7 +24,26 @@ const getWeeklyPlan = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const resultPlan = dietPlan.weeklyPlan.map((dayData, index) => {
+    // Find the original start date to align the cycle
+    const planStartDateStr = dietPlan.weeklyPlan.map(p => p.date).find(d => d);
+    let rotatedPlan = dietPlan.weeklyPlan;
+    
+    // Fallback to generatedAt if dates are missing in weeklyPlan
+    const anchorDate = planStartDateStr ? new Date(planStartDateStr.split('T')[0] + 'T00:00:00') : new Date(dietPlan.generatedAt);
+    anchorDate.setHours(0, 0, 0, 0);
+
+    if (anchorDate && !isNaN(anchorDate.getTime())) {
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const dayDifference = Math.round((today.getTime() - anchorDate.getTime()) / msPerDay);
+      const todayIndexInPlan = (dayDifference % 7 + 7) % 7;
+      
+      rotatedPlan = [
+        ...dietPlan.weeklyPlan.slice(todayIndexInPlan),
+        ...dietPlan.weeklyPlan.slice(0, todayIndexInPlan)
+      ];
+    }
+
+    const resultPlan = rotatedPlan.map((dayData, index) => {
       const targetDate = new Date(today);
       targetDate.setDate(today.getDate() + index);
       return {
