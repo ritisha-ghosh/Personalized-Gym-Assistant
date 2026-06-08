@@ -8,6 +8,11 @@ const WorkoutCard = ({ workout }) => {
   const navigate = useNavigate(); // Initialize navigation
   const isCompleted = workout?.completed;
 
+  // Safely join focus muscles if it's an array
+  const focusText = Array.isArray(workout?.focusMuscles) 
+    ? workout.focusMuscles.join(', ') + " Training"
+    : workout?.type || "Full Body Workout";
+
   return (
     <div
       className={`
@@ -36,7 +41,7 @@ const WorkoutCard = ({ workout }) => {
             Intense
           </span>
           <span className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-400'}`}>
-            {workout?.type || "Full Body Workout"}
+            {focusText}
           </span>
         </div>
 

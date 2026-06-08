@@ -6,6 +6,72 @@ import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
 import { DarkModeContext } from '../context/DarkModeContext';
 
+// Helper to process nutrition plan and align the backend weekly plan so today is the first shown card
+// This function is designed to be robust. It aligns the 7-day diet cycle from the backend
+// with the current date, and then generates a fresh, correct sequence of dates for the week.
+const processAndAlignNutritionPlan = (plan) => {
+  if (!plan || !Array.isArray(plan) || plan.length === 0) return [];
+
+  const toYYYYMMDD = (dateObj) => {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Find the first valid date from the backend plan to use as an anchor.
+  const planStartDateStr = plan.map(p => p.date).find(d => d);
+
+  // If no date is provided by the backend, we can't align based on a cycle.
+  // Fallback: Assume the plan starts today and is in order for the next 7 days.
+  if (!planStartDateStr) {
+    const today = new Date();
+    return plan.slice(0, 7).map((day, index) => {
+      const currentDate = new Date(today);
+      currentDate.setDate(today.getDate() + index);
+      const dateKey = toYYYYMMDD(currentDate);
+
+      return {
+        ...day,
+        date: dateKey,
+        isToday: index === 0,
+      };
+    });
+  }
+
+  // We have an anchor date. Let's align the plan cycle to today.
+  const planStartDate = new Date(planStartDateStr.split('T')[0] + 'T00:00:00'); // Parse as local time
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Calculate the difference in days between today and the plan's start date
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const dayDifference = Math.round((today.getTime() - planStartDate.getTime()) / msPerDay);
+
+  // The index of today's diet in the original plan array, using modulo for cyclic plans
+  const todayIndexInPlan = (dayDifference % 7 + 7) % 7; // Handles negative results
+
+  // Rotate the plan so that today's diet is at the beginning of the array
+  const rotatedPlan = [
+    ...plan.slice(todayIndexInPlan),
+    ...plan.slice(0, todayIndexInPlan)
+  ];
+
+  // Now, map over the correctly ordered plan and assign fresh, guaranteed-correct dates
+  return rotatedPlan.slice(0, 7).map((day, index) => {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    currentDate.setDate(currentDate.getDate() + index);
+    const dateKey = toYYYYMMDD(currentDate);
+
+    return {
+      ...day,
+      date: dateKey, // Overwrite with the correct, generated date
+      isToday: index === 0,
+    };
+  });
+};
+
 const Neutrations = () => {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
@@ -68,12 +134,13 @@ const Neutrations = () => {
         // Fetch Weekly Plan with ML integration
         const planResponse = await api.get('/diet-tracking/weekly-plan');
         if (planResponse.data.status === 'success') {
-          const plan = planResponse.data.plan;
-          setWeeklyPlan(plan);
-          console.log(`✅ Received nutrition plan - Days: ${plan.length}`);
+          const receivedPlan = planResponse.data.plan || [];
+          const realTimePlan = processAndAlignNutritionPlan(receivedPlan);
+          setWeeklyPlan(realTimePlan);
+          console.log(`✅ Received and aligned nutrition plan - Days: ${realTimePlan.length}`);
           
           // Set completed meals from today's plan
-          const todayPlan = plan.find(p => p.isToday);
+          const todayPlan = realTimePlan.find(p => p.isToday);
           if (todayPlan) {
             const todayMeals = todayPlan.meals || [];
             const completedMealTypes = todayMeals
@@ -323,7 +390,7 @@ const Neutrations = () => {
                 Drink 500ml of water before each meal
               </h2>
               <p className={`text-sm mt-2 max-w-md ${isDarkMode ? 'text-slate-300' : 'text-blue-100'}`}>
-                Staying hydrated improves digestion and keeps your metabolism active!
+                Staying hydrated improves digestion and keeps your metabolism active !
               </p>
             </div>
         <div className={`backdrop-blur-md p-7 rounded-xl border text-center min-w-[260px] max-w-[300px] ${isDarkMode ? 'bg-transparent border-transparent' : 'bg-black/20 border-white/30'}`}>
@@ -339,17 +406,17 @@ const Neutrations = () => {
           {/* Active Card (Today) */}
           {todayPlan && todayPlan.meals && todayPlan.meals.length > 0 && (
             <div className="lg:col-span-1 xl:col-span-1 row-span-2">
-              <div className={`p-6 rounded-[2rem] border-2 shadow-xl h-full flex flex-col ${allMealsCompletedToday ? 'border-green-500 shadow-green-500/10' : 'border-[#00c4b4] shadow-[#00c4b4]/10'} ${isDarkMode ? 'bg-[#1e293b]' : 'bg-white'}`}>
+              <div className={`p-6 rounded-[2rem] border-2 shadow-xl h-full flex flex-col border-[#00c4b4] shadow-[#00c4b4]/10 ${isDarkMode ? 'bg-[#1e293b]' : 'bg-white'}`}>
                 <div className="flex justify-between items-start mb-4 gap-3">
                   <div className="flex-1 min-w-0">
-                    <span className={`text-xs font-bold uppercase tracking-wider block break-words ${allMealsCompletedToday ? 'text-green-500' : 'text-[#00c4b4]'}`}>
+                    <span className={`text-xs font-bold uppercase tracking-wider block break-words text-[#00c4b4]`}>
                       {getDayName(todayPlan.date)} (Today)
                     </span>
                     <p className={`text-xs font-semibold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                       {formatLocalDate(todayPlan.date)}
                     </p>
                   </div>
-                  <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center flex-shrink-0 ${allMealsCompletedToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}>
+                  <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center flex-shrink-0 bg-[#00c4b4]`}>
                     <CheckCircle2 size={16} />
                   </div>
                 </div>
@@ -357,11 +424,11 @@ const Neutrations = () => {
                 <div className="space-y-2 mb-6">
                   <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
                     <span>Meal Progress</span>
-                    <span className={allMealsCompletedToday ? 'text-green-500' : 'text-[#00c4b4]'}>{Math.round(todayMealProgress)}%</span>
+                    <span className="text-[#00c4b4]">{Math.round(todayMealProgress)}%</span>
                   </div>
                   <div className={`w-full h-2 rounded-full overflow-hidden border ${isDarkMode ? 'bg-[#334155] border-[#334155]' : 'bg-slate-100 border-slate-100'}`}>
                     <div
-                      className={`h-full transition-all duration-500 ${allMealsCompletedToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}
+                      className={`h-full transition-all duration-500 bg-[#00c4b4]`}
                       style={{ width: `${todayMealProgress}%` }}
                     ></div>
                   </div>
@@ -405,7 +472,7 @@ const Neutrations = () => {
                 </div>
 
                 {/* Completion Status Text */}
-                <div className={`mt-6 text-center font-bold text-sm ${allMealsCompletedToday ? 'text-green-500' : 'text-[#00c4b4]'}`}>
+                <div className={`mt-6 text-center font-bold text-sm text-[#00c4b4]`}>
                   {allMealsCompletedToday
                     ? "✅ All meals done"
                     : `${todayPlan.meals.length - completedMeals.length} more to complete`}

@@ -15,6 +15,68 @@ import { AuthContext } from '../context/AuthContext';
 import { DarkModeContext } from '../context/DarkModeContext';
 import api from '../utils/api';
 
+const processAndAlignWorkoutPlan = (plan) => {
+  if (!plan || !Array.isArray(plan) || plan.length === 0) return [];
+
+  const toYYYYMMDD = (dateObj) => {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const planStartDateStr = plan.map(p => p.date || p.startDate).find(d => d);
+
+  if (!planStartDateStr) {
+    const today = new Date();
+    return plan.slice(0, 7).map((day, index) => {
+      const currentDate = new Date(today);
+      currentDate.setDate(today.getDate() + index);
+      const dateKey = toYYYYMMDD(currentDate);
+      const isRest = day.type === 'rest' || (day.title && day.title.toLowerCase().includes('rest'));
+      const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+      return {
+        ...day,
+        date: dateKey,
+        isToday: index === 0,
+        dayName: isRest ? 'Rest Day' : dayName,
+        title: day.title || (isRest ? 'Rest & Recovery' : `${dayName} Training`),
+      };
+    });
+  }
+
+  const planStartDate = new Date(planStartDateStr.split('T')[0] + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const dayDifference = Math.round((today.getTime() - planStartDate.getTime()) / msPerDay);
+  const todayIndexInPlan = (dayDifference % 7 + 7) % 7;
+
+  const rotatedPlan = [
+    ...plan.slice(todayIndexInPlan),
+    ...plan.slice(0, todayIndexInPlan)
+  ];
+
+  return rotatedPlan.slice(0, 7).map((day, index) => {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    currentDate.setDate(currentDate.getDate() + index);
+
+    const dateKey = toYYYYMMDD(currentDate);
+    const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+    const isRest = day.type === 'rest' || (day.title && day.title.toLowerCase().includes('rest'));
+
+    return {
+      ...day,
+      date: dateKey,
+      isToday: index === 0,
+      dayName: isRest ? 'Rest Day' : dayName,
+      title: day.title || (isRest ? 'Rest & Recovery' : `${dayName} Training`),
+    };
+  });
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext); // Get user from AuthContext
@@ -54,8 +116,8 @@ const logs = logsResponse.data.logs || logsResponse.data || [];
 const now = new Date();
 const startOfWeek = new Date(now);
 
-// Use a rolling 7-day window to perfectly match the Weekly Consistency tracker
-startOfWeek.setDate(startOfWeek.getDate() - 6);
+// Start of week is Sunday
+startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
 startOfWeek.setHours(0, 0, 0, 0);
 
 const thisWeekLogs = logs.filter((log) => {
@@ -79,8 +141,10 @@ setWeeklyWorkoutCount(uniqueWorkoutDatesThisWeek.size);
 let weeklyPlan = [];
 try {
   const weeklyPlanResponse = await api.get("/workouts/weekly-plan");
-  weeklyPlan = weeklyPlanResponse.data.weekPlan || weeklyPlanResponse.data.weeklyPlan || weeklyPlanResponse.data || [];
-  if (!Array.isArray(weeklyPlan)) weeklyPlan = [];
+  const rawPlan = weeklyPlanResponse.data.weekPlan || weeklyPlanResponse.data.weeklyPlan || weeklyPlanResponse.data || [];
+  if (Array.isArray(rawPlan)) {
+    weeklyPlan = processAndAlignWorkoutPlan(rawPlan);
+  }
 } catch (err) {
   console.warn("Failed to fetch weekly plan:", err);
 }
