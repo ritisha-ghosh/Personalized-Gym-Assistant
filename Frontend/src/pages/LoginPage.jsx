@@ -127,9 +127,9 @@ const LoginPage = () => {
             <div>
               <div className="flex justify-between mb-2">
                 <label className={`text-sm font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>Password</label>
-                <Link to="/forgot-password" className="text-xs font-bold text-pink-500 hover:text-pink-600">
+                <span className="text-xs font-bold text-pink-500 hover:text-pink-600 cursor-pointer" onClick={(e) => e.preventDefault()}>
                   Forgot Password?
-                </Link>
+                </span>
               </div>
               <div className="relative">
                 {/* Added z-10 and adjusted text color for dark mode visibility */}

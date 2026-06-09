@@ -23,7 +23,7 @@ import {
 
 const Settings = () => { 
   const navigate = useNavigate(); 
-  const { user, logout, setUser } = useContext(AuthContext); 
+  const { user, logout, setUser, login } = useContext(AuthContext); 
   const { isDarkMode, setDarkMode } = useContext(DarkModeContext);
   const [activeTab, setActiveTab] = useState('account');
   const [isLoading, setIsLoading] = useState(false);
@@ -36,8 +36,7 @@ const Settings = () => {
   const searchQuery = searchParams.get("q") || "";
 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    fullName: '',
     email: '',
     currentPassword: '',
     newPassword: '',
@@ -55,12 +54,10 @@ const Settings = () => {
       try {
         const response = await api.get('/users/profile');
         const userData = response.data.user;
-        const [firstName, lastName] = userData.name?.split(' ') || ['', ''];
         
         setFormData(prev => ({
           ...prev,
-          firstName: firstName || '',
-          lastName: lastName || '',
+          fullName: userData.name || '',
           email: userData.email || ''
         }));
       } catch (error) {
@@ -87,8 +84,7 @@ const Settings = () => {
 
   // Function to handle saving account information (name, email)
   const handleSaveAccountInfo = async () => {
-    // Combine first and last name for the backend
-    const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+    const fullName = formData.fullName.trim();
 
     setIsLoading(true);
     setSaveStatus('Saving...');
@@ -109,8 +105,18 @@ const Settings = () => {
         }));
       }
 
+      if (login) {
+        login({ ...user, name: updatedUser.name }, {
+          accessToken: localStorage.getItem('accessToken') || localStorage.getItem('token'),
+          refreshToken: localStorage.getItem('refreshToken')
+        });
+      }
+
       setSaveStatus('Account information updated successfully !');
-      setTimeout(() => setSaveStatus(''), 3000);
+      setIsEditMode(false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       setSaveStatus('Error updating account information: ' + (error.response?.data?.message || 'Unknown error'));
     } finally {
@@ -201,7 +207,7 @@ const Settings = () => {
       id: 'account', 
       label: 'Account', 
       icon: User, 
-      keywords: ['name', 'first name', 'last name', 'email', 'profile', 'google', 'connect', 'disconnect', 'personal information'] 
+      keywords: ['name', 'full name', 'email', 'profile', 'google', 'connect', 'disconnect', 'personal information'] 
     },
     { 
       id: 'preferences', 
@@ -319,20 +325,11 @@ const Settings = () => {
 
                   {isEditMode ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">First Name</label>
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Full Name</label>
                         <input 
-                          name="firstName"
-                          value={formData.firstName}
-                          onChange={handleChange}
-                          className={`w-full rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Last Name</label>
-                        <input 
-                          name="lastName"
-                          value={formData.lastName}
+                          name="fullName"
+                          value={formData.fullName}
                           onChange={handleChange}
                           className={`w-full rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-[#00c4b4]/20 focus:border-[#00c4b4] outline-none transition-all ${isDarkMode ? 'bg-[#334155] border-[#475569] text-white' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}
                         />
@@ -376,13 +373,9 @@ const Settings = () => {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-50'}`}>
-                        <p className="text-xs font-bold text-slate-500 uppercase">First Name</p>
-                        <p className={`text-lg font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formData.firstName || 'Not set'}</p>
-                      </div>
-                      <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-50'}`}>
-                        <p className="text-xs font-bold text-slate-500 uppercase">Last Name</p>
-                        <p className={`text-lg font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formData.lastName || 'Not set'}</p>
+                      <div className={`md:col-span-2 p-4 rounded-xl ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-50'}`}>
+                        <p className="text-xs font-bold text-slate-500 uppercase">Full Name</p>
+                        <p className={`text-lg font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formData.fullName || 'Not set'}</p>
                       </div>
                       <div className={`md:col-span-2 p-4 rounded-xl ${isDarkMode ? 'bg-[#334155]' : 'bg-slate-50'}`}>
                         <p className="text-xs font-bold text-slate-500 uppercase">Email Address</p>
@@ -555,9 +548,9 @@ const Settings = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Current Password</label>
-                        <Link to="/forgot-password" className="text-xs font-bold text-[#00c4b4] hover:underline">
+                        <span className="text-xs font-bold text-[#00c4b4] hover:underline cursor-pointer" onClick={(e) => e.preventDefault()}>
                           Forgot Password?
-                        </Link>
+                        </span>
                       </div>
                       <div className="relative">
                         <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 ${isDarkMode ? 'text-slate-300' : 'text-slate-400'}`} size={18} />

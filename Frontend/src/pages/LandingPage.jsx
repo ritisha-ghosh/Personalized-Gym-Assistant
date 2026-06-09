@@ -66,9 +66,9 @@ const LandingPage = () => {
             </h2>
           </Link>
           
-          <nav className={`hidden md:flex items-center gap-10 !bg-transparent ${isDarkMode ? 'text-[#cbd5e1]' : 'text-[#142E5C]'}`}>
+          <nav className={`hidden md:flex items-center gap-10 bg-transparent !bg-transparent ${isDarkMode ? 'text-[#cbd5e1]' : 'text-[#142E5C]'}`}>
             {['Features',  'Pricing'].map((item) => (
-              <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '-')}`} className={`text-sm font-bold transition-colors ${isDarkMode ? 'text-[#cbd5e1] hover:text-[#00c4b4] hover:!bg-transparent' : 'text-[#142E5C] hover:text-[#00c4b4] hover:!bg-transparent'}`}>
+              <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '-')}`} className={`text-sm font-bold transition-colors bg-transparent !bg-transparent ${isDarkMode ? 'text-[#cbd5e1] hover:text-[#00c4b4]' : 'text-[#142E5C] hover:text-[#00c4b4]'}`}>
                 {item}
               </a>
             ))}

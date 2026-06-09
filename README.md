@@ -1,90 +1,90 @@
-# 🏋️ Personalized Gym Assistant  
-### A Web + ML Ecosystem
+# 🏋️ BeFit - Personalized Gym Assistant
+### An Adaptive Web & Machine Learning Fitness Ecosystem
 
 ## 📌 Project Overview
 
-The **Personalized Gym Assistant** is an intelligent digital ecosystem designed to democratize access to personalized fitness coaching.  
-Unlike static fitness applications, this system utilizes **user-specific bio-data** such as BMI, fitness goals, and experience level to generate **dynamic workout and nutrition plans** through a hybrid methodology combining **deterministic logic** and **probabilistic Machine Learning models**.
+The **BeFit Personalized Gym Assistant** is an intelligent digital ecosystem designed to democratize access to personalized fitness coaching. 
+Unlike static fitness applications, this system utilizes **user-specific bio-data** (BMI, fitness goals, experience level) and a **hybrid calculation engine**—combining deterministic biological algorithms (Harris-Benedict) with probabilistic Machine Learning models (KNN, TF-IDF)—to generate and adapt dynamic workout and nutrition plans.
 
 ---
 
 ## ✨ Key Features
 
 ### 🔁 Adaptive Recommendation Engine
-- Dynamically adjusts workout **sets and reps**
-- Supports **Bulking** and **Cutting** goals
-- Evolves plans based on user progress
+- **Self-Correcting Volume:** Dynamically adjusts workout sets and reps based on weekly user difficulty ratings and recovery logs.
+- **Smart Coach:** Utilizes **K-Nearest Neighbors (KNN) Collaborative Filtering** to match users with highly optimized training profiles.
+- **Data-Driven Diet Automation:** Strict ML data-sandboxing instantly generates calorie-tracked meals respecting specific dietary boundaries (e.g., Vegan, No-Onion/Garlic).
 
-### 🧠 Intelligence Layer
-- Python-based microservice
-- Uses **K-Means Clustering** for user classification
+### 🧠 Intelligence Microservice Layer
+- Standalone Python Flask microservice (0ms latency bridge).
+- Features rigorous ETL pipelines for dataset tagging and safety-clamp payload validation.
 
-### 💬 NLP Trainer Bot
-- Integrated chatbot for real-time fitness query resolution
+### 💬 NLP AI Coach with Voice Integration
+- Natural Language Processing chatbot powered by **TF-IDF Vectorization** and a **Decision Tree Classifier**.
+- Integrated with the browser's native **Web Speech API** for hands-free voice coaching.
 
-### 📊 Smart Dashboard
-- Visualizes health metrics and weight trends
-- Enhances tracking and motivation
+### 📊 Smart Analytics Dashboard
+- Live data visualization using **Recharts** (Weight Trends, Heatmaps, Workout Consistency).
+- Tracks 48-hour historical recovery data to prevent overtraining.
 
 ---
 
 ## 🏗️ System Architecture
 
-The system follows a **modular four-layer architecture** to ensure scalability and low-latency performance (**< 200ms**).
+The system follows a highly resilient **modular four-layer architecture** designed for sub-200ms low-latency performance:
 
-- **Presentation Layer:** React.js Single Page Application (SPA)
-- **Application Layer:** Node.js & Express acting as the API Gateway
-- **Intelligence Layer:** Python Flask microservice for ML and NLP processing
-- **Data Layer:** MongoDB for flexible NoSQL schema management
+1. **Presentation Layer (Port 5173):** React.js Single Page Application (SPA) built with Vite and Tailwind CSS.
+2. **Orchestration Layer (Port 5000):** Node.js & Express API Gateway handling OTP auth, JWT/Redis session security, and payload validation.
+3. **Intelligence Layer (Port 5001):** Persistent Python Flask HTTP microservice for ML inference and NLP processing (connected via asynchronous Axios retry-loops).
+4. **Data Layer:** MongoDB Atlas for flexible NoSQL schema management and dynamic log aggregation.
 
 ---
 
 ## 🛠️ Tech Stack
 
-**Frontend:**  
-- React.js (HTML5, CSS3, JavaScript)
-
-**Backend:**  
-- Node.js, Express.js
-
-**Database:**  
-- MongoDB (Mongoose ODM)
-
-**ML / Intelligence:**  
-- Python, Pandas, Scikit-learn, Flask
-
-**Integration:**  
-- `child_process.spawn` for Node–Python orchestration
+* **Frontend:** React.js (v18), Vite, Tailwind CSS, Recharts, Lucide Icons.
+* **Backend:** Node.js, Express.js, JWT (Access/Refresh Tokens), Redis, Nodemailer.
+* **Database:** MongoDB (Mongoose ODM).
+* **Intelligence Layer:** Python 3, Flask, Scikit-Learn, Pandas, Joblib.
+* **Integration:** Axios HTTP Bridge (Replaced legacy `child_process.spawn`).
 
 ---
 
-## 👥 Team & Contribution Matrix
+## 👥 Team & Domain Contribution Matrix
 
-This project is developed by a specialized team from **Techno Bengal Institute of Technology**, following a strategic partnership-based contribution model.
+This project was engineered by a specialized full-stack development team from the **Bengal Institute of Technology**, following a strategic microservice contribution model.
 
-| Team Member | Primary Focus | Contribution & Role Split |
-|------------|--------------|---------------------------|
-| **Pritam Chakraborty** | System Integration & Orchestration | System Orchestration (100%), Backend Support (10%), Intelligence Layer (30%) |
-| **Shreya Sarkar** | Backend & Data Visualization | Backend Lead (60%), Dashboard Visualization (40%) |
-| **Subham Roy** | Frontend Dashboard & Clustering | Frontend Lead – Dashboard & Viz (60%), Intelligence Layer (30%) |
-| **Debanka Samanta** | UI & Intelligence | Frontend UI (50%), Intelligence Layer (30%) |
-| **Ritisha Ghosh** | Documentation & UI Support | Documentation & UI (50%), Backend Support (30%) |
+| Team Member | Domain Contributions | Key Responsibilities |
+| :--- | :--- | :--- |
+| **Pritam Chakraborty**<br>*(Project Lead)* | **ML (70%)** <br> **Backend (15%)** | **ML Lead & Orchestration:** Engineered the core machine learning models, expanded NLP datasets, implemented strict data sandboxing, and built the Node-Python microservice bridge. |
+| **Shreya Sarkar** | **Backend (60%)** <br> **Frontend (15%)** | **Backend Lead & Analytics:** Architected the Express/Mongo infrastructure, advanced JWT/Redis security, 48-hour aggregation pipelines, and core Recharts data visualization. |
+| **Ritisha Ghosh** | **Frontend (50%)** <br> **Backend (0%)** | **Frontend Lead:** Engineered the core React UI architecture, dark mode, dynamic API data fetching, and handled comprehensive project documentation. |
+| **Debanka Samanta** | **Frontend (35%)** <br> **ML (0%)** | **Execution UI:** Built the interactive Live Workout UI, integrated Web Speech API voice coaching, enforced frontend boundaries, and optimized Flask microservice latency. |
+| **Subham Roy** | **ML (30%)** <br> **Backend (30%)** | **Math Engines & Data:** Programmed the Harris-Benedict BMR/TDEE math engines, Decision Tree feedback loops, and executed the ETL data mapping for the ML models. |
 
-> **Note:**  
-> - The **Intelligence Layer** is collaboratively developed by **Debanka, Pritam, and Subham (30% each)** with **Gemini AI contributing 10% as an assistive tool**.  
-> - **System Integration & Orchestration** (Node.js ↔ Python bridge) is fully owned by **Pritam Chakraborty**.
+> **Note:** The architecture utilizes a hybrid approach, separating deterministic business logic (Node.js) from probabilistic machine learning operations (Python Flask) to ensure maximum scalability and fault tolerance.
 
 ---
 
-## 🚀 Roadmap
+## 🚀 Execution & Deployment
 
-- **Phase 1:** Core Foundation & Database Schema (Days 1–15)
-- **Phase 2:** ML Model Integration & API Bridging (Days 16–30)
-- **Phase 3:** Visualization, Testing & Final Deployment (Days 31–45)
+To launch the complete BeFit ecosystem locally, three terminal instances are required:
 
----
+```bash
+# 1. Start the React Frontend (Terminal 1)
+cd Frontend
+npm install
+npm run dev
 
-## 📝 License
+# 2. Start the Node.js API Gateway (Terminal 2)
+cd Backend
+npm install
+npm run dev
 
-This project is developed **strictly for academic purposes** as part of the  
-**B.Tech CSE – 7th Semester Curriculum (2025–26)**.
+# 3. Start the Python Intelligence Microservice (Terminal 3)
+cd ML_Layer
+pip install -r requirements.txt
+python app.py
+
+📝 License
+This software was developed strictly for academic purposes as part of the B.Tech CSE – 8th Semester Curriculum (2025–26) at the Bengal Institute of Technology.

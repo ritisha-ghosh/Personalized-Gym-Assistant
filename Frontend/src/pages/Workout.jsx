@@ -6,6 +6,83 @@ import { AuthContext } from '../context/AuthContext';
 import api from '../utils/api';
 import { DarkModeContext } from '../context/DarkModeContext';
 
+// Helper to process workout plan and align the backend weekly plan so today is the first shown card
+// This function is designed to be robust. It aligns the 7-day workout cycle from the backend
+// with the current date, and then generates a fresh, correct sequence of dates for the week.
+// This prevents any issues with incorrect dates or timezone problems from the backend.
+const processAndAlignWorkoutPlan = (plan) => {
+  if (!plan || !Array.isArray(plan) || plan.length === 0) return [];
+
+  const toYYYYMMDD = (dateObj) => {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Find the first valid date from the backend plan to use as an anchor
+  const planStartDateStr = plan.map(p => p.date || p.startDate).find(d => d);
+
+  // If no date is provided by the backend, we can't align based on a cycle.
+  // Fallback: Assume the plan starts today and is in order for the next 7 days.
+  if (!planStartDateStr) {
+    const today = new Date();
+    return plan.slice(0, 7).map((day, index) => { // Use slice to ensure we don't go over 7
+      const currentDate = new Date(today);
+      currentDate.setDate(today.getDate() + index);
+      const dateKey = toYYYYMMDD(currentDate);
+
+      const isRest = day.type === 'rest' || (day.title && day.title.toLowerCase().includes('rest'));
+      const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+      return {
+        ...day,
+        date: dateKey,
+        isToday: index === 0,
+        dayName: isRest ? 'Rest Day' : dayName,
+        title: day.title || (isRest ? 'Rest & Recovery' : `${dayName} Training`),
+      };
+    });
+  }
+
+  // We have an anchor date. Let's align the plan cycle to today.
+  const planStartDate = new Date(planStartDateStr.split('T')[0] + 'T00:00:00'); // Parse as local time
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Calculate the difference in days between today and the plan's start date
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const dayDifference = Math.round((today.getTime() - planStartDate.getTime()) / msPerDay);
+
+  // The index of today's workout in the original plan array, using modulo for cyclic plans
+  const todayIndexInPlan = (dayDifference % 7 + 7) % 7; // Handles negative results
+
+  // Rotate the plan so that today's workout is at the beginning of the array
+  const rotatedPlan = [
+    ...plan.slice(todayIndexInPlan),
+    ...plan.slice(0, todayIndexInPlan)
+  ];
+
+  // Now, map over the correctly ordered plan and assign fresh, guaranteed-correct dates
+  return rotatedPlan.slice(0, 7).map((day, index) => {
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    currentDate.setDate(currentDate.getDate() + index);
+
+    const dateKey = toYYYYMMDD(currentDate);
+    const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+    const isRest = day.type === 'rest' || (day.title && day.title.toLowerCase().includes('rest'));
+
+    return {
+      ...day,
+      date: dateKey, // Overwrite with the correct, generated date
+      isToday: index === 0,
+      dayName: isRest ? 'Rest Day' : dayName,
+      title: day.title || (isRest ? 'Rest & Recovery' : `${dayName} Training`),
+    };
+  });
+};
+
 const Workout = () => {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
@@ -22,14 +99,16 @@ const Workout = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserExperience, setCurrentUserExperience] = useState(null);
   const [userGoal, setUserGoal] = useState(null);
-  const [userInjury, setUserInjury] = useState(null);
+  const [userInjuries, setUserInjuries] = useState([]);
+  const [userMedicalConditions, setUserMedicalConditions] = useState([]);
   const [userWeight, setUserWeight] = useState(null);
   
   const [notes, setNotes] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [feedbackModal, setFeedbackModal] = useState({ show: false, type: '', message: '' });
-
+  const [difficultyModal, setDifficultyModal] = useState({ show: false, rating: 5 });
+//console.log(weekPlan)
   const formatLocalDate = (dateStr) => {
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-');
@@ -40,7 +119,21 @@ const Workout = () => {
     });
   };
 
-  // ⭐ Fetch weekly plan from backend - REFETCH when user.experience changes
+  const normalizeExperience = (experience) => {
+    if (!experience) return null;
+    return experience.toString().toLowerCase();
+  };
+
+  const capitalizeExperience = (experience) => {
+    if (!experience) return 'Loading...';
+    const str = experience.toString();
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
+  const normalizedExperience = normalizeExperience(currentUserExperience || user?.experience);
+  const displayedExperience = capitalizeExperience(currentUserExperience || user?.experience);
+
+  // Fetch weekly plan from backend - REFETCH when user.experience changes
   useEffect(() => {
     const fetchWeeklyPlan = async () => {
       try {
@@ -50,24 +143,31 @@ const Workout = () => {
         const response = await api.get('/workouts/weekly-plan');
         console.log(`✅ Received workout plan - Experience used: ${response.data.user?.experienceLevel}`);
         
-        setWeekPlan(response.data.weekPlan || []);
-        setCurrentUserExperience(response.data.user?.experienceLevel);
-        setUserGoal(response.data.user?.goal);
-        setUserInjury(response.data.user?.injury);
-        setUserWeight(response.data.user?.weight);
+        const receivedPlan = response.data.weeklyPlan || response.data.weekPlan || [];
         
-        // If today is completed, mark all exercises as completed
-        if (response.data.weekPlan[0]?.completed) {
+        const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
+        setWeekPlan(realTimePlan);
+        setCurrentUserExperience(normalizeExperience(response.data.user?.experienceLevel || response.data.user?.experience));
+        setUserGoal(response.data.user?.goal);
+        setUserInjuries(response.data.user?.injuries || []);
+        setUserMedicalConditions(response.data.user?.medicalConditions || []);
+        setUserWeight(response.data.user?.weight);
+
+        const currentPlan = realTimePlan.find((day) => day.isToday) || realTimePlan[0];
+        if (currentPlan?.completed) {
           setIsWorkoutDoneToday(true);
-          setcompletedExerciseIds(
-            response.data.weekPlan[0].exercises.map((_, idx) => idx)
-          );
-        } else if (response.data.weekPlan.length > 0 && user?.id) {
-          const saved = localStorage.getItem(`workout_completed_${user.id}_${response.data.weekPlan[0].date}`);
-          if (saved) {
-             setcompletedExerciseIds(JSON.parse(saved));
+          setcompletedExerciseIds(currentPlan.exercises.map((_, idx) => idx));
+        } else if (currentPlan) {
+          setIsWorkoutDoneToday(false);
+          if (user?.id) {
+            const saved = localStorage.getItem(`workout_completed_${user.id}_${currentPlan.date}`);
+            if (saved) {
+              setcompletedExerciseIds(JSON.parse(saved));
+            } else {
+              setcompletedExerciseIds([]);
+            }
           } else {
-             setcompletedExerciseIds([]);
+            setcompletedExerciseIds([]);
           }
         }
 
@@ -86,48 +186,70 @@ const Workout = () => {
     if (user?.id) {
       fetchWeeklyPlan();
     }
-  }, [user?.id, user?.experience]); // ⭐ REFETCH when experience changes
+  }, [user?.id, user?.experience]);
+
+  // Sync experience level from AuthContext whenever user data changes
+  useEffect(() => {
+    if (user?.experience) {
+      const normalized = normalizeExperience(user.experience);
+      setCurrentUserExperience(normalized);
+      console.log(`🔄 Experience level updated from AuthContext: ${user.experience} -> normalized: ${normalized}`);
+    }
+  }, [user?.experience]);
 
   // Save checkbox state to localStorage
   useEffect(() => {
     if (weekPlan.length > 0 && user?.id && !isWorkoutDoneToday) {
-       localStorage.setItem(`workout_completed_${user.id}_${weekPlan[0].date}`, JSON.stringify(completedExerciseIds));
+       const currentPlan = weekPlan.find((day) => day.isToday) || weekPlan[0];
+       if (currentPlan) {
+         localStorage.setItem(`workout_completed_${user.id}_${currentPlan.date}`, JSON.stringify(completedExerciseIds));
+       }
     }
   }, [completedExerciseIds, weekPlan, user?.id, isWorkoutDoneToday]);
 
-  // Manual refresh function
+  // Manual refresh function (Force generation via POST, then GET UI data)
   const handleRefreshWorkouts = async () => {
     try {
       setRefreshing(true);
-      console.log(`🔃 Manual refresh triggered for user: ${user?.name}, Experience: ${user?.experience}`);
+      console.log(`🔃 Manual AI generation triggered for user: ${user?.name}`);
       
+      // 1. Force the backend AI to generate a brand new plan
+      await api.post('/workouts', {});
+
+      // 2. Fetch the newly generated plan with full UI formatting
       const response = await api.get('/workouts/weekly-plan');
       console.log(`✅ Refreshed workout plan - Experience used: ${response.data.user?.experienceLevel}`);
       
-      setWeekPlan(response.data.weekPlan || []);
-      setCurrentUserExperience(response.data.user?.experienceLevel);
-      setUserGoal(response.data.user?.goal);
-      setUserInjury(response.data.user?.injury);
+      const receivedPlan = response.data.weeklyPlan || response.data.workoutPlan?.weeklyPlan || [];
+      const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
+      setWeekPlan(realTimePlan);
+      setCurrentUserExperience(normalizeExperience(response.data.user?.experienceLevel || response.data.user?.experience));
+      setUserInjuries(response.data.user?.injuries || []);
+      setUserMedicalConditions(response.data.user?.medicalConditions || []);
       setUserWeight(response.data.user?.weight);
-      
-      if (response.data.weekPlan[0]?.completed) {
+
+      const currentPlan = realTimePlan.find((day) => day.isToday) || realTimePlan[0];
+      if (currentPlan?.completed) {
         setIsWorkoutDoneToday(true);
-        setcompletedExerciseIds(
-          response.data.weekPlan[0].exercises.map((_, idx) => idx)
-        );
-      } else if (response.data.weekPlan.length > 0 && user?.id) {
-          const saved = localStorage.getItem(`workout_completed_${user.id}_${response.data.weekPlan[0].date}`);
+        setcompletedExerciseIds(currentPlan.exercises.map((_, idx) => idx));
+      } else if (currentPlan) {
+        setIsWorkoutDoneToday(false);
+        if (user?.id) {
+          const saved = localStorage.getItem(`workout_completed_${user.id}_${currentPlan.date}`);
           if (saved) {
-             setcompletedExerciseIds(JSON.parse(saved));
+            setcompletedExerciseIds(JSON.parse(saved));
           } else {
-             setcompletedExerciseIds([]);
+            setcompletedExerciseIds([]);
           }
+        } else {
+          setcompletedExerciseIds([]);
+        }
       }
       
-      setFeedbackModal({ show: true, type: 'success', message: `Workouts refreshed! Experience Level: ${response.data.user?.experienceLevel}` });
+      setFeedbackModal({ show: true, type: 'success', message: `AI Workouts generated successfully! Level: ${response.data.user?.experienceLevel}` });
     } catch (error) {
       console.error("❌ Refresh failed:", error);
-      setFeedbackModal({ show: true, type: 'error', message: "Failed to refresh workouts" });
+      setFeedbackModal({ show: true, type: 'error', message: "Failed to generate new AI workouts" });
     } finally {
       setRefreshing(false);
     }
@@ -161,34 +283,67 @@ const Workout = () => {
 
   // Toggle exercise completion
   const toggleExercise = (id) => {
-    if (isWorkoutDoneToday) return; // Prevent unchecking if workout is already done for today
+    if (isWorkoutDoneToday) return;
     setcompletedExerciseIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
   };
 
-  // Handle complete workout for today
-  const handleCompleteWorkout = async () => {
-    if (isWorkoutDoneToday || completedExerciseIds.length !== weekPlan[0]?.exercises?.length) return;
+  // Open the difficulty slider modal
+  const handleCompleteWorkout = () => {
+    const todayPlanToUse = weekPlan.find((day) => day.isToday) || weekPlan[0];
+    const targetLength = todayPlanToUse?.type === 'rest' ? 1 : (todayPlanToUse?.exercises?.length || 0);
+    if (isWorkoutDoneToday || completedExerciseIds.length !== targetLength) return;
 
+    setDifficultyModal({ show: true, rating: 5 });
+  };
+
+  // Submit the log after user sets the slider
+  const submitWorkoutLog = async () => {
     try {
+      const todayPlanToUse = weekPlan.find((day) => day.isToday) || weekPlan[0];
+      const todayDayIndex = todayPlanToUse?.dayIndex ?? 0;
+
       const logData = {
         status: "active",
-        difficultyRating: 7,
+        difficultyRating: difficultyModal.rating,
         weight: userWeight || 70,
         date: new Date(),
         exercisesLogged: completedExerciseIds
       };
 
+      // 1. Log the workout
       await api.post("/logs", logData);
-      
+
+      // 2. Send difficulty rating to scale future days
+      await api.post("/workouts/rate-difficulty", {
+        dayIndex: todayDayIndex,
+        averageDifficulty: difficultyModal.rating
+      });
+
+      // 3. Re-fetch the plan so updated sets/reps show immediately
+      const response = await api.get('/workouts/weekly-plan');
+      const receivedPlan = response.data.weeklyPlan || [];
+      const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
+      setWeekPlan(realTimePlan);
+
       // Mark as completed
       setIsWorkoutDoneToday(true);
-      setFeedbackModal({ show: true, type: 'success', message: 'Workout Logged Successfully ! Great Job.' });
-      
+      setDifficultyModal({ show: false, rating: 5 });
+      setFeedbackModal({
+        show: true,
+        type: 'success',
+        message: `Workout Logged! Difficulty recorded as ${difficultyModal.rating}/10.`
+      });
+
     } catch (error) {
       console.error("Workout log error:", error);
-      setFeedbackModal({ show: true, type: 'error', message: error?.response?.data?.message || "Failed to log workout" });
+      setDifficultyModal({ show: false, rating: 5 });
+      setFeedbackModal({
+        show: true,
+        type: 'error',
+        message: error?.response?.data?.message || "Failed to log workout"
+      });
     }
   };
 
@@ -199,13 +354,10 @@ const Workout = () => {
     setModalLoading(false);
   };
 
-  // Calculate progress for today
-  const todayProgressPercentage = weekPlan.length > 0 && weekPlan[0]
-    ? Math.round((completedExerciseIds.length / (weekPlan[0].type === 'rest' ? 1 : Math.max(weekPlan[0].exercises?.length || 1, 1))) * 100)
+  const todayPlan = weekPlan.find((day) => day.isToday) || (weekPlan.length > 0 ? weekPlan[0] : null);
+  const todayProgressPercentage = todayPlan
+    ? Math.round((completedExerciseIds.length / (todayPlan.type === 'rest' ? 1 : Math.max(todayPlan.exercises?.length || 1, 1))) * 100)
     : 0;
-
-  // Get today's plan
-  const todayPlan = weekPlan.length > 0 ? weekPlan[0] : null;
 
   if (loading) {
     return (
@@ -216,7 +368,7 @@ const Workout = () => {
       </Layout>
     );
   }
-
+console.log(todayPlan)
   return (
     <Layout>
       <style>
@@ -234,21 +386,39 @@ const Workout = () => {
             <h1 className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Weekly Workout Plan</h1>
             <div className={`text-sm mt-2 flex gap-3 flex-wrap items-center ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
               <p>Experience Level : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block ${
-                currentUserExperience === 'beginner' ? 'bg-blue-500/20 text-blue-400' :
-                currentUserExperience === 'intermediate' ? 'bg-yellow-500/20 text-yellow-400' :
+                normalizedExperience === 'beginner' ? 'bg-blue-500/20 text-blue-400' :
+                normalizedExperience === 'intermediate' ? 'bg-yellow-500/20 text-yellow-400' :
                 'bg-red-500/20 text-red-400'
               }`}>
-                {currentUserExperience || user?.experience || 'Loading...'}
+                {displayedExperience}
               </span></p>
               {userGoal && <p>Goal : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-[#00c4b4]/20 text-[#00c4b4]`}>
                 {userGoal}
               </span></p>}
-              {userInjury && <p>Injury Status : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-500`}>
-                {userInjury}
-              </span></p>}
+              {userMedicalConditions && userMedicalConditions.length > 0 && !userMedicalConditions.includes('Regular') && (
+                <p>Medical : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-500`}>
+                  {userMedicalConditions.join(', ')}
+                </span></p>
+              )}
+              {userInjuries && userInjuries.length > 0 && !userInjuries.includes('Regular') && (
+                <p>Injuries : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-red-500/20 text-red-500`}>
+                  {userInjuries.join(', ')}
+                </span></p>
+              )}
             </div>
           </div>
           <div className="flex gap-3 items-center">
+            {/*
+            <button
+              onClick={handleRefreshWorkouts}
+              disabled={refreshing}
+              className={`flex items-center justify-center gap-2 ${isDarkMode ? 'bg-[#1e293b] hover:bg-[#334155] text-white' : 'bg-slate-800 hover:bg-slate-700 text-white'} px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0 h-[48px] ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
+              <span className="hidden sm:inline">{refreshing ? 'Generating...' : 'Regenerate Plan'}</span>
+              <span className="sm:hidden">Refresh</span>
+            </button>
+            */}
             <button
               onClick={() => setShowAddForm(!showAddForm)}
               className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0 h-[48px]"
@@ -340,15 +510,20 @@ const Workout = () => {
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Today's Focus</p>
               <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {todayPlan?.title || 'Loading...'}
+                {todayPlan.focusMuscles.map((muscle) => muscle).join(', ') || 'Loading...'}
               </p>
             </div>
           </div>
         </div>
 
         {/* Injury Warning Box */}
-        <div className={`p-4 rounded-xl border flex items-center justify-center gap-3 shadow-sm ${isDarkMode ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-600'}`}>
-          <span className="font-bold text-base sm:text-lg">⚠️ Note : If you have an injury, please skip today's workout.</span>
+        <div className={`p-4 rounded-xl border flex items-center justify-center gap-3 shadow-sm ${isDarkMode ? 'bg-orange-500/10 border-orange-500/20' : 'bg-orange-50 border-orange-200'}`}>
+          <p className="text-center">
+            <span className={`font-bold text-base sm:text-lg ${isDarkMode ? 'text-red-400' : 'text-red-500'}`}>⚠️ Note : </span>
+            <span className={`font-medium text-sm sm:text-base ${isDarkMode ? 'text-orange-300' : 'text-orange-500'}`}>
+              If you have an injury, please skip workouts until your recovery period is over and you are cleared for regular activity.
+            </span>
+          </p>
         </div>
 
         {/* --- Workouts Grid --- */}
@@ -367,10 +542,10 @@ const Workout = () => {
                       {formatLocalDate(todayPlan.date)}
                     </p>
                     <h3 className={`text-2xl font-bold mt-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                      {todayPlan.title}
+                      {todayPlan.focusMuscles.map((muscle) => muscle).join(', ')} Training
                     </h3>
                   </div>
-                  <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center ${isWorkoutDoneToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}>
+                  <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center flex-shrink-0 ${isWorkoutDoneToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}>
                     <CheckCircle2 size={16} />
                   </div>
                 </div>
@@ -410,7 +585,7 @@ const Workout = () => {
                           <span>1 Full Day</span>
                         </div>
                       </div>
-                      <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${completedExerciseIds.includes(0) ? 'text-green-600 bg-green-500/10' : 'text-[#00c4b4] bg-[#00c4b4]/10'}`}>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${completedExerciseIds.includes(0) ? 'text-green-600 bg-green-500/10' : 'text-green-600 bg-green-500/10'}`}>
                         Bodyweight
                       </span>
                     </div>
@@ -443,7 +618,7 @@ const Workout = () => {
                               <span>{exercise.reps} Reps</span>
                             </div>
                           </div>
-                          <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${isDone ? 'text-green-600 bg-green-500/10' : 'text-[#00c4b4] bg-[#00c4b4]/10'}`}>
+                          <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${isDone ? 'text-green-600 bg-green-500/10' : 'text-green-600 bg-green-500/10'}`}>
                             {exercise.weight}
                           </span>
                         </div>
@@ -459,8 +634,8 @@ const Workout = () => {
                   className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md flex justify-center items-center gap-2 ${
                     isWorkoutDoneToday
                       ? 'bg-green-500 text-white cursor-default shadow-none'
-                      : completedExerciseIds.length === (todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length)
-                        ? 'bg-[#00c4b4] text-white hover:bg-[#00a89f] cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
+                      : completedExerciseIds.length === (todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length) ?
+                        'bg-green-500 text-white hover:bg-green-600 cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
                         : (isDarkMode ? 'bg-[#334155] text-slate-400 cursor-not-allowed shadow-none' : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none')
                   }`}
                 >
@@ -487,7 +662,7 @@ const Workout = () => {
               </div>
               
               <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {day.title}
+                {day.focusMuscles.map((muscle) => muscle).join(', ')} Training
               </h3>
 
               {day.type === 'rest' ? (
@@ -600,6 +775,51 @@ const Workout = () => {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Difficulty Rating Modal */}
+      {difficultyModal.show && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[70]">
+          <div className={`rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center transform transition-all ${isDarkMode ? 'bg-[#0f172a] border border-[#334155]' : 'bg-white border border-slate-100'}`}>
+            <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              How hard was today's workout?
+            </h3>
+            <p className={`text-sm mb-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              Your rating helps BeFit AI dynamically scale your future routines.
+            </p>
+            
+            <div className="w-full mb-8 px-2">
+              <input 
+                type="range" 
+                min="1" 
+                max="10" 
+                value={difficultyModal.rating} 
+                onChange={(e) => setDifficultyModal({...difficultyModal, rating: parseInt(e.target.value)})}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#00c4b4]"
+              />
+              <div className="flex justify-between mt-3 px-1 text-xs font-bold text-slate-400 uppercase">
+                <span>1 (Easy)</span>
+                <span className={`text-lg text-[#00c4b4]`}>{difficultyModal.rating}</span>
+                <span>10 (Max)</span>
+              </div>
+            </div>
+            
+            <div className="flex w-full gap-3">
+              <button
+                onClick={() => setDifficultyModal({ show: false, rating: 5 })}
+                className={`flex-1 py-3 font-bold rounded-xl transition-all active:scale-95 ${isDarkMode ? 'bg-[#334155] text-slate-300 hover:bg-[#475569]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitWorkoutLog}
+                className="flex-1 bg-[#00c4b4] hover:bg-[#00a89f] text-white py-3 font-bold rounded-xl shadow-lg shadow-[#00c4b4]/20 transition-all hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Log Workout
+              </button>
+            </div>
           </div>
         </div>
       )}

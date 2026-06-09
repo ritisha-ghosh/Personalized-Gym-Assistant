@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const User = require("../models/User");
 const UserLog = require("../models/UserLog");
 const { regenerateUserPlans } = require("../services/userPlanService");
+const WorkoutPlan = require("../models/WorkoutPlan");
 
 exports.getUserProfile = async (req, res) => {
   try {
@@ -29,7 +30,9 @@ exports.getUserProfile = async (req, res) => {
         goal: fullUser.goal,
         profileImage: fullUser.profileImage, // This will now send the Base64 string directly
         bio: fullUser.bio,
-        injury: fullUser.injury,
+        medicalConditions: fullUser.medicalConditions || ["Regular"],
+        injuries: fullUser.injuries || ["Regular"],
+        difficulty_coefficient: fullUser.difficulty_coefficient, // 🔹 ADDED FOR WEEK 9 FEEDBACK
         experience: fullUser.experience,
         activityLevel: fullUser.activityLevel,
         dietType: fullUser.dietType,
@@ -67,6 +70,8 @@ exports.updateUserProfile = async (req, res) => {
       experience: user.experience,
       activityLevel: user.activityLevel,
       dietType: user.dietType,
+      medicalConditions: user.medicalConditions,
+      injuries: user.injuries,
       noOnion: user.noOnion,
       noGarlic: user.noGarlic,
       glutenFree: user.glutenFree,
@@ -77,8 +82,8 @@ exports.updateUserProfile = async (req, res) => {
 
     const oldWeight = user.weight;
 
-    // Update text fields
-    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'activityLevel', 'goal', 'dietType', 'bio', 'injury', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
+    // Update regular text fields
+    const fieldsToUpdate = ['name', 'height', 'weight', 'age', 'gender', 'experience', 'activityLevel', 'goal', 'dietType', 'bio', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
     fieldsToUpdate.forEach(field => {
       if (req.body[field] !== undefined) {
         // Convert string representations to boolean for checkboxes
@@ -89,6 +94,23 @@ exports.updateUserProfile = async (req, res) => {
         }
       }
     });
+
+    // Handle medicalConditions and injuries arrays
+    if (req.body.medicalConditions !== undefined) {
+      if (Array.isArray(req.body.medicalConditions)) {
+        user.medicalConditions = req.body.medicalConditions;
+      } else if (typeof req.body.medicalConditions === 'string') {
+        user.medicalConditions = [req.body.medicalConditions];
+      }
+    }
+
+    if (req.body.injuries !== undefined) {
+      if (Array.isArray(req.body.injuries)) {
+        user.injuries = req.body.injuries;
+      } else if (typeof req.body.injuries === 'string') {
+        user.injuries = [req.body.injuries];
+      }
+    }
 
     if (req.body.weight !== undefined && Number(req.body.weight) !== Number(oldWeight)) {
       try {
@@ -112,7 +134,8 @@ exports.updateUserProfile = async (req, res) => {
 
     const updatedUser = await user.save();
 
-    const planTriggerFields = ['height', 'weight', 'age', 'gender', 'goal', 'experience', 'activityLevel', 'dietType', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
+    // Trigger plan regeneration if key fields change
+    const planTriggerFields = ['height', 'weight', 'age', 'gender', 'goal', 'experience', 'activityLevel', 'dietType', 'medicalConditions', 'injuries', 'noOnion', 'noGarlic', 'glutenFree', 'lactoseFree', 'nutAllergy', 'sugarFree'];
     const shouldRefreshPlans = planTriggerFields.some(field => String(oldValues[field] || '') !== String(updatedUser[field] || ''));
     if (shouldRefreshPlans) {
       try {
@@ -138,7 +161,9 @@ exports.updateUserProfile = async (req, res) => {
         activityLevel: updatedUser.activityLevel,
         dietType: updatedUser.dietType,
         bio: updatedUser.bio,
-        injury: updatedUser.injury,
+        medicalConditions: updatedUser.medicalConditions || ["Regular"],
+        injuries: updatedUser.injuries || ["Regular"],
+        difficulty_coefficient: updatedUser.difficulty_coefficient,
         noOnion: updatedUser.noOnion,
         noGarlic: updatedUser.noGarlic,
         glutenFree: updatedUser.glutenFree,
@@ -240,5 +265,62 @@ exports.deleteAccount = async (req, res) => {
   } catch (error) {
     console.error("Delete account error:", error);
     res.status(500).json({ message: "Server error while deleting account" });
+  }
+};
+
+exports.updateInjuryStatus = async (req, res) => {
+  try {
+    const { type, severity, phase } = req.body;
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    // 1. Update injuryStatus
+    user.injuryStatus = {
+      type,
+      severity,
+      phase
+    };
+
+    // Optional: keep injuries history updated
+    if (
+      type &&
+      type !== "Regular" &&
+      !user.injuries.includes(type)
+    ) {
+      user.injuries.push(type);
+    }
+console.log("Saving:", user.injuryStatus);
+    await user.save();
+console.log("Saved:", user.injuryStatus);
+    // 2. Archive active workout plans
+    await WorkoutPlan.updateMany(
+      {
+        user: user._id,
+        status: "active"
+      },
+      {
+        status: "archived"
+      }
+    );
+
+    // 3. Trigger full regeneration
+    await regenerateUserPlans(user);
+
+    res.status(200).json({
+      message: "Injury state updated successfully",
+      injuryStatus: user.injuryStatus
+    });
+
+  } catch (error) {
+    console.error("Update injury status error:", error);
+    res.status(500).json({
+      message: "Server error while updating injury status"
+    });
   }
 };

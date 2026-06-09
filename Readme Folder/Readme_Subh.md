@@ -186,6 +186,96 @@
 ## WEEEK-8
 Completed final ETL pipeline by cleaning the external dataset, mapping exercises to standardized muscle tags, and attaching GIF URLs for animated exercise demonstrations.
 
+# Week 9 – Backend Intelligence Milestones ✅
+
+## 1. Zero-Interference Autonomous Feedback Engine ✔
+**Implemented:**
+- `UserAdaptiveState`
+- `adaptiveEngine.js`
+- Automatic coefficient updates
+- Autonomous difficulty adaptation
+- Fatigue tracking
+- Compliance tracking
+- Injury-risk adaptation
+
+**Flow:**
+User logs feedback  
+→ Adaptive engine updates coefficients  
+→ Future plans automatically evolve
+
+---
+
+## 2. State-Driven Medical Engine ✔
+**Implemented:**
+- `medicalState`
+- Injury-aware TDEE reduction
+- Rehabilitation phases
+- Adaptive metabolic logic
+- Recovery-aware workload reduction
+
+**Behavior:**
+| State              | Behavior            |
+|--------------------|---------------------|
+| Healthy            | Normal              |
+| Acute injury       | Reduced workload    |
+| Returning from injury | Gradual recovery |
+
+---
+
+## 3. ETL & Parameter Mapping ✔
+**Integrated:**
+- Injury
+- Rehab phase
+- Adaptive parameters
+- Fatigue-aware logic
+- Exhausted muscle detection
+
+**Into:**
+- Backend
+- ML payload
+- Recommendation engine
+
+---
+
+## 4. Persistent Adaptive Personalization ✔
+**Solved:**
+- Plans changing every login
+- Meals regenerating randomly
+- Unstable workout plans
+
+**Now:**
+- Plans persist
+- Regenerate only when profile changes
+- Personalization is stable
+
+---
+
+## 5. Autonomous Regeneration Logic ✔
+**Regeneration triggers only if:**
+- Goal changes
+- Injury changes
+- Diet changes
+- Medical state changes
+
+---
+
+## 6. Adaptive Workout Scaling ✔
+**Connected:**
+- `difficultyCoefficient`
+- Volume scaling
+- Reps scaling
+- Rest adjustments
+
+**To:**
+- Real workout generation
+
+---
+
+### ✅ Week 9 Summary
+Core backend intelligence requirements are **fully completed**.  
+Your system now delivers **autonomous, adaptive, and persistent personalization** with medical awareness and intelligent scaling.
+
+
 # ##
 ## 📊 Task Status Summary
 
@@ -202,6 +292,17 @@ Completed final ETL pipeline by cleaning the external dataset, mapping exercises
 | Conduct "Stress Tests" | ✅ Completed |
 |Tagged all exercises with muscle group metadata (e.g., chest, triceps, quads) to enable future Muscle Recovery Tracker logic for intelligent workout filtering.|  ✅ Completed |
 | Final ETL for external dataset (Muscle Tags + GIF URLs) | ✅ Completed |
+| Established backend ↔ ML connection and integrated dynamic frontend data (removed static placeholders) | ✅ Completed |
+|✅ Persistent Workout Plans|
+|✅ Persistent Diet Plans|
+|✅ ML-based generation|
+|✅ Adaptive feedback engine|
+|✅ Medical-state engine|
+|✅ Dynamic TDEE adjustment|
+|✅ Injury-aware logic|
+|✅ Regeneration logic|
+|✅ Autonomous difficulty adaptation|
+
 
 ---
 
