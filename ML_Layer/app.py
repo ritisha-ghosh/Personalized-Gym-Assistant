@@ -66,23 +66,25 @@ def ensure_initialized():
 # =================================================
 
 WORKOUT_PROTOCOLS = {
-    ("asthma", "bronchitis", "sleep apnea"): "Respiratory Protocol: High-intensity cardio replaced with LISS (Low-Intensity Steady State) to manage oxygen thresholds.",
-    ("knee", "acl", "patella", "meniscus", "leg fracture"): "Lower Body Rehab Protocol: Axial loading (Squats) replaced with Glute Bridges, Iso-Holds, and non-impact mobility.",
-    ("shoulder", "rotator cuff", "frozen joint", "clavicle"): "Shoulder Rehab Protocol: Overhead pressing restricted. Focus shifted to resistance band therapy and internal/external rotations.",
-    ("back", "spine", "disc", "sciatica", "tailbone", "cervical"): "Spinal Protocol: Heavy deadlifts and spinal loading removed. Core stabilization and supported machine equivalents prioritized.",
-    ("hypertension", "high bp", "blood pressure"): "Blood Pressure Protocol: Heavy isometric holds and Valsalva maneuvers removed to prevent dangerous BP spikes.",
-    ("diabetes", "pro diabetes"): "Diabetic Training Protocol: Prolonged intense endurance blocked to prevent hypoglycemia. Moderate hypertrophy focus.",
-    ("osteoporosis", "arthritis", "joint pain"): "Joint Preservation Protocol: Plyometrics and heavy impact jumping replaced with low-impact time-under-tension movements.",
-    ("wrist", "elbow", "carpal tunnel", "hand"): "Upper Extremity Protocol: Heavy gripping and barbell presses modified to neutral-grip dumbbell and machine work.",
-    ("depression", "anxiety", "stress", "insomnia", "fatigue", "low stamina"): "CNS Recovery Protocol: Volume reduced by 15%. Focus on endorphin-release pacing rather than central nervous system exhaustion."
+    ("asthma", "bronchitis", "sleep apnea", "copd", "breathing"): "Respiratory Protocol: High-intensity cardio replaced with LISS (Low-Intensity Steady State) to manage oxygen thresholds.",
+    ("knee", "acl", "patella", "meniscus", "leg", "ankle", "foot", "calf", "hamstring", "quad", "hip", "achilles", "shin", "thigh"): "Lower Body Rehab Protocol: Axial loading (Squats/Impact) replaced with Glute Bridges, Iso-Holds, and non-impact mobility.",
+    ("shoulder", "rotator cuff", "frozen joint", "clavicle", "deltoid"): "Shoulder Rehab Protocol: Overhead pressing restricted. Focus shifted to resistance band therapy and internal/external rotations.",
+    ("back", "spine", "disc", "sciatica", "tailbone", "cervical", "lumbar", "neck", "whiplash"): "Spinal Protocol: Heavy deadlifts and spinal loading removed. Core stabilization and supported machine equivalents prioritized.",
+    ("hypertension", "high bp", "blood pressure", "heart"): "Blood Pressure Protocol: Heavy isometric holds and Valsalva maneuvers removed to prevent dangerous BP spikes.",
+    ("diabetes", "pro diabetes", "insulin"): "Diabetic Training Protocol: Prolonged intense endurance blocked to prevent hypoglycemia. Moderate hypertrophy focus.",
+    ("osteoporosis", "arthritis", "joint pain", "rheumatoid"): "Joint Preservation Protocol: Plyometrics and heavy impact jumping replaced with low-impact time-under-tension movements.",
+    ("wrist", "hand", "carpal", "finger", "thumb", "metacarpal"): "Grip Zero Protocol: All pulling, holding, and palm-pressure pushing movements removed. Shifted to forearm-pad machines and core.",
+    ("elbow", "tennis elbow", "bicep", "tricep", "arm"): "Arm/Elbow Protocol: Heavy gripping and barbell presses modified to neutral-grip dumbbell and strict machine work.",
+    ("hernia", "groin", "pelvic", "abdomen", "abdominal"): "Core Stability Protocol: Heavy compound bracing, deep squats, and intense direct core rollouts restricted to prevent tearing.",
+    ("depression", "anxiety", "stress", "insomnia", "fatigue", "low stamina", "anemia"): "CNS Recovery Protocol: Volume reduced by 15%. Focus on endorphin-release pacing rather than central nervous system exhaustion."
 }
 
 DIET_PROTOCOLS = {
-    ("diabetes", "pro diabetes", "pcos", "pcod"): "Metabolic Protocol: Strict Low-Glycemic Index carbohydrates. Added sugars and refined carbs entirely restricted to control insulin spikes.",
-    ("hypertension", "high bp", "high cholesterol", "fatty liver", "high triglycerides"): "Cardiovascular Protocol: Sodium strictly limited to <1500mg/day. Saturated fats replaced with Omega-3s and high-fiber grains.",
-    ("gerd", "acidity", "ulcer", "ibs", "piles", "liver disorder"): "Gastrointestinal Protocol: Acidic, highly spiced, and heavily processed foods removed. Easily digestible proteins prioritized.",
-    ("osteoporosis", "fracture", "bone", "vitamin d deficiency"): "Bone Synthesis Protocol: Dietary calcium and Vitamin D baselines increased by 30% for active recovery.",
-    ("anemia", "muscle weakness", "low stamina"): "Iron & Energy Protocol: Iron-dense greens and lean red meats (if non-veg) prioritized alongside Vitamin C for absorption.",
+    ("diabetes", "pro diabetes", "pcos", "pcod", "insulin"): "Metabolic Protocol: Strict Low-Glycemic Index carbohydrates. Added sugars and refined carbs entirely restricted to control insulin spikes.",
+    ("hypertension", "high bp", "high cholesterol", "fatty liver", "high triglycerides", "heart"): "Cardiovascular Protocol: Sodium strictly limited to <1500mg/day. Saturated fats replaced with Omega-3s and high-fiber grains.",
+    ("gerd", "acidity", "ulcer", "ibs", "piles", "liver disorder", "gastric"): "Gastrointestinal Protocol: Acidic, highly spiced, and heavily processed foods removed. Easily digestible proteins prioritized.",
+    ("osteoporosis", "fracture", "bone", "vitamin d deficiency", "calcium"): "Bone Synthesis Protocol: Dietary calcium and Vitamin D baselines increased by 30% for active recovery.",
+    ("anemia", "muscle weakness", "low stamina", "fatigue"): "Iron & Energy Protocol: Iron-dense greens and lean red meats (if non-veg) prioritized alongside Vitamin C for absorption.",
     ("thyroid", "hypothyroidism"): "Thyroid Protocol: Raw goitrogenic vegetables (cabbage, broccoli) and unfermented soy restricted."
 }
 
@@ -163,8 +165,23 @@ def recommend_plan():
         s = daily_string
         health_state = f"{disease} {injury}"
 
-        # ── UPPER BODY / SHOULDER / WRIST / ELBOW INJURIES ──────────────────
-        if any(k in health_state for k in ["shoulder", "arm", "wrist", "elbow", "rotator", "clavicle", "hand", "bicep", "tricep", "carpal"]):
+        # ── HAND / WRIST / FINGERS (NO GRIP OR PALM PRESSURE ALLOWED) ───────
+        if any(k in health_state for k in ["wrist", "hand", "carpal", "finger", "thumb", "metacarpal"]):
+            s = re.sub(r'(?i)(bench|shoulder|dumbbell|arnold|military|chest|overhead)\s+press', 'Pec Deck Machine (Forearms)', s)
+            s = re.sub(r'(?i)(decline|incline|diamond|wall)?\s*push[\-\s]?ups?', 'Lying Crunches', s)
+            s = re.sub(r'(?i)(lat\s+pulldown|pull[\-\s]?ups?|chin[\-\s]?ups?)', 'Lower Back Extensions', s)
+            s = re.sub(r'(?i)(barbell|dumbbell|cable|t[\-\s]?bar|machine)\s+rows?', 'Superman Holds', s)
+            s = re.sub(r'(?i)face\s+pulls?', 'Superman Holds', s)
+            s = re.sub(r'(?i)(bicep\s+|hammer\s+|preacher\s+|concentration\s+|cable\s+)?curls?', 'Core: V-Ups', s)
+            s = re.sub(r'(?i)(tricep\s+)?pushdowns?', 'Core: Russian Twists', s)
+            s = re.sub(r'(?i)(ab\s+wheel|rollout)', 'Lying Leg Raises', s)
+            s = re.sub(r'(?i)planks?', 'Hollow Body Hold', s)
+            s = re.sub(r'(?i)mountain\s+climbers?', 'Bicycle Crunches', s)
+            s = re.sub(r'(?i)(deadlifts?|rdl|romanian\s+deadlifts?)', 'Good Mornings (Bodyweight)', s)
+            s = re.sub(r'(?i)\bdips?\b', 'Lying Leg Raises', s)
+
+        # ── SHOULDER / ELBOW / ARM (GRIP OK, OVERHEAD/HEAVY PUSH BLOCKED) ───
+        elif any(k in health_state for k in ["shoulder", "arm", "elbow", "rotator", "clavicle", "bicep", "tricep", "deltoid", "tennis elbow"]):
             s = re.sub(r'(?i)close[\-\s]grip bench press', 'Machine Chest Press', s)
             s = re.sub(r'(?i)barbell bench press', 'Machine Chest Press', s)
             s = re.sub(r'(?i)incline dumbbell press', 'Machine Chest Press', s)
@@ -197,8 +214,20 @@ def recommend_plan():
             s = re.sub(r'(?i)push[\-\s]?ups?', '__WALL_PU__', s)
             s = s.replace('__WALL_PU__', 'Wall Push Ups')
 
-        # ── LOWER BODY / KNEE / ACL / LEG INJURIES ──────────────────────────
-        if any(k in health_state for k in ["knee", "acl", "leg", "pelvic", "meniscus", "ankle", "calf", "hip", "quad", "hamstring"]):
+        # ── SPINAL / BACK / NECK INJURIES ───────────────────────────────────
+        if any(k in health_state for k in ["back", "spine", "cervical", "sciatica", "disc", "tailbone", "lumbar", "neck", "whiplash"]):
+            s = re.sub(r'(?i)barbell squats?', 'Leg Press', s)
+            s = re.sub(r'(?i)romanian deadlifts?', 'Lying Leg Curls', s)
+            s = re.sub(r'(?i)sumo deadlifts?', 'Lying Leg Curls', s)
+            s = re.sub(r'(?i)deadlifts?', 'Lying Leg Curls', s)
+            s = re.sub(r'(?i)bent[\-\s]over barbell row', 'Chest-Supported Row', s)
+            s = re.sub(r'(?i)t[\-\s]bar row', 'Chest-Supported Row', s)
+            s = re.sub(r'(?i)burpees?', 'Incline Push Ups', s)
+            s = re.sub(r'(?i)overhead shoulder press', 'Seated Dumbbell Press (Back Supported)', s)
+            s = re.sub(r'(?i)military press', 'Seated Dumbbell Press (Back Supported)', s)
+
+        # ── LOWER BODY / KNEE / ACL / HIP / ANKLE / FOOT ────────────────────
+        if any(k in health_state for k in ["knee", "acl", "leg", "pelvic", "meniscus", "ankle", "calf", "hip", "quad", "hamstring", "foot", "achilles", "shin", "toe"]):
             s = re.sub(r'(?i)bulgarian split squats?', 'Seated Leg Extension', s)
             s = re.sub(r'(?i)goblet squats?', 'Seated Leg Extension', s)
             s = re.sub(r'(?i)hack squats?', 'Seated Leg Extension', s)
@@ -221,18 +250,16 @@ def recommend_plan():
             s = re.sub(r'(?i)jump rope\s*\d*\w*', 'Seated Calf Raises', s)
             s = re.sub(r'(?i)skipping', 'Seated Calf Raises', s)
 
-        # ── SPINAL / BACK INJURIES ──────────────────────────────────────────
-        if any(k in health_state for k in ["back", "spine", "cervical", "sciatica", "disc", "tailbone"]):
-            s = re.sub(r'(?i)barbell squats?', 'Leg Press', s)
-            s = re.sub(r'(?i)romanian deadlifts?', 'Lying Leg Curls', s)
-            s = re.sub(r'(?i)sumo deadlifts?', 'Lying Leg Curls', s)
-            s = re.sub(r'(?i)deadlifts?', 'Lying Leg Curls', s)
-            s = re.sub(r'(?i)bent[\-\s]over barbell row', 'Chest-Supported Row', s)
-            s = re.sub(r'(?i)t[\-\s]bar row', 'Chest-Supported Row', s)
-            s = re.sub(r'(?i)burpees?', 'Incline Push Ups', s)
+        # ── CORE / HERNIA / ABDOMINAL TEAR ──────────────────────────────────
+        if any(k in health_state for k in ["hernia", "groin", "abdomen", "abdominal"]):
+            s = re.sub(r'(?i)ab wheel rollout', 'Bird-Dog', s)
+            s = re.sub(r'(?i)crunches', 'Gentle Planks', s)
+            s = re.sub(r'(?i)sit[\-\s]?ups?', 'Gentle Planks', s)
+            s = re.sub(r'(?i)barbell squats?', 'Machine Leg Press', s)
+            s = re.sub(r'(?i)deadlifts?', 'Seated Hamstring Curls', s)
 
         # ── CARDIOVASCULAR / BP / RESPIRATORY ───────────────────────────────
-        if any(k in health_state for k in ["bp", "hypertension", "heart", "asthma", "fatigue", "anemia", "bronchitis"]):
+        if any(k in health_state for k in ["bp", "hypertension", "heart", "asthma", "fatigue", "anemia", "bronchitis", "copd"]):
             s = re.sub(r'(?i)weighted planks?', 'Standard Plank', s)
             s = re.sub(r'(?i)burpees?', 'Brisk Walking', s)
             s = re.sub(r'(?i)jump rope\s*\d*\w*', 'Stationary Cycling', s)
