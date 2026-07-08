@@ -1,84 +1,105 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from "react";
+import { useSearchParams } from "react-router-dom";
 import Layout from "../componenets/layout/Layout";
-import { Calendar, Clock, Dumbbell, CheckCircle2, X, Eye, RefreshCw, Plus, Trash2 } from 'lucide-react';
-import { AuthContext } from '../context/AuthContext';
-import api from '../utils/api';
-import { DarkModeContext } from '../context/DarkModeContext';
+import {
+  Calendar,
+  Clock,
+  Dumbbell,
+  CheckCircle2,
+  X,
+  Eye,
+  RefreshCw,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import { AuthContext } from "../context/AuthContext";
+import api from "../utils/api";
+import { DarkModeContext } from "../context/DarkModeContext";
 
 // Helper to process workout plan and align the backend weekly plan so today is the first shown card
-// This function is designed to be robust. It aligns the 7-day workout cycle from the backend
-// with the current date, and then generates a fresh, correct sequence of dates for the week.
-// This prevents any issues with incorrect dates or timezone problems from the backend.
 const processAndAlignWorkoutPlan = (plan) => {
   if (!plan || !Array.isArray(plan) || plan.length === 0) return [];
 
   const toYYYYMMDD = (dateObj) => {
     const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObj.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
-  // Find the first valid date from the backend plan to use as an anchor
-  const planStartDateStr = plan.map(p => p.date || p.startDate).find(d => d);
+  const planStartDateStr = plan
+    .map((p) => p.date || p.startDate)
+    .find((d) => d);
 
-  // If no date is provided by the backend, we can't align based on a cycle.
-  // Fallback: Assume the plan starts today and is in order for the next 7 days.
   if (!planStartDateStr) {
     const today = new Date();
-    return plan.slice(0, 7).map((day, index) => { // Use slice to ensure we don't go over 7
+    return plan.slice(0, 7).map((day, index) => {
       const currentDate = new Date(today);
       currentDate.setDate(today.getDate() + index);
       const dateKey = toYYYYMMDD(currentDate);
 
-      const isRest = day.type === 'rest' || (day.title && day.title.toLowerCase().includes('rest'));
-      const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+      // Smarter Rest Day Detection
+      const isRest =
+        day.type === "rest" ||
+        (day.title && day.title.toLowerCase().includes("rest")) ||
+        (day.exercises?.length > 0 &&
+          day.exercises[0].name.toLowerCase().includes("rest"));
+
+      const dayName = currentDate.toLocaleDateString("en-US", {
+        weekday: "long",
+      });
 
       return {
         ...day,
         date: dateKey,
         isToday: index === 0,
-        dayName: isRest ? 'Rest Day' : dayName,
-        title: day.title || (isRest ? 'Rest & Recovery' : `${dayName} Training`),
+        isRestDay: isRest,
+        dayName: isRest ? "Rest Day" : dayName,
+        title:
+          day.title || (isRest ? "Rest & Recovery" : `${dayName} Training`),
       };
     });
   }
 
-  // We have an anchor date. Let's align the plan cycle to today.
-  const planStartDate = new Date(planStartDateStr.split('T')[0] + 'T00:00:00'); // Parse as local time
+  const planStartDate = new Date(planStartDateStr.split("T")[0] + "T00:00:00");
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Calculate the difference in days between today and the plan's start date
   const msPerDay = 1000 * 60 * 60 * 24;
-  const dayDifference = Math.round((today.getTime() - planStartDate.getTime()) / msPerDay);
+  const dayDifference = Math.round(
+    (today.getTime() - planStartDate.getTime()) / msPerDay,
+  );
+  const todayIndexInPlan = ((dayDifference % 7) + 7) % 7;
 
-  // The index of today's workout in the original plan array, using modulo for cyclic plans
-  const todayIndexInPlan = (dayDifference % 7 + 7) % 7; // Handles negative results
-
-  // Rotate the plan so that today's workout is at the beginning of the array
   const rotatedPlan = [
     ...plan.slice(todayIndexInPlan),
-    ...plan.slice(0, todayIndexInPlan)
+    ...plan.slice(0, todayIndexInPlan),
   ];
 
-  // Now, map over the correctly ordered plan and assign fresh, guaranteed-correct dates
   return rotatedPlan.slice(0, 7).map((day, index) => {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
     currentDate.setDate(currentDate.getDate() + index);
 
     const dateKey = toYYYYMMDD(currentDate);
-    const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
-    const isRest = day.type === 'rest' || (day.title && day.title.toLowerCase().includes('rest'));
+    const dayName = currentDate.toLocaleDateString("en-US", {
+      weekday: "long",
+    });
+
+    // Smarter Rest Day Detection
+    const isRest =
+      day.type === "rest" ||
+      (day.title && day.title.toLowerCase().includes("rest")) ||
+      (day.exercises?.length > 0 &&
+        day.exercises[0].name.toLowerCase().includes("rest"));
 
     return {
       ...day,
-      date: dateKey, // Overwrite with the correct, generated date
+      date: dateKey,
       isToday: index === 0,
-      dayName: isRest ? 'Rest Day' : dayName,
-      title: day.title || (isRest ? 'Rest & Recovery' : `${dayName} Training`),
+      isRestDay: isRest,
+      dayName: isRest ? "Rest Day" : dayName,
+      title: day.title || (isRest ? "Rest & Recovery" : `${dayName} Training`),
     };
   });
 };
@@ -88,7 +109,7 @@ const Workout = () => {
   const searchQuery = searchParams.get("q") || "";
   const { user } = useContext(AuthContext);
   const { isDarkMode } = useContext(DarkModeContext);
-  
+
   const [weekPlan, setWeekPlan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [completedExerciseIds, setcompletedExerciseIds] = useState([]);
@@ -102,20 +123,27 @@ const Workout = () => {
   const [userInjuries, setUserInjuries] = useState([]);
   const [userMedicalConditions, setUserMedicalConditions] = useState([]);
   const [userWeight, setUserWeight] = useState(null);
-  
+
   const [notes, setNotes] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [noteText, setNoteText] = useState("");
-  const [feedbackModal, setFeedbackModal] = useState({ show: false, type: '', message: '' });
-  const [difficultyModal, setDifficultyModal] = useState({ show: false, rating: 5 });
-//console.log(weekPlan)
+  const [feedbackModal, setFeedbackModal] = useState({
+    show: false,
+    type: "",
+    message: "",
+  });
+  const [difficultyModal, setDifficultyModal] = useState({
+    show: false,
+    rating: 5,
+  });
+
   const formatLocalDate = (dateStr) => {
-    if (!dateStr) return '';
-    const [year, month, day] = dateStr.split('-');
-    return new Date(year, month - 1, day).toLocaleDateString('en-US', {
-       month: 'short',
-       day: 'numeric',
-       year: 'numeric'
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
+    return new Date(year, month - 1, day).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -125,42 +153,52 @@ const Workout = () => {
   };
 
   const capitalizeExperience = (experience) => {
-    if (!experience) return 'Loading...';
+    if (!experience) return "Loading...";
     const str = experience.toString();
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
-  const normalizedExperience = normalizeExperience(currentUserExperience || user?.experience);
-  const displayedExperience = capitalizeExperience(currentUserExperience || user?.experience);
+  const normalizedExperience = normalizeExperience(
+    currentUserExperience || user?.experience,
+  );
+  const displayedExperience = capitalizeExperience(
+    currentUserExperience || user?.experience,
+  );
 
-  // Fetch weekly plan from backend - REFETCH when user.experience changes
   useEffect(() => {
     const fetchWeeklyPlan = async () => {
       try {
         setLoading(true);
-        console.log(`🔄 Fetching workout plan for user: ${user?.name}, Experience: ${user?.experience}`);
-        
-        const response = await api.get('/workouts/weekly-plan');
-        console.log(`✅ Received workout plan - Experience used: ${response.data.user?.experienceLevel}`);
-        
-        const receivedPlan = response.data.weeklyPlan || response.data.weekPlan || [];
-        
+        const response = await api.get("/workouts/weekly-plan");
+        const receivedPlan =
+          response.data.weeklyPlan || response.data.weekPlan || [];
+
         const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
         setWeekPlan(realTimePlan);
-        setCurrentUserExperience(normalizeExperience(response.data.user?.experienceLevel || response.data.user?.experience));
+        setCurrentUserExperience(
+          normalizeExperience(
+            response.data.user?.experienceLevel ||
+              response.data.user?.experience,
+          ),
+        );
         setUserGoal(response.data.user?.goal);
         setUserInjuries(response.data.user?.injuries || []);
         setUserMedicalConditions(response.data.user?.medicalConditions || []);
         setUserWeight(response.data.user?.weight);
 
-        const currentPlan = realTimePlan.find((day) => day.isToday) || realTimePlan[0];
+        const currentPlan =
+          realTimePlan.find((day) => day.isToday) || realTimePlan[0];
         if (currentPlan?.completed) {
           setIsWorkoutDoneToday(true);
-          setcompletedExerciseIds(currentPlan.exercises.map((_, idx) => idx));
+          setcompletedExerciseIds(
+            currentPlan.exercises?.map((_, idx) => idx) || [0],
+          );
         } else if (currentPlan) {
           setIsWorkoutDoneToday(false);
           if (user?.id) {
-            const saved = localStorage.getItem(`workout_completed_${user.id}_${currentPlan.date}`);
+            const saved = localStorage.getItem(
+              `workout_completed_${user.id}_${currentPlan.date}`,
+            );
             if (saved) {
               setcompletedExerciseIds(JSON.parse(saved));
             } else {
@@ -171,9 +209,8 @@ const Workout = () => {
           }
         }
 
-        // Fetch custom notes
-        const notesResponse = await api.get('/workouts/notes');
-        if (notesResponse.data.status === 'success') {
+        const notesResponse = await api.get("/workouts/notes");
+        if (notesResponse.data.status === "success") {
           setNotes(notesResponse.data.notes);
         }
       } catch (error) {
@@ -188,54 +225,57 @@ const Workout = () => {
     }
   }, [user?.id, user?.experience]);
 
-  // Sync experience level from AuthContext whenever user data changes
   useEffect(() => {
     if (user?.experience) {
       const normalized = normalizeExperience(user.experience);
       setCurrentUserExperience(normalized);
-      console.log(`🔄 Experience level updated from AuthContext: ${user.experience} -> normalized: ${normalized}`);
     }
   }, [user?.experience]);
 
-  // Save checkbox state to localStorage
   useEffect(() => {
     if (weekPlan.length > 0 && user?.id && !isWorkoutDoneToday) {
-       const currentPlan = weekPlan.find((day) => day.isToday) || weekPlan[0];
-       if (currentPlan) {
-         localStorage.setItem(`workout_completed_${user.id}_${currentPlan.date}`, JSON.stringify(completedExerciseIds));
-       }
+      const currentPlan = weekPlan.find((day) => day.isToday) || weekPlan[0];
+      if (currentPlan) {
+        localStorage.setItem(
+          `workout_completed_${user.id}_${currentPlan.date}`,
+          JSON.stringify(completedExerciseIds),
+        );
+      }
     }
   }, [completedExerciseIds, weekPlan, user?.id, isWorkoutDoneToday]);
 
-  // Manual refresh function (Force generation via POST, then GET UI data)
   const handleRefreshWorkouts = async () => {
     try {
       setRefreshing(true);
-      console.log(`🔃 Manual AI generation triggered for user: ${user?.name}`);
-      
-      // 1. Force the backend AI to generate a brand new plan
-      await api.post('/workouts', {});
-
-      // 2. Fetch the newly generated plan with full UI formatting
-      const response = await api.get('/workouts/weekly-plan');
-      console.log(`✅ Refreshed workout plan - Experience used: ${response.data.user?.experienceLevel}`);
-      
-      const receivedPlan = response.data.weeklyPlan || response.data.workoutPlan?.weeklyPlan || [];
+      await api.post("/workouts", {});
+      const response = await api.get("/workouts/weekly-plan");
+      const receivedPlan =
+        response.data.weeklyPlan || response.data.workoutPlan?.weeklyPlan || [];
       const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
+
       setWeekPlan(realTimePlan);
-      setCurrentUserExperience(normalizeExperience(response.data.user?.experienceLevel || response.data.user?.experience));
+      setCurrentUserExperience(
+        normalizeExperience(
+          response.data.user?.experienceLevel || response.data.user?.experience,
+        ),
+      );
       setUserInjuries(response.data.user?.injuries || []);
       setUserMedicalConditions(response.data.user?.medicalConditions || []);
       setUserWeight(response.data.user?.weight);
 
-      const currentPlan = realTimePlan.find((day) => day.isToday) || realTimePlan[0];
+      const currentPlan =
+        realTimePlan.find((day) => day.isToday) || realTimePlan[0];
       if (currentPlan?.completed) {
         setIsWorkoutDoneToday(true);
-        setcompletedExerciseIds(currentPlan.exercises.map((_, idx) => idx));
+        setcompletedExerciseIds(
+          currentPlan.exercises?.map((_, idx) => idx) || [0],
+        );
       } else if (currentPlan) {
         setIsWorkoutDoneToday(false);
         if (user?.id) {
-          const saved = localStorage.getItem(`workout_completed_${user.id}_${currentPlan.date}`);
+          const saved = localStorage.getItem(
+            `workout_completed_${user.id}_${currentPlan.date}`,
+          );
           if (saved) {
             setcompletedExerciseIds(JSON.parse(saved));
           } else {
@@ -245,11 +285,19 @@ const Workout = () => {
           setcompletedExerciseIds([]);
         }
       }
-      
-      setFeedbackModal({ show: true, type: 'success', message: `AI Workouts generated successfully! Level: ${response.data.user?.experienceLevel}` });
+
+      setFeedbackModal({
+        show: true,
+        type: "success",
+        message: `AI Workouts generated successfully! Level: ${response.data.user?.experienceLevel}`,
+      });
     } catch (error) {
       console.error("❌ Refresh failed:", error);
-      setFeedbackModal({ show: true, type: 'error', message: "Failed to generate new AI workouts" });
+      setFeedbackModal({
+        show: true,
+        type: "error",
+        message: "Failed to generate new AI workouts",
+      });
     } finally {
       setRefreshing(false);
     }
@@ -258,11 +306,14 @@ const Workout = () => {
   const handleAddNote = async () => {
     if (noteText.trim() && user?.id) {
       try {
-        const response = await api.post('/workouts/notes', {
-          note: noteText.trim()
+        const response = await api.post("/workouts/notes", {
+          note: noteText.trim(),
         });
         if (response.data.log) {
-          setNotes([{ _id: response.data.log._id, text: response.data.log.notes }, ...notes]);
+          setNotes([
+            { _id: response.data.log._id, text: response.data.log.notes },
+            ...notes,
+          ]);
           setNoteText("");
           setShowAddForm(false);
         }
@@ -275,30 +326,30 @@ const Workout = () => {
   const handleDeleteNote = async (noteId) => {
     try {
       await api.delete(`/workouts/notes/${noteId}`);
-      setNotes(notes.filter(n => n._id !== noteId));
+      setNotes(notes.filter((n) => n._id !== noteId));
     } catch (err) {
       console.error("Failed to delete note", err);
     }
   };
 
-  // Toggle exercise completion
   const toggleExercise = (id) => {
     if (isWorkoutDoneToday) return;
-    setcompletedExerciseIds(prev =>
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    setcompletedExerciseIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   };
 
-  // Open the difficulty slider modal
   const handleCompleteWorkout = () => {
     const todayPlanToUse = weekPlan.find((day) => day.isToday) || weekPlan[0];
-    const targetLength = todayPlanToUse?.type === 'rest' ? 1 : (todayPlanToUse?.exercises?.length || 0);
-    if (isWorkoutDoneToday || completedExerciseIds.length !== targetLength) return;
+    const targetLength = todayPlanToUse?.isRestDay
+      ? 1
+      : todayPlanToUse?.exercises?.length || 0;
+    if (isWorkoutDoneToday || completedExerciseIds.length !== targetLength)
+      return;
 
     setDifficultyModal({ show: true, rating: 5 });
   };
 
-  // Submit the log after user sets the slider
   const submitWorkoutLog = async () => {
     try {
       const todayPlanToUse = weekPlan.find((day) => day.isToday) || weekPlan[0];
@@ -309,54 +360,60 @@ const Workout = () => {
         difficultyRating: difficultyModal.rating,
         weight: userWeight || 70,
         date: new Date(),
-        exercisesLogged: completedExerciseIds
+        exercisesLogged: completedExerciseIds,
       };
 
-      // 1. Log the workout
       await api.post("/logs", logData);
-
-      // 2. Send difficulty rating to scale future days
       await api.post("/workouts/rate-difficulty", {
         dayIndex: todayDayIndex,
-        averageDifficulty: difficultyModal.rating
+        averageDifficulty: difficultyModal.rating,
       });
 
-      // 3. Re-fetch the plan so updated sets/reps show immediately
-      const response = await api.get('/workouts/weekly-plan');
+      const response = await api.get("/workouts/weekly-plan");
       const receivedPlan = response.data.weeklyPlan || [];
       const realTimePlan = processAndAlignWorkoutPlan(receivedPlan);
-      setWeekPlan(realTimePlan);
 
-      // Mark as completed
+      setWeekPlan(realTimePlan);
       setIsWorkoutDoneToday(true);
       setDifficultyModal({ show: false, rating: 5 });
       setFeedbackModal({
         show: true,
-        type: 'success',
-        message: `Workout Logged! Difficulty recorded as ${difficultyModal.rating}/10.`
+        type: "success",
+        message: `Workout Logged! Difficulty recorded as ${difficultyModal.rating}/10.`,
       });
-
     } catch (error) {
       console.error("Workout log error:", error);
       setDifficultyModal({ show: false, rating: 5 });
       setFeedbackModal({
         show: true,
-        type: 'error',
-        message: error?.response?.data?.message || "Failed to log workout"
+        type: "error",
+        message: error?.response?.data?.message || "Failed to log workout",
       });
     }
   };
 
-  // View routine for a specific day
   const handleViewRoutine = async (dayIndex) => {
     setSelectedDayForModal(weekPlan[dayIndex]);
     setShowModal(true);
     setModalLoading(false);
   };
 
-  const todayPlan = weekPlan.find((day) => day.isToday) || (weekPlan.length > 0 ? weekPlan[0] : null);
+  const todayPlan =
+    weekPlan.find((day) => day.isToday) ||
+    (weekPlan.length > 0 ? weekPlan[0] : null);
+
+  // FIXED MATH: Prevent progress from exceeding 100%
   const todayProgressPercentage = todayPlan
-    ? Math.round((completedExerciseIds.length / (todayPlan.type === 'rest' ? 1 : Math.max(todayPlan.exercises?.length || 1, 1))) * 100)
+    ? Math.min(
+        100,
+        Math.round(
+          (completedExerciseIds.length /
+            (todayPlan.isRestDay
+              ? 1
+              : Math.max(todayPlan.exercises?.length || 1, 1))) *
+            100,
+        ),
+      )
     : 0;
 
   if (loading) {
@@ -368,7 +425,7 @@ const Workout = () => {
       </Layout>
     );
   }
-console.log(todayPlan)
+
   return (
     <Layout>
       <style>
@@ -379,46 +436,68 @@ console.log(todayPlan)
       </style>
 
       <div className="space-y-6 sm:space-y-8">
-
         {/* --- Page Specific Header --- */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className={`text-xl sm:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Weekly Workout Plan</h1>
-            <div className={`text-sm mt-2 flex gap-3 flex-wrap items-center ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              <p>Experience Level : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block ${
-                normalizedExperience === 'beginner' ? 'bg-blue-500/20 text-blue-400' :
-                normalizedExperience === 'intermediate' ? 'bg-yellow-500/20 text-yellow-400' :
-                'bg-red-500/20 text-red-400'
-              }`}>
-                {displayedExperience}
-              </span></p>
-              {userGoal && <p>Goal : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-[#00c4b4]/20 text-[#00c4b4]`}>
-                {userGoal}
-              </span></p>}
-              {userMedicalConditions && userMedicalConditions.length > 0 && !userMedicalConditions.includes('Regular') && (
-                <p>Medical : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-500`}>
-                  {userMedicalConditions.join(', ')}
-                </span></p>
+            <h1
+              className={`text-xl sm:text-2xl font-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}
+            >
+              Weekly Workout Plan
+            </h1>
+            <div
+              className={`text-sm mt-2 flex gap-3 flex-wrap items-center ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+            >
+              <p>
+                Experience Level :{" "}
+                <span
+                  className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block ${
+                    normalizedExperience === "beginner"
+                      ? "bg-blue-500/20 text-blue-400"
+                      : normalizedExperience === "intermediate"
+                        ? "bg-yellow-500/20 text-yellow-400"
+                        : "bg-red-500/20 text-red-400"
+                  }`}
+                >
+                  {displayedExperience}
+                </span>
+              </p>
+              {userGoal && (
+                <p>
+                  Goal :{" "}
+                  <span
+                    className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-[#00c4b4]/20 text-[#00c4b4]`}
+                  >
+                    {userGoal}
+                  </span>
+                </p>
               )}
-              {userInjuries && userInjuries.length > 0 && !userInjuries.includes('Regular') && (
-                <p>Injuries : <span className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-red-500/20 text-red-500`}>
-                  {userInjuries.join(', ')}
-                </span></p>
-              )}
+              {userMedicalConditions &&
+                userMedicalConditions.length > 0 &&
+                !userMedicalConditions.includes("Regular") && (
+                  <p>
+                    Medical :{" "}
+                    <span
+                      className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-orange-500/20 text-orange-500`}
+                    >
+                      {userMedicalConditions.join(", ")}
+                    </span>
+                  </p>
+                )}
+              {userInjuries &&
+                userInjuries.length > 0 &&
+                !userInjuries.includes("Regular") && (
+                  <p>
+                    Injuries :{" "}
+                    <span
+                      className={`font-semibold capitalize px-2 py-1 rounded-lg inline-block bg-red-500/20 text-red-500`}
+                    >
+                      {userInjuries.join(", ")}
+                    </span>
+                  </p>
+                )}
             </div>
           </div>
           <div className="flex gap-3 items-center">
-            {/*
-            <button
-              onClick={handleRefreshWorkouts}
-              disabled={refreshing}
-              className={`flex items-center justify-center gap-2 ${isDarkMode ? 'bg-[#1e293b] hover:bg-[#334155] text-white' : 'bg-slate-800 hover:bg-slate-700 text-white'} px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0 h-[48px] ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
-              <span className="hidden sm:inline">{refreshing ? 'Generating...' : 'Regenerate Plan'}</span>
-              <span className="sm:hidden">Refresh</span>
-            </button>
-            */}
             <button
               onClick={() => setShowAddForm(!showAddForm)}
               className="flex items-center justify-center gap-2 bg-[#00c4b4] hover:bg-[#00a89f] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-[#00c4b4]/20 w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0 h-[48px]"
@@ -432,13 +511,15 @@ console.log(todayPlan)
 
         {/* Add Note Form */}
         {showAddForm && (
-          <div className={`p-4 sm:p-6 rounded-2xl border space-y-4 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-[#00c4b4]/20'}`}>
+          <div
+            className={`p-4 sm:p-6 rounded-2xl border space-y-4 ${isDarkMode ? "bg-[#1e293b] border-[#334155]" : "bg-white border-[#00c4b4]/20"}`}
+          >
             <textarea
               rows="3"
               placeholder="How are you feeling today? Add a custom workout note..."
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
-              className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border resize-none ${isDarkMode ? 'bg-[#0f172a] border-[#334155] text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+              className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c4b4]/50 border resize-none ${isDarkMode ? "bg-[#0f172a] border-[#334155] text-white" : "bg-white border-slate-200 text-slate-900"}`}
             />
             <div className="flex flex-col sm:flex-row gap-3">
               <button
@@ -449,7 +530,7 @@ console.log(todayPlan)
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
-                className={`flex-1 px-4 py-2 rounded-lg font-bold transition text-sm active:scale-95 ${isDarkMode ? 'bg-[#334155] text-white hover:bg-[#475569]' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
+                className={`flex-1 px-4 py-2 rounded-lg font-bold transition text-sm active:scale-95 ${isDarkMode ? "bg-[#334155] text-white hover:bg-[#475569]" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
               >
                 Cancel
               </button>
@@ -461,10 +542,23 @@ console.log(todayPlan)
         {notes && notes.length > 0 && (
           <div className={`space-y-3`}>
             {notes.map((note) => (
-              <div key={note._id} className={`p-4 rounded-xl border flex justify-between items-start transition gap-4 ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100 shadow-sm'}`}>
+              <div
+                key={note._id}
+                className={`p-4 rounded-xl border flex justify-between items-start transition gap-4 ${isDarkMode ? "bg-[#1e293b] border-[#334155]" : "bg-white border-slate-100 shadow-sm"}`}
+              >
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{note.text}</p>
-                  {note.date && <p className={`text-xs mt-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{formatLocalDate(note.date.split('T')[0])}</p>}
+                  <p
+                    className={`text-sm ${isDarkMode ? "text-slate-300" : "text-slate-700"}`}
+                  >
+                    {note.text}
+                  </p>
+                  {note.date && (
+                    <p
+                      className={`text-xs mt-2 ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}
+                    >
+                      {formatLocalDate(note.date.split("T")[0])}
+                    </p>
+                  )}
                 </div>
                 <button
                   onClick={() => handleDeleteNote(note._id)}
@@ -478,15 +572,23 @@ console.log(todayPlan)
         )}
 
         {/* Stats Row */}
-        <div className={`p-6 rounded-3xl border shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 divide-y md:divide-y-0 md:divide-x ${isDarkMode ? 'bg-[#1e293b] border-[#334155] divide-[#334155]' : 'bg-white border-slate-100 divide-slate-100'}`}>
+        <div
+          className={`p-6 rounded-3xl border shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 divide-y md:divide-y-0 md:divide-x ${isDarkMode ? "bg-[#1e293b] border-[#334155] divide-[#334155]" : "bg-white border-slate-100 divide-slate-100"}`}
+        >
           <div className="flex items-center gap-4 px-4 w-full">
             <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-500 flex items-center justify-center">
               <Calendar size={24} />
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Week Range</p>
-              <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {weekPlan.length > 0 && weekPlan[6] ? `${formatLocalDate(weekPlan[0].date)} - ${formatLocalDate(weekPlan[6].date)}` : 'Loading...'}
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Week Range
+              </p>
+              <p
+                className={`font-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}
+              >
+                {weekPlan.length > 0 && weekPlan[6]
+                  ? `${formatLocalDate(weekPlan[0].date)} - ${formatLocalDate(weekPlan[6].date)}`
+                  : "Loading..."}
               </p>
             </div>
           </div>
@@ -496,9 +598,15 @@ console.log(todayPlan)
               <Clock size={24} />
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Completed Today</p>
-              <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {completedExerciseIds.length} of {todayPlan?.type === 'rest' ? 1 : (todayPlan?.exercises?.length || 0)} exercises
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Completed Today
+              </p>
+              <p
+                className={`font-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}
+              >
+                {completedExerciseIds.length} of{" "}
+                {todayPlan?.isRestDay ? 1 : todayPlan?.exercises?.length || 0}{" "}
+                exercises
               </p>
             </div>
           </div>
@@ -508,44 +616,71 @@ console.log(todayPlan)
               <Dumbbell size={24} />
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Today's Focus</p>
-              <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {todayPlan.focusMuscles.map((muscle) => muscle).join(', ') || 'Loading...'}
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Today's Focus
+              </p>
+              <p
+                className={`font-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}
+              >
+                {todayPlan?.isRestDay
+                  ? "Recovery"
+                  : todayPlan?.focusMuscles?.join(", ") || "Loading..."}
               </p>
             </div>
           </div>
         </div>
 
         {/* Injury Warning Box */}
-        <div className={`p-4 rounded-xl border flex items-center justify-center gap-3 shadow-sm ${isDarkMode ? 'bg-orange-500/10 border-orange-500/20' : 'bg-orange-50 border-orange-200'}`}>
+        <div
+          className={`p-4 rounded-xl border flex items-center justify-center gap-3 shadow-sm ${isDarkMode ? "bg-orange-500/10 border-orange-500/20" : "bg-orange-50 border-orange-200"}`}
+        >
           <p className="text-center">
-            <span className={`font-bold text-base sm:text-lg ${isDarkMode ? 'text-red-400' : 'text-red-500'}`}>⚠️ Note : </span>
-            <span className={`font-medium text-sm sm:text-base ${isDarkMode ? 'text-orange-300' : 'text-orange-500'}`}>
-              If you have an injury, please skip workouts until your recovery period is over and you are cleared for regular activity.
+            <span
+              className={`font-bold text-base sm:text-lg ${isDarkMode ? "text-red-400" : "text-red-500"}`}
+            >
+              ⚠️ Note :{" "}
+            </span>
+            <span
+              className={`font-medium text-sm sm:text-base ${isDarkMode ? "text-orange-300" : "text-orange-500"}`}
+            >
+              If you have an injury, please skip workouts until your recovery
+              period is over and you are cleared for regular activity.
             </span>
           </p>
         </div>
 
         {/* --- Workouts Grid --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
           {/* Active Card (Today) */}
           {todayPlan && (
             <div className="lg:col-span-1 xl:col-span-1 row-span-2">
-              <div className={`p-6 rounded-[2rem] border-2 shadow-xl h-full flex flex-col ${isWorkoutDoneToday ? 'border-green-500 shadow-green-500/10' : 'border-[#00c4b4] shadow-[#00c4b4]/10'} ${isDarkMode ? 'bg-[#1e293b]' : 'bg-white'}`}>
+              <div
+                className={`p-6 rounded-[2rem] border-2 shadow-xl h-full flex flex-col ${isWorkoutDoneToday ? "border-green-500 shadow-green-500/10" : "border-[#00c4b4] shadow-[#00c4b4]/10"} ${isDarkMode ? "bg-[#1e293b]" : "bg-white"}`}
+              >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <span className={`text-xs font-bold uppercase tracking-wider ${isWorkoutDoneToday ? 'text-green-500' : 'text-[#00c4b4]'}`}>
+                    <span
+                      className={`text-xs font-bold uppercase tracking-wider ${isWorkoutDoneToday ? "text-green-500" : "text-[#00c4b4]"}`}
+                    >
                       {todayPlan.dayName} (Today)
                     </span>
-                    <p className={`text-xs font-semibold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <p
+                      className={`text-xs font-semibold ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+                    >
                       {formatLocalDate(todayPlan.date)}
                     </p>
-                    <h3 className={`text-2xl font-bold mt-1 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                      {todayPlan.focusMuscles.map((muscle) => muscle).join(', ')} Training
+                    {/* FIXED TITLE RENDERING */}
+                    <h3
+                      className={`text-2xl font-bold mt-1 ${isDarkMode ? "text-white" : "text-slate-900"}`}
+                    >
+                      {todayPlan.isRestDay
+                        ? "Recovery Day"
+                        : `${todayPlan.focusMuscles?.join(", ") || ""} Training`}
                     </h3>
                   </div>
-                  <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center flex-shrink-0 ${isWorkoutDoneToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}>
+                  <div
+                    className={`w-8 h-8 rounded-full text-white flex items-center justify-center flex-shrink-0 ${isWorkoutDoneToday ? "bg-green-500" : "bg-[#00c4b4]"}`}
+                  >
                     <CheckCircle2 size={16} />
                   </div>
                 </div>
@@ -553,72 +688,108 @@ console.log(todayPlan)
                 <div className="space-y-2 mb-6">
                   <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
                     <span>Today's Progress</span>
-                    <span className={isWorkoutDoneToday ? 'text-green-500' : 'text-[#00c4b4]'}>{todayProgressPercentage}%</span>
+                    <span
+                      className={
+                        isWorkoutDoneToday ? "text-green-500" : "text-[#00c4b4]"
+                      }
+                    >
+                      {todayProgressPercentage}%
+                    </span>
                   </div>
-                  <div className={`w-full h-2 rounded-full overflow-hidden border ${isDarkMode ? 'bg-[#334155] border-[#334155]' : 'bg-slate-100 border-slate-100'}`}>
+                  <div
+                    className={`w-full h-2 rounded-full overflow-hidden border ${isDarkMode ? "bg-[#334155] border-[#334155]" : "bg-slate-100 border-slate-100"}`}
+                  >
                     <div
-                      className={`h-full transition-all duration-500 ${isWorkoutDoneToday ? 'bg-green-500' : 'bg-[#00c4b4]'}`}
+                      className={`h-full transition-all duration-500 ${isWorkoutDoneToday ? "bg-green-500" : "bg-[#00c4b4]"}`}
                       style={{ width: `${todayProgressPercentage}%` }}
                     ></div>
                   </div>
                 </div>
 
                 {/* Exercises List */}
-                {todayPlan.type === 'rest' ? (
+                {todayPlan.isRestDay ? (
                   <div className="space-y-4 flex-1">
                     <div
                       onClick={() => toggleExercise(0)}
                       className={`flex gap-4 items-center p-3 rounded-xl transition-all cursor-pointer border
-                        ${completedExerciseIds.includes(0)
-                          ? (isDarkMode ? 'bg-green-500/20 border-green-500/30' : 'bg-green-50 border-green-200')
-                          : (isDarkMode ? 'bg-[#0f172a] border-[#334155] hover:bg-[#334155]/50' : 'bg-white border-slate-100 hover:bg-slate-50')
+                        ${
+                          completedExerciseIds.includes(0)
+                            ? isDarkMode
+                              ? "bg-green-500/20 border-green-500/30"
+                              : "bg-green-50 border-green-200"
+                            : isDarkMode
+                              ? "bg-[#0f172a] border-[#334155] hover:bg-[#334155]/50"
+                              : "bg-white border-slate-100 hover:bg-slate-50"
                         }`}
                     >
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${completedExerciseIds.includes(0) ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300'}`}>
-                        {completedExerciseIds.includes(0) && <CheckCircle2 size={12} />}
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${completedExerciseIds.includes(0) ? "bg-green-500 border-green-500 text-white" : "border-slate-300"}`}
+                      >
+                        {completedExerciseIds.includes(0) && (
+                          <CheckCircle2 size={12} />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-bold ${completedExerciseIds.includes(0) ? (isDarkMode ? 'text-slate-500 line-through' : 'text-slate-400 line-through') : (isDarkMode ? 'text-white' : 'text-slate-900')}`}>
-                          Rest & Recovery
+                        <p
+                          className={`text-sm font-bold ${completedExerciseIds.includes(0) ? (isDarkMode ? "text-slate-500 line-through" : "text-slate-400 line-through") : isDarkMode ? "text-white" : "text-slate-900"}`}
+                        >
+                          {todayPlan.exercises?.[0]?.name || "Rest & Recovery"}
                         </p>
-                        <div className={`flex gap-3 text-xs mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        <div
+                          className={`flex gap-3 text-xs mt-1 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+                        >
                           <span>1 Full Day</span>
                         </div>
                       </div>
-                      <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${completedExerciseIds.includes(0) ? 'text-green-600 bg-green-500/10' : 'text-green-600 bg-green-500/10'}`}>
-                        Bodyweight
+                      <span
+                        className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${completedExerciseIds.includes(0) ? "text-green-600 bg-green-500/10" : "text-green-600 bg-green-500/10"}`}
+                      >
+                        Recovery
                       </span>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4 flex-1">
-                    {todayPlan.exercises.map((exercise, idx) => {
+                    {todayPlan.exercises?.map((exercise, idx) => {
                       const isDone = completedExerciseIds.includes(idx);
                       return (
                         <div
                           key={idx}
                           onClick={() => toggleExercise(idx)}
                           className={`flex gap-4 items-center p-3 rounded-xl transition-all cursor-pointer border
-                            ${isDone
-                              ? (isDarkMode ? 'bg-green-500/20 border-green-500/30' : 'bg-green-50 border-green-200')
-                              : (isDarkMode ? 'bg-[#0f172a] border-[#334155] hover:bg-[#334155]/50' : 'bg-white border-slate-100 hover:bg-slate-50')
+                            ${
+                              isDone
+                                ? isDarkMode
+                                  ? "bg-green-500/20 border-green-500/30"
+                                  : "bg-green-50 border-green-200"
+                                : isDarkMode
+                                  ? "bg-[#0f172a] border-[#334155] hover:bg-[#334155]/50"
+                                  : "bg-white border-slate-100 hover:bg-slate-50"
                             }`}
                         >
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isDone ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300'}`}>
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isDone ? "bg-green-500 border-green-500 text-white" : "border-slate-300"}`}
+                          >
                             {isDone && <CheckCircle2 size={12} />}
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-bold ${isDone ? (isDarkMode ? 'text-slate-500 line-through' : 'text-slate-400 line-through') : (isDarkMode ? 'text-white' : 'text-slate-900')}`}>
+                            <p
+                              className={`text-sm font-bold ${isDone ? (isDarkMode ? "text-slate-500 line-through" : "text-slate-400 line-through") : isDarkMode ? "text-white" : "text-slate-900"}`}
+                            >
                               {exercise.name}
                             </p>
-                            <div className={`flex gap-3 text-xs mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                            <div
+                              className={`flex gap-3 text-xs mt-1 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+                            >
                               <span>{exercise.sets} Sets</span>
                               <span className="w-1 h-1 rounded-full bg-slate-300 self-center"></span>
                               <span>{exercise.reps} Reps</span>
                             </div>
                           </div>
-                          <span className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${isDone ? 'text-green-600 bg-green-500/10' : 'text-green-600 bg-green-500/10'}`}>
+                          <span
+                            className={`text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap ${isDone ? "text-green-600 bg-green-500/10" : "text-green-600 bg-green-500/10"}`}
+                          >
                             {exercise.weight}
                           </span>
                         </div>
@@ -627,23 +798,45 @@ console.log(todayPlan)
                   </div>
                 )}
 
-                {/* Complete Workout Button */}
+                {/* FIXED BUTTON TEXT & MATH */}
                 <button
-                  disabled={isWorkoutDoneToday || completedExerciseIds.length !== (todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length)}
+                  disabled={
+                    isWorkoutDoneToday ||
+                    completedExerciseIds.length !==
+                      (todayPlan.isRestDay
+                        ? 1
+                        : todayPlan.exercises?.length || 0)
+                  }
                   onClick={handleCompleteWorkout}
                   className={`w-full mt-6 py-4 font-bold rounded-xl transition-all shadow-md flex justify-center items-center gap-2 ${
                     isWorkoutDoneToday
-                      ? 'bg-green-500 text-white cursor-default shadow-none'
-                      : completedExerciseIds.length === (todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length) ?
-                        'bg-green-500 text-white hover:bg-green-600 cursor-pointer hover:-translate-y-0.5 active:translate-y-0'
-                        : (isDarkMode ? 'bg-[#334155] text-slate-400 cursor-not-allowed shadow-none' : 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none')
+                      ? "bg-green-500 text-white cursor-default shadow-none"
+                      : completedExerciseIds.length ===
+                          (todayPlan.isRestDay
+                            ? 1
+                            : todayPlan.exercises?.length || 0)
+                        ? "bg-green-500 text-white hover:bg-green-600 cursor-pointer hover:-translate-y-0.5 active:translate-y-0"
+                        : isDarkMode
+                          ? "bg-[#334155] text-slate-400 cursor-not-allowed shadow-none"
+                          : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
                   }`}
                 >
-                  {isWorkoutDoneToday
-                    ? <><CheckCircle2 size={20} /> Done for Today</>
-                    : completedExerciseIds.length === (todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length)
-                      ? (todayPlan.type === 'rest' ? "✅ Complete Rest Day" : "✅ Complete Workout")
-                      : `Finish ${(todayPlan.type === 'rest' ? 1 : todayPlan.exercises.length) - completedExerciseIds.length} more to Complete`}
+                  {isWorkoutDoneToday ? (
+                    <>
+                      <CheckCircle2 size={20} /> Done for Today
+                    </>
+                  ) : completedExerciseIds.length >=
+                    (todayPlan.isRestDay
+                      ? 1
+                      : todayPlan.exercises?.length || 0) ? (
+                    todayPlan.isRestDay ? (
+                      "✅ Complete Rest Day"
+                    ) : (
+                      "✅ Complete Workout"
+                    )
+                  ) : (
+                    `Finish ${Math.max(0, (todayPlan.isRestDay ? 1 : todayPlan.exercises?.length || 0) - completedExerciseIds.length)} more to Complete`
+                  )}
                 </button>
               </div>
             </div>
@@ -651,38 +844,55 @@ console.log(todayPlan)
 
           {/* Other Days Cards */}
           {weekPlan.slice(1).map((day, idx) => (
-            <div key={idx + 1} className={`p-6 rounded-[2rem] border shadow-sm hover:shadow-md transition-shadow flex flex-col ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
+            <div
+              key={idx + 1}
+              className={`p-6 rounded-[2rem] border shadow-sm hover:shadow-md transition-shadow flex flex-col ${isDarkMode ? "bg-[#1e293b] border-[#334155]" : "bg-white border-slate-100"}`}
+            >
               <div className="mb-4">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                   {day.dayName}
                 </span>
-                <p className={`text-sm font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                <p
+                  className={`text-sm font-semibold ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}
+                >
                   {formatLocalDate(day.date)}
                 </p>
               </div>
-              
-              <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {day.focusMuscles.map((muscle) => muscle).join(', ')} Training
+
+              {/* FIXED TITLE RENDERING FOR OTHER CARDS */}
+              <h3
+                className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}
+              >
+                {day.isRestDay
+                  ? "Recovery Day"
+                  : `${day.focusMuscles?.join(", ") || ""} Training`}
               </h3>
 
-              {day.type === 'rest' ? (
+              {day.isRestDay ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-                  <div className="text-3xl mb-2">
-                    😴
-                  </div>
-                  <p className={`text-sm font-medium leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    Complete Rest Day
+                  <div className="text-3xl mb-2">😴</div>
+                  <p
+                    className={`text-sm font-medium leading-relaxed ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+                  >
+                    {day.exercises?.[0]?.name || "Complete Rest Day"}
                   </p>
                 </div>
               ) : (
                 <div className="flex-1 space-y-3">
-                  {day.exercises.slice(0, 3).map((exercise, i) => (
-                    <div key={i} className={`flex justify-between items-start text-sm border-b pb-2 last:border-0 ${isDarkMode ? 'border-[#334155]' : 'border-slate-50'}`}>
+                  {day.exercises?.slice(0, 3).map((exercise, i) => (
+                    <div
+                      key={i}
+                      className={`flex justify-between items-start text-sm border-b pb-2 last:border-0 ${isDarkMode ? "border-[#334155]" : "border-slate-50"}`}
+                    >
                       <div>
-                        <span className={`font-semibold block ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                        <span
+                          className={`font-semibold block ${isDarkMode ? "text-slate-200" : "text-slate-700"}`}
+                        >
                           {exercise.name}
                         </span>
-                        <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                        <span
+                          className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}
+                        >
                           {exercise.sets} × {exercise.reps}
                         </span>
                       </div>
@@ -691,77 +901,99 @@ console.log(todayPlan)
                       </span>
                     </div>
                   ))}
-                  {day.exercises.length > 3 && (
-                    <p className={`text-xs italic pt-2 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  {day.exercises?.length > 3 && (
+                    <p
+                      className={`text-xs italic pt-2 ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}
+                    >
                       +{day.exercises.length - 3} more exercises
                     </p>
                   )}
                 </div>
               )}
 
-              <button 
+              <button
                 onClick={() => handleViewRoutine(idx + 1)}
-                className={`w-full mt-6 py-3 font-bold rounded-xl transition-all text-sm active:scale-95 flex items-center justify-center gap-2 ${isDarkMode ? 'bg-[#00c4b4]/10 text-[#00c4b4] hover:bg-[#00c4b4]/20' : 'bg-[#00c4b4]/5 text-[#00c4b4] hover:bg-[#00c4b4]/10'}`}>
+                className={`w-full mt-6 py-3 font-bold rounded-xl transition-all text-sm active:scale-95 flex items-center justify-center gap-2 ${isDarkMode ? "bg-[#00c4b4]/10 text-[#00c4b4] hover:bg-[#00c4b4]/20" : "bg-[#00c4b4]/5 text-[#00c4b4] hover:bg-[#00c4b4]/10"}`}
+              >
                 <Eye size={16} />
                 View Routine
               </button>
             </div>
           ))}
-
         </div>
       </div>
 
       {/* View Routine Modal */}
       {showModal && selectedDayForModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className={`rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto ${isDarkMode ? 'bg-[#0f172a]' : 'bg-white'}`}>
+          <div
+            className={`rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto ${isDarkMode ? "bg-[#0f172a]" : "bg-white"}`}
+          >
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                <h2
+                  className={`text-xl font-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}
+                >
                   {selectedDayForModal.dayName}
                 </h2>
-                <p className={`text-sm font-semibold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                <p
+                  className={`text-sm font-semibold ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+                >
                   {formatLocalDate(selectedDayForModal.date)}
                 </p>
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className={`p-2 rounded-lg transition ${isDarkMode ? 'bg-[#1e293b] text-white hover:bg-[#334155]' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'}`}
+                className={`p-2 rounded-lg transition ${isDarkMode ? "bg-[#1e293b] text-white hover:bg-[#334155]" : "bg-slate-100 text-slate-900 hover:bg-slate-200"}`}
               >
                 <X size={20} />
               </button>
             </div>
 
-            <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-              {selectedDayForModal.title}
+            <h3
+              className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}
+            >
+              {selectedDayForModal.isRestDay
+                ? "Recovery Protocol"
+                : selectedDayForModal.title}
             </h3>
 
-            {selectedDayForModal.type === 'rest' ? (
+            {selectedDayForModal.isRestDay ? (
               <div className="text-center py-8">
-                <div className="text-5xl mb-3">
-                  😴
-                </div>
-                <p className={`font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                  Today is a complete rest day. Focus on recovery, hydration, and sleep!
+                <div className="text-5xl mb-3">😴</div>
+                <p
+                  className={`font-medium ${isDarkMode ? "text-slate-300" : "text-slate-700"}`}
+                >
+                  {selectedDayForModal.exercises?.[0]?.name ||
+                    "Today is a complete rest day. Focus on recovery, hydration, and sleep!"}
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
-                {selectedDayForModal.exercises.map((exercise, i) => (
-                  <div key={i} className={`p-4 rounded-lg border ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-slate-50 border-slate-100'}`}>
+                {selectedDayForModal.exercises?.map((exercise, i) => (
+                  <div
+                    key={i}
+                    className={`p-4 rounded-lg border ${isDarkMode ? "bg-[#1e293b] border-[#334155]" : "bg-slate-50 border-slate-100"}`}
+                  >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                      <h4
+                        className={`font-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}
+                      >
                         {exercise.name}
                       </h4>
                       <span className="text-[#00c4b4] font-bold text-sm bg-[#00c4b4]/10 px-2 py-1 rounded">
                         {exercise.weight}
                       </span>
                     </div>
-                    <div className={`flex gap-4 text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <div
+                      className={`flex gap-4 text-sm ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}
+                    >
                       <span>Sets: {exercise.sets}</span>
                       <span>Reps: {exercise.reps}</span>
                       {exercise.muscleGroup && (
-                        <span className="capitalize text-[#00c4b4]">{exercise.muscleGroup}</span>
+                        <span className="capitalize text-[#00c4b4]">
+                          {exercise.muscleGroup}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -782,34 +1014,47 @@ console.log(todayPlan)
       {/* Difficulty Rating Modal */}
       {difficultyModal.show && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[70]">
-          <div className={`rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center transform transition-all ${isDarkMode ? 'bg-[#0f172a] border border-[#334155]' : 'bg-white border border-slate-100'}`}>
-            <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+          <div
+            className={`rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center transform transition-all ${isDarkMode ? "bg-[#0f172a] border border-[#334155]" : "bg-white border border-slate-100"}`}
+          >
+            <h3
+              className={`text-xl font-bold mb-2 ${isDarkMode ? "text-white" : "text-slate-900"}`}
+            >
               How hard was today's workout?
             </h3>
-            <p className={`text-sm mb-6 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+            <p
+              className={`text-sm mb-6 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+            >
               Your rating helps BeFit AI dynamically scale your future routines.
             </p>
-            
+
             <div className="w-full mb-8 px-2">
-              <input 
-                type="range" 
-                min="1" 
-                max="10" 
-                value={difficultyModal.rating} 
-                onChange={(e) => setDifficultyModal({...difficultyModal, rating: parseInt(e.target.value)})}
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={difficultyModal.rating}
+                onChange={(e) =>
+                  setDifficultyModal({
+                    ...difficultyModal,
+                    rating: parseInt(e.target.value),
+                  })
+                }
                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#00c4b4]"
               />
               <div className="flex justify-between mt-3 px-1 text-xs font-bold text-slate-400 uppercase">
                 <span>1 (Easy)</span>
-                <span className={`text-lg text-[#00c4b4]`}>{difficultyModal.rating}</span>
+                <span className={`text-lg text-[#00c4b4]`}>
+                  {difficultyModal.rating}
+                </span>
                 <span>10 (Max)</span>
               </div>
             </div>
-            
+
             <div className="flex w-full gap-3">
               <button
                 onClick={() => setDifficultyModal({ show: false, rating: 5 })}
-                className={`flex-1 py-3 font-bold rounded-xl transition-all active:scale-95 ${isDarkMode ? 'bg-[#334155] text-slate-300 hover:bg-[#475569]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                className={`flex-1 py-3 font-bold rounded-xl transition-all active:scale-95 ${isDarkMode ? "bg-[#334155] text-slate-300 hover:bg-[#475569]" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
               >
                 Cancel
               </button>
@@ -827,29 +1072,43 @@ console.log(todayPlan)
       {/* Feedback Modal (Success/Error) */}
       {feedbackModal.show && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
-          <div className={`rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center transform transition-all ${isDarkMode ? 'bg-[#0f172a] border border-[#334155]' : 'bg-white border border-slate-100'}`}>
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-              feedbackModal.type === 'success' 
-                ? 'bg-green-100 text-green-500' 
-                : 'bg-red-100 text-red-500'
-            }`}>
-              {feedbackModal.type === 'success' ? <CheckCircle2 size={32} /> : <X size={32} />}
+          <div
+            className={`rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center transform transition-all ${isDarkMode ? "bg-[#0f172a] border border-[#334155]" : "bg-white border border-slate-100"}`}
+          >
+            <div
+              className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                feedbackModal.type === "success"
+                  ? "bg-green-100 text-green-500"
+                  : "bg-red-100 text-red-500"
+              }`}
+            >
+              {feedbackModal.type === "success" ? (
+                <CheckCircle2 size={32} />
+              ) : (
+                <X size={32} />
+              )}
             </div>
-            
-            <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-              {feedbackModal.type === 'success' ? 'Awesome Work!' : 'Oops!'}
+
+            <h3
+              className={`text-xl font-bold mb-2 ${isDarkMode ? "text-white" : "text-slate-900"}`}
+            >
+              {feedbackModal.type === "success" ? "Awesome Work!" : "Oops!"}
             </h3>
-            
-            <p className={`text-sm mb-6 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+
+            <p
+              className={`text-sm mb-6 ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}
+            >
               {feedbackModal.message}
             </p>
-            
+
             <button
-              onClick={() => setFeedbackModal({ show: false, type: '', message: '' })}
+              onClick={() =>
+                setFeedbackModal({ show: false, type: "", message: "" })
+              }
               className={`w-full py-3 font-bold rounded-xl transition-all shadow-md active:scale-95 ${
-                feedbackModal.type === 'success'
-                  ? 'bg-[#00c4b4] hover:bg-[#00a89f] text-white shadow-[#00c4b4]/20'
-                  : 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20'
+                feedbackModal.type === "success"
+                  ? "bg-[#00c4b4] hover:bg-[#00a89f] text-white shadow-[#00c4b4]/20"
+                  : "bg-red-500 hover:bg-red-600 text-white shadow-red-500/20"
               }`}
             >
               Continue
