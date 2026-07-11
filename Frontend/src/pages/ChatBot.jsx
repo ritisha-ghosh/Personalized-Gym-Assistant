@@ -544,6 +544,8 @@ const ChatBot = () => {
         {`
           @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
           body { font-family: 'Libre Baskerville', serif; }
+          @keyframes chatSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+          .animate-chat-slide-up { animation: chatSlideUp 0.4s ease-out forwards; }
         `}
       </style>
 
@@ -574,7 +576,7 @@ const ChatBot = () => {
                          setIsHistoryOpen(false);
                        }
                      }}
-                     className={`relative group p-3.5 rounded-xl cursor-pointer transition-all border hover:border-[#00c4b4] ${isDarkMode ? 'bg-[#334155]/40 border-[#334155]' : 'bg-slate-50 border-slate-100'} ${currentSessionId === session.sessionId ? 'border-[#00c4b4] bg-[#00c4b4]/10' : ''}`}
+                     className={`relative group p-3.5 rounded-xl cursor-pointer transition-all duration-300 transform hover:translate-x-1 hover:shadow-md border hover:border-[#00c4b4] ${isDarkMode ? 'bg-[#334155]/40 border-[#334155]' : 'bg-slate-50 border-slate-100'} ${currentSessionId === session.sessionId ? 'border-[#00c4b4] bg-[#00c4b4]/10' : ''}`}
                    >
                      <div className="flex justify-between items-start gap-2">
                        <div className="flex-1 min-w-0">
@@ -632,7 +634,7 @@ const ChatBot = () => {
         {/* --- Chat Header --- */}
         <div className="mb-6">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="hover:translate-x-1 transition-transform duration-300">
               <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>BeFit AI Coach</h1>
               <p className={`text-sm mt-1 ${isDarkMode ? 'text-[#cbd5e1]' : 'text-slate-500'}`}>Always active • Personalized fitness guidance</p>
             </div>
@@ -640,7 +642,7 @@ const ChatBot = () => {
             <div className="flex gap-2">
               <button 
                 onClick={handleNewChat}
-                className={`p-2.5 rounded-xl border transition-all flex items-center gap-2 shadow-sm active:scale-95 ${isDarkMode ? 'border-slate-700 bg-[#1e293b] hover:bg-slate-800 text-slate-300' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'}`}
+                className={`p-2.5 rounded-xl border transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${isDarkMode ? 'border-slate-700 bg-[#1e293b] hover:bg-slate-800 text-slate-300' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'}`}
                 title="Start a New Chat"
               >
                 <PlusCircle size={18} />
@@ -649,7 +651,7 @@ const ChatBot = () => {
               
               <button 
                 onClick={() => setIsHistoryOpen(true)}
-                className={`p-2.5 rounded-xl border transition-all flex items-center gap-2 shadow-sm active:scale-95 ${isDarkMode ? 'border-slate-700 bg-[#1e293b] hover:bg-slate-800 text-slate-300' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'}`}
+                className={`p-2.5 rounded-xl border transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${isDarkMode ? 'border-slate-700 bg-[#1e293b] hover:bg-slate-800 text-slate-300' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'}`}
                 title="View Chat History"
               >
                 <Clock size={18} />
@@ -674,7 +676,7 @@ const ChatBot = () => {
             filteredMessages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex gap-4 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                className={`flex gap-4 animate-chat-slide-up ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
               >
                 {/* Avatar */}
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${msg.sender === 'ai' ? 'bg-[#00c4b4]/10 border border-[#00c4b4]/50 shadow-md shadow-[#00c4b4]/30' : 'shadow-sm'}`}>
@@ -703,7 +705,7 @@ const ChatBot = () => {
                 {/* Message Bubble */}
                 <div className={`flex flex-col max-w-[80%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                   <div
-                    className={`p-5 rounded-2xl shadow-sm text-sm leading-relaxed whitespace-pre-wrap ${msg.sender === 'ai'
+                    className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 text-sm leading-relaxed whitespace-pre-wrap ${msg.sender === 'ai'
                         ? (isDarkMode ? 'bg-[#1e293b] text-[#f1f5f9] rounded-tl-none border border-[#334155]' : 'bg-[#e0f7f6] text-slate-800 rounded-tl-none')
                         : 'bg-[#00c4b4] text-white rounded-tr-none'
                       }`}
@@ -761,7 +763,7 @@ const ChatBot = () => {
                 <button
                   key={action}
                   onClick={() => handleSend(action)}
-                  className={`whitespace-nowrap px-4 py-2 border rounded-full text-xs font-bold transition-colors ${
+                  className={`whitespace-nowrap px-4 py-2 border rounded-full text-xs font-bold transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:scale-105 ${
                     isDarkMode 
                     ? 'bg-[#1e293b] border-[#334155] text-slate-300 hover:bg-[#334155] hover:text-white' 
                     : 'bg-slate-50 hover:bg-[#e0f7f6] hover:text-teal-700 border-slate-200 text-slate-600'
@@ -774,7 +776,7 @@ const ChatBot = () => {
           )}
 
           {/* Input Box */}
-          <div className="relative flex items-center gap-2">
+          <div className="relative flex items-center gap-2 transition-all duration-500 focus-within:-translate-y-1 focus-within:shadow-xl rounded-2xl">
             
             <input
               type="text"
@@ -782,7 +784,7 @@ const ChatBot = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Message your AI Coach..."
-              className={`w-full pl-6 pr-14 py-4 border-none rounded-2xl focus:ring-2 focus:ring-[#00c4b4]/20 font-medium shadow-inner ${
+              className={`w-full pl-6 pr-14 py-4 border-none rounded-2xl focus:ring-2 focus:ring-[#00c4b4]/30 font-medium shadow-inner transition-shadow duration-300 ${
                 isDarkMode 
                 ? 'bg-[#1e293b] text-white placeholder:text-slate-400' 
                 : 'bg-slate-50 text-slate-700 placeholder:text-slate-400'
@@ -792,7 +794,7 @@ const ChatBot = () => {
             {/* Voice Toggle Button */}
             <button 
               onClick={handleVoiceInput}
-              className={`absolute right-14 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+              className={`absolute right-14 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
                 isListening ? 'bg-red-500 text-white shadow-lg animate-bounce' : 'text-slate-400 hover:text-[#00c4b4]'
               }`}
             >
@@ -802,7 +804,7 @@ const ChatBot = () => {
             <button
               onClick={() => handleSend()}
               disabled={!inputValue.trim()}
-              className="absolute right-2 w-10 h-10 bg-[#00c4b4] hover:bg-[#00a89f] disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center text-white shadow-md transition-all transform active:scale-95"
+              className="absolute right-2 w-10 h-10 bg-[#00c4b4] hover:bg-[#00a89f] disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center text-white shadow-md transition-all duration-300 transform hover:scale-110 hover:rotate-6 active:scale-95"
             >
               <Send size={18} className={inputValue.trim() ? 'translate-x-0.5' : ''} />
             </button>

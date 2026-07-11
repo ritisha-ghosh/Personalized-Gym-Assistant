@@ -356,14 +356,16 @@ const Progression = () => {
         {`
           @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
           body { font-family: 'Libre Baskerville', serif; }
+          @keyframes fadeInSlideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+          .animate-fade-in-slide { animation: fadeInSlideUp 0.6s ease-out forwards; }
         `}
       </style>
 
-      <div className={`space-y-6 sm:space-y-8 ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
+      <div className={`space-y-6 sm:space-y-8 animate-fade-in-slide ${isDarkMode ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: "'Libre Baskerville', serif" }}>
         
         {/* --- Page Header --- */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 hover:translate-x-1 transition-transform duration-300">
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Progress Analytics</h1>
           </div>
           
@@ -371,7 +373,7 @@ const Progression = () => {
             <div className="flex gap-2">
               <button 
                 onClick={handleExportReport}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 hover:-translate-y-px active:scale-95 shadow-sm ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg active:scale-95 shadow-sm ${
                   isDarkMode 
                     ? 'bg-[#1e293b] border border-[#334155] text-slate-200 hover:bg-[#00c4b4]/20 hover:border-[#00c4b4]/50 hover:text-[#00c4b4]' 
                     : 'bg-white border border-slate-200 text-slate-700 hover:bg-[#00c4b4]/10 hover:border-[#00c4b4]/40 hover:text-[#00c4b4]'
@@ -383,7 +385,7 @@ const Progression = () => {
             </div>
             <div className={`hidden md:flex items-center gap-3 pl-4 border-l ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
               <div className="text-right">
-                <p className="text-sm font-bold leading-none">{user?.name || 'User'}</p>
+                <p className="text-sm font-bold leading-none transition-colors duration-300 hover:text-[#00c4b4]">{user?.name || 'User'}</p>
                 <p className="text-[10px] font-bold text-emerald-500 uppercase mt-1">Goal : {userProfile?.goal ? userProfile.goal.charAt(0).toUpperCase() + userProfile.goal.slice(1) : 'N/A'}</p>
               </div>
               {/* Added border-2 for thicker border */}
@@ -406,14 +408,14 @@ const Progression = () => {
 
         {/* --- IMPORTED WEIGHT TREND CARD --- */}
         {showChart && (
-          <div className="h-96">{/* Wrapper with explicit height to fix chart rendering */}
+          <div className="h-96 hover:shadow-md transition-shadow duration-500 rounded-3xl">{/* Wrapper with explicit height to fix chart rendering */}
             <WeightTrendCard />
           </div>
         )}
 
         {/* --- Workout Consistency Heatmap (Dynamic from Backend) --- */}
         {showHeatmap && (
-          <div className={`p-8 rounded-[2rem] border shadow-sm overflow-x-auto animate-fade-in ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
+          <div className={`p-8 rounded-[2rem] border shadow-sm hover:shadow-md transition-shadow duration-500 overflow-x-auto ${isDarkMode ? 'bg-[#1e293b] border-[#334155]' : 'bg-white border-slate-100'}`}>
             <div className="flex justify-between items-end mb-8 min-w-[600px]">
               <div>
                 <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Workout Consistency</h2>
@@ -504,9 +506,9 @@ const Progression = () => {
                               }
 
                               return (
-                                <div 
-                                  key={dayIdx} 
-                                  className={`w-3 h-3 rounded-sm ${intensity} hover:ring-1 hover:ring-offset-1 ${isDarkMode ? 'hover:ring-[#00c4b4]' : 'hover:ring-teal-400'} transition-all cursor-pointer ${isTodayOrRecent() ? `ring-1 ring-offset-1 ${isDarkMode ? 'ring-[#00c4b4]' : 'ring-teal-400'}` : ''}`}
+                                <div
+                                  key={dayIdx}
+                                  className={`w-3 h-3 rounded-sm ${intensity} relative z-0 ${isTodayOrRecent() ? `ring-1 ring-offset-1 ${isDarkMode ? 'ring-[#00c4b4]' : 'ring-teal-400'}` : ''}`}
                                   title={tooltipDate}
                                 ></div>
                               );
