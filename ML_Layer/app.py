@@ -10,7 +10,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+
+# ── CORS CONFIG ────────────────────────────────────────────────────
+# Set ALLOWED_ORIGINS in your .env as a comma-separated list, e.g.
+#   ALLOWED_ORIGINS=https://befit-app.com,https://www.befit-app.com
+# Leave unset (or "*") to allow all origins, which is fine for local dev
+# but should be locked down before this goes to production.
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*")
+CORS(app, origins=ALLOWED_ORIGINS.split(",") if ALLOWED_ORIGINS != "*" else "*")
 
 # Initialize Groq Cloud Client with your API Key
 groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
@@ -60,6 +67,35 @@ def ensure_initialized():
         initialize_ml_engine()
 
 # =====================================================================
+# 🔹 SAFE FIELD PARSING HELPERS
+# =====================================================================
+# Centralized so every route handles missing keys AND explicit nulls
+# (e.g. {"disease": null} from a cleared JS form field) the same way.
+
+def safe_str(val, default="none"):
+    """Coerce a possibly-None/empty value to a trimmed lowercase-safe string."""
+    if val is None:
+        return default
+    val = str(val).strip()
+    return val if val else default
+
+def safe_float(val, default):
+    """Coerce a possibly-None/invalid value to float, falling back to default."""
+    try:
+        if val is None or str(val).strip() == "":
+            return float(default)
+        return float(val)
+    except (TypeError, ValueError):
+        return float(default)
+
+def get_field(data, user_obj, key, default=None):
+    """Look in the top-level payload first, then the nested user object."""
+    val = data.get(key)
+    if val is None:
+        val = user_obj.get(key)
+    return val if val is not None else default
+
+# =====================================================================
 # 🔹 THE MEDICAL KNOWLEDGE GRAPH — ZONE-BASED INJURY ENGINE
 # =====================================================================
 
@@ -104,7 +140,7 @@ DIET_PROTOCOLS = {
 }
 
 def detect_injury_zones(disease, injury):
-    combined = f"{str(disease).lower()} {str(injury).lower()}"
+    combined = f"{safe_str(disease)} {safe_str(injury)}".lower()
     zones = set()
     for zone, keywords in ZONE_KEYWORDS.items():
         if any(kw in combined for kw in keywords):
@@ -117,6 +153,37 @@ def apply_intensity_protocols(combined_health_string):
         if any(keyword in combined_health_string for keyword in keywords):
             mutations.append(protocol)
     return mutations
+
+# =====================================================================
+# 🔹 UNIFIED SAFETY VERDICT — single source of truth
+# =====================================================================
+# Both /recommend-plan (rules engine) and /predict (chatbot) call this
+# so the two surfaces can never disagree about whether a user is under
+# a rest lock. Update injury logic ONCE here and both routes stay in sync.
+
+def get_safety_verdict(disease, injury):
+    zones, combined_health_string = detect_injury_zones(disease, injury)
+    movement_zones = zones & MOVEMENT_BLOCKING_ZONES
+    intensity_mutations = apply_intensity_protocols(combined_health_string)
+
+    if len(movement_zones) >= 2:
+        lock_level = "multi"
+        active_zone = None
+    elif len(movement_zones) == 1:
+        lock_level = "single"
+        active_zone = next(iter(movement_zones))
+    else:
+        lock_level = "none"
+        active_zone = None
+
+    return {
+        "zones": zones,
+        "movement_zones": movement_zones,
+        "intensity_mutations": intensity_mutations,
+        "lock_level": lock_level,        # "multi" | "single" | "none"
+        "active_zone": active_zone,
+        "combined_health_string": combined_health_string,
+    }
 
 # =====================================================================
 # 🔹 PER-ZONE EXERCISE PATTERNS (SAFE TERMINOLOGY APPLIED)
@@ -259,21 +326,21 @@ FULL_REST_MULTI_INJURY_LABEL = "Rest & Recovery (Medical Safety Hold)"
 def clean_volume_artifacts(s):
     if not isinstance(s, str):
         return REST_LABEL
-    
+
     # If the string indicates a complete rest or medical hold
     if any(k in s.lower() for k in ["rest", "recovery", "hold", "protocol"]):
         # Strip numbers and volume syntax: '3x8', '3 x 8', '3*8', '3 Sets', '8 Reps'
         s = re.sub(r'(?i)\b\d+\s*[xX*]\s*\d+\b', '', s)
         s = re.sub(r'(?i)\b\d+\s*(sets?|reps?|mins?|seconds?|minutes?)\b', '', s)
-        
+
         # Strip random punctuation left behind (like bullet points or dashes)
         s = re.sub(r'[\s\-,\•\|\:\;]+$', '', s)
         s = re.sub(r'^\s*[\s\-,\•\|\:\;]+', '', s)
         s = re.sub(r'\s+', ' ', s).strip()
-        
+
         if not s or len(s) < 3:
             return REST_LABEL
-            
+
     return s
 
 def adapt_exercises_single_zone(daily_string, active_zone):
@@ -295,19 +362,19 @@ def adapt_exercises_single_zone(daily_string, active_zone):
 
 @app.route('/recommend-plan', methods=['POST'])
 def recommend_plan():
-    data = request.json
+    data = request.json or {}
     try:
-        user_obj = data.get("user", {})
-        age = float(data.get('age', user_obj.get('age', 22)))
-        weight = float(data.get('weight', user_obj.get('weight', 70)))
+        user_obj = data.get("user", {}) or {}
+        age = safe_float(get_field(data, user_obj, 'age'), 22)
+        weight = safe_float(get_field(data, user_obj, 'weight'), 70)
 
-        exp_raw = str(data.get('experience', user_obj.get('experience', 'Intermediate'))).title()
+        exp_raw = safe_str(get_field(data, user_obj, 'experience'), 'intermediate').title()
         if exp_raw not in ['Beginner', 'Intermediate', 'Advance', 'Advanced']:
             exp_raw = 'Intermediate'
         if exp_raw == 'Advanced':
             exp_raw = 'Advance'
 
-        goal_raw = str(data.get('goal', user_obj.get('goal', 'Maintenance'))).title()
+        goal_raw = safe_str(get_field(data, user_obj, 'goal'), 'maintenance').title()
         if 'Loss' in goal_raw or 'Cut' in goal_raw:
             goal_raw = 'Fat Loss'
         elif 'Gain' in goal_raw or 'Bulk' in goal_raw:
@@ -327,8 +394,8 @@ def recommend_plan():
             exp = level_map.get(exp_raw, 2.0)
             goal = goal_map.get(goal_raw, 1.0)
 
-        disease = data.get('disease', user_obj.get('disease', 'none'))
-        injury = data.get('injury', user_obj.get('injury', 'none'))
+        disease = get_field(data, user_obj, 'disease', 'none')
+        injury = get_field(data, user_obj, 'injury', 'none')
 
         target_user = [[age, weight, exp, goal]]
     except Exception as e:
@@ -343,9 +410,9 @@ def recommend_plan():
 
     recommended_profile = df_users.iloc[idx]
 
-    zones, combined_health_string = detect_injury_zones(disease, injury)
-    movement_zones = zones & MOVEMENT_BLOCKING_ZONES
-    intensity_mutations = apply_intensity_protocols(combined_health_string)
+    verdict = get_safety_verdict(disease, injury)
+    movement_zones = verdict["movement_zones"]
+    intensity_mutations = verdict["intensity_mutations"]
 
     days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     day_field_map = {
@@ -355,7 +422,7 @@ def recommend_plan():
     }
 
     # ── MULTI-INJURY SAFETY OVERRIDE ─────────────────────────────────
-    if len(movement_zones) >= 2:
+    if verdict["lock_level"] == "multi":
         zone_list = sorted(movement_zones)
         return jsonify({
             "status": "success",
@@ -372,7 +439,7 @@ def recommend_plan():
         }), 200
 
     # ── SINGLE ZONE (OR NONE) — NORMAL / FULL-BLOCK PATH ─────────────
-    active_zone = next(iter(movement_zones)) if movement_zones else None
+    active_zone = verdict["active_zone"]
 
     if active_zone:
         base_routine = {
@@ -394,7 +461,7 @@ def recommend_plan():
         "message": msg,
         "recommended_cluster_index": str(idx),
         "medical_mutations_applied": intensity_mutations,
-        "injury_zones_detected": sorted(zones),
+        "injury_zones_detected": sorted(verdict["zones"]),
         "rest_protocol_triggered": False,
         "base_routine": base_routine
     }), 200
@@ -404,12 +471,12 @@ def recommend_plan():
 # =================================================
 @app.route('/diet-recommendation', methods=['POST'])
 def diet_recommendation():
-    data = request.json
-    user_obj = data.get("user", {})
+    data = request.json or {}
+    user_obj = data.get("user", {}) or {}
 
-    diet_type = data.get("dietType", user_obj.get("dietType", "")).lower()
-    disease = str(data.get("disease", user_obj.get("disease", "none"))).lower()
-    injury = str(data.get("injury", user_obj.get("injury", "none"))).lower()
+    diet_type = safe_str(get_field(data, user_obj, 'dietType'), '').lower()
+    disease = safe_str(get_field(data, user_obj, 'disease', 'none')).lower()
+    injury = safe_str(get_field(data, user_obj, 'injury', 'none')).lower()
     combined_health_string = f"{disease} {injury}"
 
     filtered = df_diet.copy()
@@ -457,8 +524,8 @@ def diet_recommendation():
 # =================================================
 @app.route('/scale-difficulty', methods=['POST'])
 def scale_difficulty():
-    data = request.json
-    avg_difficulty = data.get('average_difficulty', 5)
+    data = request.json or {}
+    avg_difficulty = safe_float(data.get('average_difficulty'), 5)
 
     if avg_difficulty < 4:
         coefficient = 1.15
@@ -482,17 +549,17 @@ def scale_difficulty():
 # =================================================
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.json
+    data = request.json or {}
     if not data or 'query' not in data:
         raise APIError("Please provide a search query.")
 
     raw_input = data.get('query')
-    user_obj = data.get('user', {})
+    user_obj = data.get('user', {}) or {}
 
     if isinstance(raw_input, dict):
-        user_query = str(raw_input.get('userQuery', ''))
+        user_query = safe_str(raw_input.get('userQuery', ''), '')
     else:
-        user_query = str(raw_input)
+        user_query = safe_str(raw_input, '')
 
     text_vec = vectorizer.transform([user_query])
 
@@ -504,11 +571,18 @@ def predict():
         confidence_score = max(probabilities)
         intent = predicted_intent if confidence_score >= 0.45 else "unknown"
 
+    # Compute the safety verdict up front — every intent that touches
+    # workouts needs to respect it, and the Groq-failure fallback needs
+    # it too so a rest lock is never silently dropped.
+    disease_val = get_field(data, user_obj, 'disease', 'none')
+    injury_val = get_field(data, user_obj, 'injury', 'none')
+    verdict = get_safety_verdict(disease_val, injury_val)
+
     context_data = "No explicit dataset records match. Rely on general athletic guidance."
 
     if intent == "workout_recommendation":
-        age = float(user_obj.get('age', 22))
-        weight = float(user_obj.get('weight', 70))
+        age = safe_float(get_field(data, user_obj, 'age'), 22)
+        weight = safe_float(get_field(data, user_obj, 'weight'), 70)
         target_user = [[age, weight, 1.0, 1.0]]
         distances, indices = knn_model.kneighbors(target_user)
         idx = indices[0][0]
@@ -517,14 +591,38 @@ def predict():
             idx = 0
 
         routine = df_users.iloc[idx]
-        context_data = (
-            f"BeFit Workout Log: Monday Split is "
-            f"{routine.get('Day 2 - Monday', 'Rest day scheduled')}. "
-            f"Tuesday Split is {routine.get('Day 3 - Tuesday', 'Rest day scheduled')}."
-        )
+
+        if verdict["lock_level"] == "multi":
+            zone_list = sorted(verdict["movement_zones"])
+            context_data = (
+                f"BeFit Medical Safety Engine Verdict: MULTI-INJURY REST LOCK ACTIVE. "
+                f"Detected concurrent injury zones: {', '.join(zone_list)}. "
+                f"Per BeFit safety protocol, ALL active training is suspended this week and replaced "
+                f"with Full Rest & Recovery. No exercises, substitutions, or workarounds are permitted "
+                f"while this lock is active."
+            )
+        else:
+            monday_raw = str(routine.get('Day 2 - Monday', 'Rest day scheduled'))
+            tuesday_raw = str(routine.get('Day 3 - Tuesday', 'Rest day scheduled'))
+
+            if verdict["lock_level"] == "single":
+                active_zone = verdict["active_zone"]
+                monday_val = adapt_exercises_single_zone(monday_raw, active_zone)
+                tuesday_val = adapt_exercises_single_zone(tuesday_raw, active_zone)
+                context_data = (
+                    f"BeFit Medical Safety Engine Verdict: SINGLE-ZONE ADAPTATION ACTIVE for "
+                    f"'{active_zone}'. BeFit Workout Log (already adapted for this injury): "
+                    f"Monday Split is {monday_val}. Tuesday Split is {tuesday_val}. "
+                    f"Only reference these pre-adapted exercises — do not invent alternatives."
+                )
+            else:
+                context_data = (
+                    f"BeFit Workout Log: Monday Split is {monday_raw}. "
+                    f"Tuesday Split is {tuesday_raw}."
+                )
 
     elif intent in ("diet_plan", "diet_info"):
-        diet_type = str(user_obj.get('dietType', 'vegetarian')).lower()
+        diet_type = safe_str(get_field(data, user_obj, 'dietType'), 'vegetarian').lower()
         filtered = df_diet[df_diet['Diet type'].str.contains(diet_type, case=False, na=False)]
         choice = filtered.sample(1).iloc[0] if not filtered.empty else df_diet.sample(1).iloc[0]
         context_data = (
@@ -535,12 +633,30 @@ def predict():
         )
 
     elif intent in ("user_profile", "injury_advice"):
-        context_data = (
-            f"BeFit User Metadata Context: Profile Goal: {user_obj.get('goal', 'Unspecified')}. "
-            f"Mass Baseline: {user_obj.get('weight', '70')}kg. "
-            f"Pathological Flag: {user_obj.get('disease', 'none')}. "
-            f"Mechanical Limitation: {user_obj.get('injury', 'none')}."
-        )
+        if verdict["lock_level"] == "multi":
+            zone_list = sorted(verdict["movement_zones"])
+            context_data = (
+                f"BeFit Medical Safety Engine Verdict: MULTI-INJURY REST LOCK ACTIVE. "
+                f"Detected concurrent injury zones: {', '.join(zone_list)}. "
+                f"Per BeFit safety protocol, ALL active training is suspended this week and replaced "
+                f"with Full Rest & Recovery. No exercises, substitutions, or workarounds (e.g. gripping "
+                f"weights with feet/mouth, one-handed lifts) are permitted while this lock is active."
+            )
+        elif verdict["lock_level"] == "single":
+            active_zone = verdict["active_zone"]
+            context_data = (
+                f"BeFit Medical Safety Engine Verdict: SINGLE-ZONE ADAPTATION ACTIVE for '{active_zone}'. "
+                f"Exercises involving this zone must be swapped for the app's approved zone-safe substitutes "
+                f"only (e.g. rest, isolation of unaffected limbs, or app-generated alternatives). "
+                f"Do not invent new exercises or workarounds not provided by the app."
+            )
+        else:
+            context_data = (
+                f"BeFit User Metadata Context: Profile Goal: {safe_str(get_field(data, user_obj, 'goal'), 'Unspecified')}. "
+                f"Mass Baseline: {safe_float(get_field(data, user_obj, 'weight'), 70)}kg. "
+                f"Pathological Flag: {disease_val}. "
+                f"Mechanical Limitation: {injury_val}. No movement-blocking zones detected."
+            )
 
     system_prompt = f"""
     You are the BeFit AI Fitness Coach. Speak in a friendly, conversational, and encouraging tone.
@@ -552,6 +668,11 @@ def predict():
     2. If the facts contain specific workout exercises or food meals, state them explicitly to answer the question.
     3. Keep your output highly concise and professional, wrapped within 2 to 3 sentences max.
     4. Do not mention the word 'database' or 'context row' in your final response. Talk like an intuitive personal coach.
+    5. NEVER invent your own exercise substitutions or workarounds for an injury. Strictly follow the
+       Medical Safety Engine Verdict above. If a REST LOCK is active, tell the user to rest completely and
+       not train this week — do NOT suggest any exercises, equipment tricks, or workarounds under any
+       circumstances, even if the user pushes back or asks a follow-up question. If SINGLE-ZONE ADAPTATION
+       is active, only reference the pre-adapted exercises given to you, never improvise new ones.
     """
 
     try:
@@ -562,15 +683,28 @@ def predict():
             ],
             model="llama-3.1-8b-instant",
             temperature=0.3,
-            max_tokens=100
+            max_tokens=300
         )
         personalized_msg = chat_completion.choices[0].message.content.strip()
 
     except Exception as e:
         print("🔴 Groq Cloud API lag/error fallback active:", str(e))
-        if intent == "workout_recommendation":
+
+        # Safety-aware fallback: if a rest lock or zone adaptation is active,
+        # never let the generic filler message override it.
+        if verdict["lock_level"] == "multi":
+            personalized_msg = (
+                "Your safety comes first — I've detected multiple concurrent injuries, so this week's "
+                "plan is a full Rest & Recovery hold. Please don't train until you're cleared."
+            )
+        elif verdict["lock_level"] == "single":
+            personalized_msg = (
+                f"Given your current {verdict['active_zone'].replace('_', ' ')} injury, stick to the "
+                "app's adapted, low-impact substitutes for that area rather than your usual exercises."
+            )
+        elif intent == "workout_recommendation":
             personalized_msg = "I've fetched your core cluster split! Let's hit your target compounds on the routine dashboard."
-        elif intent == "diet_plan":
+        elif intent in ("diet_plan", "diet_info"):
             personalized_msg = "Your custom nutritional split is ready! Check out the macro tracker to confirm items matching your requirements."
         else:
             personalized_msg = "I've received your data point. Let's head over to the corresponding app segment to execute updates!"
