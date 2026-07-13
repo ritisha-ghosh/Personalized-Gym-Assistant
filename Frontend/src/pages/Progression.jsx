@@ -506,9 +506,9 @@ const Progression = () => {
                               }
 
                               return (
-                                <div
-                                  key={dayIdx}
-                                  className={`w-3 h-3 rounded-sm ${intensity} relative z-0 ${isTodayOrRecent() ? `ring-1 ring-offset-1 ${isDarkMode ? 'ring-[#00c4b4]' : 'ring-teal-400'}` : ''}`}
+                                <div 
+                                  key={dayIdx} 
+                                  className={`w-3 h-3 rounded-sm ${intensity} relative z-0 hover:z-10 hover:scale-[1.4] hover:shadow-md hover:ring-1 hover:ring-offset-1 ${isDarkMode ? 'hover:ring-[#00c4b4]' : 'hover:ring-teal-400'} transition-all duration-300 ease-out cursor-pointer ${isTodayOrRecent() ? `ring-1 ring-offset-1 ${isDarkMode ? 'ring-[#00c4b4]' : 'ring-teal-400'}` : ''}`}
                                   title={tooltipDate}
                                 ></div>
                               );
@@ -530,8 +530,8 @@ const Progression = () => {
                 { label: 'Longest Streak', value: `${calculateLongestStreak()} Days` },
                 { label: 'Consistency', value: `${((workoutCount / 365) * 100).toFixed(1)}%` }
               ].map((stat, i) => (
-                <div key={i} className="text-center">
-                  <p className="text-2xl font-bold text-[#00c4b4]">{stat.value}</p>
+                <div key={i} className="text-center group hover:-translate-y-1 hover:scale-105 transition-all duration-300">
+                  <p className="text-2xl font-bold text-[#00c4b4] group-hover:drop-shadow-md transition-all duration-300">{stat.value}</p>
                   <p className={`text-[11px] font-bold uppercase tracking-wider mt-1 ${isDarkMode ? 'text-[#94a3b8]' : 'text-slate-400'}`}>{stat.label}</p>
                 </div>
               ))}
