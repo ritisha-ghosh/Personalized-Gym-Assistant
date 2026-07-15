@@ -1,4 +1,4 @@
-# 🏋️ BeFit - Personalized Gym Assistant
+# 🏋️ BeFit - Personalized Workout And Diet Assistant
 ### An Adaptive Web & Machine Learning Fitness Ecosystem
 
 ## 📌 Project Overview
