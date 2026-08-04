@@ -1,30 +1,8 @@
-// import axios from 'axios';
-
-// // Change this to your actual backend URL (usually port 5000 or 8000)
-// const API_BASE_URL = 'http://localhost:5000/api'; 
-
-// const api = axios.create({
-//   baseURL: API_BASE_URL,
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-// });
-
-// // Add a request interceptor to attach the Token to every request automatically
-// api.interceptors.request.use((config) => {
-//   const token = localStorage.getItem('authToken');
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
-
-// export default api;
-
-
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+// 🔹 DYNAMIC VITE API URL
+// Uses the Vercel env variable in production, falls back to local server on your laptop
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -46,7 +24,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Optional: Add a response interceptor to handle 401 (Expired Token)
+// Response interceptor to handle 401 (Expired Token)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -59,7 +37,7 @@ api.interceptors.response.use(
 
       if (refreshToken) {
         try {
-          // Call your refresh endpoint
+          // Call your refresh endpoint dynamically
           const res = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
           const newAccessToken = res.data.accessToken;
           
@@ -67,6 +45,7 @@ api.interceptors.response.use(
           api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
           
           return api(originalRequest);
+        // eslint-disable-next-line no-unused-vars
         } catch (refreshError) {
           // If refresh fails, clear storage and redirect to login
           localStorage.clear();
