@@ -1,90 +1,107 @@
-# 🏋️ BeFit - Personalized Gym Assistant
-### An Adaptive Web & Machine Learning Fitness Ecosystem
+# BeFit — Personalized Gym Assistant
 
-## 📌 Project Overview
-
-The **BeFit Personalized Gym Assistant** is an intelligent digital ecosystem designed to democratize access to personalized fitness coaching. 
-Unlike static fitness applications, this system utilizes **user-specific bio-data** (BMI, fitness goals, experience level) and a **hybrid calculation engine**—combining deterministic biological algorithms (Harris-Benedict) with probabilistic Machine Learning models (KNN, TF-IDF)—to generate and adapt dynamic workout and nutrition plans.
+**An Adaptive Web and Machine Learning Fitness Platform**
 
 ---
 
-## ✨ Key Features
+## Executive Summary
 
-### 🔁 Adaptive Recommendation Engine
-- **Self-Correcting Volume:** Dynamically adjusts workout sets and reps based on weekly user difficulty ratings and recovery logs.
-- **Smart Coach:** Utilizes **K-Nearest Neighbors (KNN) Collaborative Filtering** to match users with highly optimized training profiles.
-- **Data-Driven Diet Automation:** Strict ML data-sandboxing instantly generates calorie-tracked meals respecting specific dietary boundaries (e.g., Vegan, No-Onion/Garlic).
-
-### 🧠 Intelligence Microservice Layer
-- Standalone Python Flask microservice (0ms latency bridge).
-- Features rigorous ETL pipelines for dataset tagging and safety-clamp payload validation.
-
-### 💬 NLP AI Coach with Voice Integration
-- Natural Language Processing chatbot powered by **TF-IDF Vectorization** and a **Decision Tree Classifier**.
-- Integrated with the browser's native **Web Speech API** for hands-free voice coaching.
-
-### 📊 Smart Analytics Dashboard
-- Live data visualization using **Recharts** (Weight Trends, Heatmaps, Workout Consistency).
-- Tracks 48-hour historical recovery data to prevent overtraining.
+BeFit is a full-stack digital fitness platform engineered to deliver personalized coaching at scale. The system moves beyond static, one-size-fits-all fitness applications by leveraging user-specific biometric data — including BMI, fitness goals, and experience level — in combination with a hybrid computation engine. This engine integrates deterministic physiological models (Harris-Benedict) with probabilistic machine learning models (K-Nearest Neighbors, TF-IDF) to generate and continuously adapt personalized workout and nutrition programs.
 
 ---
 
-## 🏗️ System Architecture
+## Core Capabilities
 
-The system follows a highly resilient **modular four-layer architecture** designed for sub-200ms low-latency performance:
+### Adaptive Recommendation Engine
+- **Self-Correcting Volume Management** — Automatically adjusts training sets and repetitions based on weekly user-reported difficulty and recovery data.
+- **Collaborative Filtering Coach** — Applies K-Nearest Neighbors (KNN) modeling to align users with optimized training profiles derived from comparable user cohorts.
+- **Automated Nutrition Planning** — Generates calorie-tracked meal plans within a controlled ML data pipeline, respecting individual dietary constraints (e.g., vegan, allergen exclusions).
 
-1. **Presentation Layer (Port 5173):** React.js Single Page Application (SPA) built with Vite and Tailwind CSS.
-2. **Orchestration Layer (Port 5000):** Node.js & Express API Gateway handling OTP auth, JWT/Redis session security, and payload validation.
-3. **Intelligence Layer (Port 5001):** Persistent Python Flask HTTP microservice for ML inference and NLP processing (connected via asynchronous Axios retry-loops).
-4. **Data Layer:** MongoDB Atlas for flexible NoSQL schema management and dynamic log aggregation.
+### Intelligence Microservice Layer
+- A dedicated Python Flask microservice functioning as a low-latency AI processing bridge.
+- Incorporates structured ETL pipelines for dataset preparation and enforces payload validation for operational safety.
 
----
+### Conversational AI Coach with Voice Integration
+- A natural language processing chatbot powered by the Groq API with custom system-prompt engineering.
+- Integrated with the browser's native Web Speech API to support hands-free, voice-guided coaching sessions.
 
-## 🛠️ Tech Stack
-
-* **Frontend:** React.js (v18), Vite, Tailwind CSS, Recharts, Lucide Icons.
-* **Backend:** Node.js, Express.js, JWT (Access/Refresh Tokens), Redis, Nodemailer.
-* **Database:** MongoDB (Mongoose ODM).
-* **Intelligence Layer:** Python 3, Flask, Scikit-Learn, Pandas, Joblib.
-* **Integration:** Axios HTTP Bridge (Replaced legacy `child_process.spawn`).
-
----
-
-## 👥 Team & Domain Contribution Matrix
-
-This project was engineered by a specialized full-stack development team from the **Bengal Institute of Technology**, following a strategic microservice contribution model.
-
-| Team Member | Domain Contributions | Key Responsibilities |
-| :--- | :--- | :--- |
-| **Pritam Chakraborty**<br>*(Project Lead)* | **ML (70%)** <br> **Backend (15%)** | **ML Lead & Orchestration:** Engineered the core machine learning models, expanded NLP datasets, implemented strict data sandboxing, and built the Node-Python microservice bridge. |
-| **Shreya Sarkar** | **Backend (60%)** <br> **Frontend (15%)** | **Backend Lead & Analytics:** Architected the Express/Mongo infrastructure, advanced JWT/Redis security, 48-hour aggregation pipelines, and core Recharts data visualization. |
-| **Ritisha Ghosh** | **Frontend (50%)** <br> **Backend (0%)** | **Frontend Lead:** Engineered the core React UI architecture, dark mode, dynamic API data fetching, and handled comprehensive project documentation. |
-| **Debanka Samanta** | **Frontend (35%)** <br> **ML (0%)** | **Execution UI:** Built the interactive Live Workout UI, integrated Web Speech API voice coaching, enforced frontend boundaries, and optimized Flask microservice latency. |
-| **Subham Roy** | **ML (30%)** <br> **Backend (30%)** | **Math Engines & Data:** Programmed the Harris-Benedict BMR/TDEE math engines, Decision Tree feedback loops, and executed the ETL data mapping for the ML models. |
-
-> **Note:** The architecture utilizes a hybrid approach, separating deterministic business logic (Node.js) from probabilistic machine learning operations (Python Flask) to ensure maximum scalability and fault tolerance.
+### Analytics Dashboard
+- Real-time data visualization built on Recharts, covering weight trends, workout heatmaps, and consistency tracking.
+- Maintains a 48-hour rolling window of recovery data to support overtraining prevention.
 
 ---
 
-## 🚀 Execution & Deployment
+## System Architecture
 
-To launch the complete BeFit ecosystem locally, three terminal instances are required:
+BeFit is built on a modular, multi-tier architecture designed for cloud deployment, fault isolation, and low-latency performance.
 
+| Layer | Technology | Responsibility |
+|---|---|---|
+| **Presentation** | React.js (Vite, Tailwind CSS) | Single-page application hosted on Vercel |
+| **Orchestration** | Node.js / Express | API gateway managing authentication (OTP, JWT), database connectivity, and environment routing; deployed via Docker on Render |
+| **Intelligence** | Python / Flask | Persistent microservice for ML inference and AI processing; deployed via Docker on Render |
+| **Data** | MongoDB Atlas | NoSQL data store for user records and activity logs |
+
+---
+
+## Technology Stack
+
+**Frontend**
+React.js (v18), Vite, Tailwind CSS, Recharts, Lucide Icons
+
+**Backend**
+Node.js (v20), Express.js, JWT (access/refresh token rotation)
+
+**Database**
+MongoDB (Mongoose ODM)
+
+**Intelligence Layer**
+Python 3.12, Flask, Scikit-Learn, Pandas, Groq API
+
+**Deployment & Infrastructure**
+Docker (Alpine and Slim images), Vercel, Render
+
+---
+
+## Deployment
+
+The platform is fully containerized and supports both local development and distributed cloud deployment.
+
+### Production Environment
+
+The production system operates across three isolated cloud services:
+
+- **Frontend** — Hosted on Vercel with environment-driven API routing.
+- **Backend (Node.js)** — Containerized and deployed as a Render Web Service.
+- **ML Engine (Python)** — Containerized and deployed as an independent Render microservice.
+
+### Local Development
+
+To run the platform locally, configure the required `.env` variables in each service directory, then execute the following in three separate terminal sessions:
+
+**Terminal 1 — Frontend**
 ```bash
-# 1. Start the React Frontend (Terminal 1)
 cd Frontend
 npm install
 npm run dev
+```
 
-# 2. Start the Node.js API Gateway (Terminal 2)
+**Terminal 2 — Backend (API Gateway)**
+```bash
 cd Backend
 npm install
-npm run dev
+npm start
+```
 
-# 3. Start the Python Intelligence Microservice (Terminal 3)
+**Terminal 3 — Intelligence Microservice**
+```bash
 cd ML_Layer
 pip install -r requirements.txt
 python app.py
+```
 
-📝 License
-This software was developed strictly for academic purposes as part of the B.Tech CSE – 8th Semester Curriculum (2025–26) at the Bengal Institute of Technology.
+---
+
+## License & Attribution
+
+© 2025–2026 BeFit. All rights reserved.
