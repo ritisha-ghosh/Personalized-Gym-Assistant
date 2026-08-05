@@ -13,10 +13,10 @@ const WorkoutHeatmap = () => {
 
       try {
 
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("accessToken");
 
         const res = await fetch(
-          "http://localhost:5000/api/logs",
+          `${import.meta.env.VITE_API_URL}/logs`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
