@@ -12,7 +12,7 @@ const WeeklyConsistency = () => {
       try {
         const token = localStorage.getItem("accessToken");
 
-       const res = await fetch("http://localhost:5000/api/logs", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/logs`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

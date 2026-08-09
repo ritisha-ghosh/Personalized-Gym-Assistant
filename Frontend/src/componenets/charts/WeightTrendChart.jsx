@@ -17,10 +17,10 @@ const WeightTrendChart = () => {
     const token = localStorage.getItem("accessToken");
 
     Promise.all([
-      fetch("http://localhost:5000/api/logs", {
+      fetch(`${import.meta.env.VITE_API_URL}/logs`, {
         headers: { Authorization: `Bearer ${token}` },
       }).then((res) => res.json()),
-      fetch("http://localhost:5000/api/users/profile", {
+      fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       }).then((res) => res.json())
     ])
