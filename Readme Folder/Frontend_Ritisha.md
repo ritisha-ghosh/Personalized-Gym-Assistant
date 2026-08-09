@@ -56,7 +56,7 @@ python app.py
 
 git remote set-url origin https://github.com/Pritam7Chakraborty/Personalized-Gym-Assistant.git
 
-[git remote add origin https://github.com/Pritam7Chakraborty/BEFIT---Personalized-Gym-Assistant.git
+[git remote set-url https://github.com/Pritam7Chakraborty/BEFIT---Personalized-Gym-Assistant.git
 ](<https://github.com/Pritam7Chakraborty/BEFIT---Personalized-Gym-Assistant/blob/main/Readme%20Folder/README_PRITAM.md>)
 
 git remote set-url origin https://github.com/ritisha-ghosh/Personalized-Gym-Assistant.git
