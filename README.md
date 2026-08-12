@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 # 🏋️ BeFit - Personalized Workout And Diet Assistant
 ### An Adaptive Web & Machine Learning Fitness Ecosystem
-=======
+============
 # BeFit — Personalized Gym Assistant
 >>>>>>> 2c18345d68e19bcc3f64c02c23a14201e1e75086
 
