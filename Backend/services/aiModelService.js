@@ -1,7 +1,11 @@
 const axios = require('axios');
-const FLASK_RECOMMEND_URL = 'http://127.0.0.1:5001/recommend-plan';
-const FLASK_URL = 'http://127.0.0.1:5001/predict';
-const FLASK_SCALE_URL = 'http://127.0.0.1:5001/scale-difficulty'; // 🔹 ADDED FOR WEEK 9
+
+// 🔹 DYNAMIC CLOUD URL FIX: Uses Render URL if available, otherwise falls back to localhost
+const ML_BASE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:5001';
+
+const FLASK_RECOMMEND_URL = `${ML_BASE_URL}/recommend-plan`;
+const FLASK_URL = `${ML_BASE_URL}/predict`;
+const FLASK_SCALE_URL = `${ML_BASE_URL}/scale-difficulty`; // 🔹 ADDED FOR WEEK 9
 
 // Helper function to pause execution (wait before retrying)
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
